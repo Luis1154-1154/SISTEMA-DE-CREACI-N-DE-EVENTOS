@@ -1,1 +1,4 @@
-# SISTEMA-DE-CREACI-N-DE-EVENTOS
+-Llamas Pérez Luis Alfredo
+-Joel Fernando Soltero Estrella
+-Essael Torres Aguirre
+-Maximiliano Preciado Ayala
