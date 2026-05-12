@@ -1,4 +1,4 @@
 -Llamas Pérez Luis Alfredo
 -Joel Fernando Soltero Estrella
 -Essael Torres Aguirre
--Maximiliano Preciado Ayala
+ Product owner: Maximiliano Preciado Ayala
