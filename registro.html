@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Register - EventMaster</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#bfc8d0",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#181c20",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#ffffff",
+                        "surface-container-low": "#f1f4f9",
+                        "surface-bright": "#f7f9ff",
+                        "primary": "#0057cd",
+                        "surface-variant": "#e0e3e8",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c2c6d8",
+                        "tertiary-fixed": "#e1e3e4",
+                        "surface-tint": "#0057ce",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#001946",
+                        "on-tertiary-fixed-variant": "#454748",
+                        "secondary": "#575f67",
+                        "on-background": "#181c20",
+                        "on-secondary-fixed-variant": "#3f484f",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#0d6efd",
+                        "tertiary-fixed-dim": "#c5c7c8",
+                        "primary-fixed-dim": "#b1c5ff",
+                        "surface": "#f7f9ff",
+                        "outline": "#727787",
+                        "on-secondary-container": "#5b646b",
+                        "tertiary": "#5c5e60",
+                        "on-error": "#ffffff",
+                        "background": "#f7f9ff",
+                        "surface-container": "#ebeef3",
+                        "tertiary-container": "#757778",
+                        "inverse-on-surface": "#eef1f6",
+                        "surface-container-high": "#e5e8ee",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#dae2ff",
+                        "on-primary-container": "#ffffff",
+                        "secondary-fixed": "#dbe4ed",
+                        "on-secondary-fixed": "#141d23",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e0e3e8",
+                        "inverse-primary": "#b1c5ff",
+                        "on-tertiary-fixed": "#191c1d",
+                        "surface-dim": "#d7dadf",
+                        "on-primary-fixed-variant": "#00419e",
+                        "on-surface-variant": "#424655",
+                        "inverse-surface": "#2d3135",
+                        "secondary-container": "#d8e1ea"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "1rem",
+                        "stack-sm": "0.5rem",
+                        "margin-mobile": "1rem",
+                        "gutter": "1.5rem",
+                        "stack-lg": "2rem",
+                        "margin-desktop": "2rem",
+                        "container-max-width": "1320px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["2rem", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "body-lg": ["1.125rem", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-md": ["2rem", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "label-md": ["0.875rem", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "headline-sm": ["1.5rem", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "label-sm": ["0.75rem", { "lineHeight": "1", "letterSpacing": "0.03em", "fontWeight": "600" }],
+                        "body-md": ["1rem", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg": ["2.5rem", { "lineHeight": "1.2", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #181c20;
+            background-color: #ffffff;
+            background-clip: padding-box;
+            border: 1px solid #c2c6d8;
+            appearance: none;
+            border-radius: 0.25rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .form-control:focus {
+            color: #181c20;
+            background-color: #ffffff;
+            border-color: #0057cd;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(0, 87, 205, 0.25);
+        }
+
+        .form-label {
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            color: #ffffff;
+            background-color: #0057cd;
+            border-color: #0057cd;
+            display: inline-block;
+            font-weight: 600;
+            line-height: 1.5;
+            text-align: center;
+            text-decoration: none;
+            vertical-align: middle;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid transparent;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            height: 48px;
+        }
+
+        .btn-primary:hover {
+            color: #ffffff;
+            background-color: #00419e;
+            border-color: #00419e;
+        }
+
+        .card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            word-wrap: break-word;
+            background-color: #ffffff;
+            background-clip: border-box;
+            border: 1px solid #e0e3e8;
+            border-radius: 0.5rem;
+        }
+
+        .card-body {
+            flex: 1 1 auto;
+            padding: 2rem;
+        }
+
+        .card-header {
+            padding: 1rem 2rem;
+            margin-bottom: 0;
+            background-color: #f1f4f9;
+            border-bottom: 1px solid #e0e3e8;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md">
+    <main class="flex-grow flex items-center justify-center p-margin-mobile md:p-margin-desktop">
+        <div class="w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="font-headline-lg text-headline-lg text-primary mb-2 hidden md:block">EventMaster</h1>
+                <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-2 md:hidden">EventMaster</h1>
+                <p class="font-body-lg text-body-lg text-on-surface-variant">Crea tu cuenta para empezar a administrar
+                    tus eventos.</p>
+            </div>
+            <div class="card shadow-sm border-outline-variant">
+                <div class="card-header border-outline-variant bg-surface-container-low text-center">
+                    <h2 class="font-headline-sm text-headline-sm text-on-surface">Registro</h2>
+                </div>
+                <div class="card-body">
+                    <form action="#" class="flex flex-col gap-4" method="POST">
+                        <div>
+                            <label class="form-label font-label-md text-label-md text-on-surface" for="fullName">Nombre
+                                Completo</label>
+                            <input class="form-control" id="fullName" name="fullName" placeholder="Ramirez Anguiano" required=""
+                                type="text" />
+                        </div>
+                        <div>
+                            <label class="form-label font-label-md text-label-md text-on-surface" for="email">Correo Electronico</label>
+                            <input class="form-control" id="email" name="email" placeholder="RamirezAnguiano@ucol.mx"
+                                required="" type="email" />
+                        </div>
+                        <div>
+                            <label class="form-label font-label-md text-label-md text-on-surface"
+                                for="password">Contraseña</label>
+                            <input class="form-control" id="password" name="password" placeholder="••••••••" required=""
+                                type="password" />
+                            <div class="mt-1 font-body-sm text-body-sm text-secondary">Debe de tener al menos 8
+                                caracteres de largo.</div>
+                        </div>
+                        <div>
+                            <label class="form-label font-label-md text-label-md text-on-surface"
+                                for="confirmPassword">Confirmar Contraseña</label>
+                            <input class="form-control" id="confirmPassword" name="confirmPassword"
+                                placeholder="••••••••" required="" type="password" />
+                        </div>
+                        <div class="flex items-start mt-2">
+                            <div class="flex items-center h-5">
+                                <input
+                                    class="w-4 h-4 border border-outline-variant rounded bg-surface-container-lowest focus:ring-3 focus:ring-primary-container text-primary"
+                                    id="terms" name="terms" required="" type="checkbox" />
+                            </div>
+                            <label class="ml-2 font-body-sm text-body-sm text-on-surface-variant" for="terms">
+                                Acepto los <a class="text-primary hover:underline font-semibold" href="#">Terminos de
+                                    servicio</a> y la <a class="text-primary hover:underline font-semibold"
+                                    href="#">Politica de privacidad</a>.
+                            </label>
+                        </div>
+                        <button class="btn-primary w-full mt-4 flex justify-center items-center gap-2" type="submit">
+                            <span>Crear Cuenta</span>
+                            <span class="material-symbols-outlined"
+                                style="font-variation-settings: 'FILL' 0;">arrow_forward</span>
+                        </button>
+                    </form>
+                </div>
+                <div class="p-4 border-t border-outline-variant bg-surface-container-lowest text-center rounded-b-lg">
+                    <p class="font-body-md text-body-md text-on-surface-variant">
+                        Ya tienes una cuenta? <a class="text-primary font-bold hover:underline" href="#">Iniciar
+                            Sesión</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>EventMaster - Events</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#bfc8d0",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#181c20",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#ffffff",
+                        "surface-container-low": "#f1f4f9",
+                        "surface-bright": "#f7f9ff",
+                        "primary": "#0057cd",
+                        "surface-variant": "#e0e3e8",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c2c6d8",
+                        "tertiary-fixed": "#e1e3e4",
+                        "surface-tint": "#0057ce",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#001946",
+                        "on-tertiary-fixed-variant": "#454748",
+                        "secondary": "#575f67",
+                        "on-background": "#181c20",
+                        "on-secondary-fixed-variant": "#3f484f",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#0d6efd",
+                        "tertiary-fixed-dim": "#c5c7c8",
+                        "primary-fixed-dim": "#b1c5ff",
+                        "surface": "#f7f9ff",
+                        "outline": "#727787",
+                        "on-secondary-container": "#5b646b",
+                        "tertiary": "#5c5e60",
+                        "on-error": "#ffffff",
+                        "background": "#f7f9ff",
+                        "surface-container": "#ebeef3",
+                        "tertiary-container": "#757778",
+                        "inverse-on-surface": "#eef1f6",
+                        "surface-container-high": "#e5e8ee",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#dae2ff",
+                        "on-primary-container": "#ffffff",
+                        "secondary-fixed": "#dbe4ed",
+                        "on-secondary-fixed": "#141d23",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e0e3e8",
+                        "inverse-primary": "#b1c5ff",
+                        "on-tertiary-fixed": "#191c1d",
+                        "surface-dim": "#d7dadf",
+                        "on-primary-fixed-variant": "#00419e",
+                        "on-surface-variant": "#424655",
+                        "inverse-surface": "#2d3135",
+                        "secondary-container": "#d8e1ea"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "1rem",
+                        "stack-sm": "0.5rem",
+                        "margin-mobile": "1rem",
+                        "gutter": "1.5rem",
+                        "stack-lg": "2rem",
+                        "margin-desktop": "2rem",
+                        "container-max-width": "1320px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": [
+                            "Inter", "sans-serif"
+                        ],
+                        "body-sm": [
+                            "Inter", "sans-serif"
+                        ],
+                        "body-lg": [
+                            "Inter", "sans-serif"
+                        ],
+                        "headline-md": [
+                            "Inter", "sans-serif"
+                        ],
+                        "label-md": [
+                            "Inter", "sans-serif"
+                        ],
+                        "headline-sm": [
+                            "Inter", "sans-serif"
+                        ],
+                        "label-sm": [
+                            "Inter", "sans-serif"
+                        ],
+                        "body-md": [
+                            "Inter", "sans-serif"
+                        ],
+                        "headline-lg": [
+                            "Inter", "sans-serif"
+                        ]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": [
+                            "2rem",
+                            {
+                                "lineHeight": "1.2",
+                                "fontWeight": "700"
+                            }
+                        ],
+                        "body-sm": [
+                            "0.875rem",
+                            {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "body-lg": [
+                            "1.125rem",
+                            {
+                                "lineHeight": "1.6",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "headline-md": [
+                            "2rem",
+                            {
+                                "lineHeight": "1.3",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "label-md": [
+                            "0.875rem",
+                            {
+                                "lineHeight": "1",
+                                "letterSpacing": "0.02em",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "headline-sm": [
+                            "1.5rem",
+                            {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "label-sm": [
+                            "0.75rem",
+                            {
+                                "lineHeight": "1",
+                                "letterSpacing": "0.03em",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "body-md": [
+                            "1rem",
+                            {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "headline-lg": [
+                            "2.5rem",
+                            {
+                                "lineHeight": "1.2",
+                                "fontWeight": "700"
+                            }
+                        ]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+    <nav
+        class="bg-surface-container-lowest dark:bg-inverse-surface w-full top-0 border-b border-outline-variant dark:border-outline">
+        <div class="flex justify-between items-center w-full px-margin-desktop py-4 max-w-container-max-width mx-auto">
+            <div class="flex items-center gap-6">
+                <span
+                    class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed-dim">EventMaster</span>
+                <div class="hidden md:flex gap-4">
+                    <a class="text-primary dark:text-primary-fixed-dim border-b-2 border-primary dark:border-primary-fixed-dim pb-1 font-bold font-body-md text-body-md"
+                        href="#">Eventos</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative hidden md:block">
+                    <input
+                        class="border border-outline-variant rounded-full py-2 pl-4 pr-10 bg-surface-container-lowest text-body-sm font-body-sm focus:outline-none focus:border-primary"
+                        placeholder="Buscar Eventos..." type="text" />
+                    <span class="material-symbols-outlined absolute right-3 top-2.5 text-outline text-sm">Buscar</span>
+                </div>
+                <a class="md:hidden text-primary font-label-md text-label-md bg-primary-container text-on-primary-container px-4 py-2 rounded"
+                    href="crearEventos.html">Crear Evento</a>
+            </div>
+        </div>
+    </nav>
+    <main class="flex-grow w-full px-margin-mobile md:px-margin-desktop py-stack-lg max-w-container-max-width mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-stack-lg gap-4">
+            <div>
+                <h1
+                    class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-stack-sm">
+                    Eventos</h1>
+                <p class="font-body-md text-body-md text-secondary">Todos los eventos disponibles.</p>
+            </div>
+            <div class="flex gap-4">
+                <a class="hidden md:flex items-center gap-2 bg-primary text-on-primary px-6 py-2 rounded hover:opacity-90 transition-opacity"
+                    href="crearEventos.html">
+                    <span class="material-symbols-outlined text-[18px]">add</span>
+                    <span class="font-label-md text-label-md">Crear Evento</span>
+                </a>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+            <div
+                class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col group hover:shadow-sm transition-shadow">
+                <div class="h-48 w-full relative bg-surface-variant overflow-hidden">
+                    <img alt="Tech Conference 2024"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        data-alt="A modern tech conference auditorium filled with attendees, illuminated by bright blue and white stage lights. The atmosphere is professional and energetic, capturing a large corporate event setting in a clean, light-mode aesthetic."
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAr0w6B3DbiBPL9REEzWikH5lRm-rJBOg-r2Qd6sw1szr4SWUXEOz7ptmtdoyK87DGKWTxO77oK7Deszfn36lqoMbyzajCZLSQVIOkC1n7crD5AAlHZ2Nwl3A2kYtFfcA-8IBABH_k4pyWqsUiny90DqECL4gw4F00nCSzo8o9PcVnKOAfNz1uO3-2YoPi_kV3M3IVsbY84axfpLwW7zHjt8eAqnuGwURDLQxHLsP8jtX7Q1gdGPnF2MZnaul6FTlicrtVVUqS9XaY" />
+                    <div
+                        class="absolute top-4 right-4 bg-surface-container-lowest px-2 py-1 rounded text-primary font-label-sm text-label-sm shadow-sm border border-outline-variant">
+                        Por venir
+                    </div>
+                </div>
+                <div class="p-4 flex-grow flex flex-col">
+                    <h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Global Tech Summit 2026</h3>
+                    <div class="flex items-center gap-2 text-secondary font-body-sm text-body-sm mb-2">
+                        <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+                        <span>Oct 15 - Oct 17, 2026</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-secondary font-body-sm text-body-sm mb-4">
+                        <span class="material-symbols-outlined text-[16px]">location_on</span>
+                        <span>Moscone Center, San Francisco</span>
+                    </div>
+                    <div class="mt-auto pt-4 border-t border-surface-variant flex justify-between items-center">
+                        <div class="flex -space-x-2">
+                            <div
+                                class="w-8 h-8 rounded-full bg-primary-container border-2 border-surface-container-lowest flex items-center justify-center text-on-primary-container font-label-sm text-label-sm">
+                                JD</div>
+                            <div
+                                class="w-8 h-8 rounded-full bg-secondary-container border-2 border-surface-container-lowest flex items-center justify-center text-on-secondary-container font-label-sm text-label-sm">
+                                AK</div>
+                            <div
+                                class="w-8 h-8 rounded-full bg-surface-variant border-2 border-surface-container-lowest flex items-center justify-center text-secondary font-label-sm text-label-sm">
+                                +42</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col group hover:shadow-sm transition-shadow">
+                <div class="h-48 w-full relative bg-surface-variant overflow-hidden">
+                    <img alt="Leadership Workshop"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        data-alt="A bright, modern workshop room with round tables and whiteboards. Professionals are engaged in discussion. The setting is clean, well-lit with natural light, reflecting a corporate learning environment in a light-mode style."
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuClGIqUngWMRcpfqjdysANyOKOIrfgVLB44SC5XXriQtChN1Tk9uNfIbleb8-s2YlEuCd6y8--qiYdpPxgzwsjUjhfgdkquHnhjprc-OKozQ9L4SqGqmlBE8uPRvsIDqlI-VqHao5zcw7Z09b-hP0FEU9OlfL3HsSn5ysEOoZX3Mgnhi6at8xd1n0aE4AVtXSKMZqmlflgwUzhpQfZNLDt1dGJ2nWHzfw8vmgOkiJdp1dRMcUTAsTWvCHt60cyE9aF7tswJ8OOHESY" />
+                    <div
+                        class="absolute top-4 right-4 bg-surface-container-lowest px-2 py-1 rounded text-secondary font-label-sm text-label-sm shadow-sm border border-outline-variant">
+                        Por venir
+                    </div>
+                </div>
+                <div class="p-4 flex-grow flex flex-col">
+                    <h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Executive Leadership Workshop
+                    </h3>
+                    <div class="flex items-center gap-2 text-secondary font-body-sm text-body-sm mb-2">
+                        <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+                        <span>Nov 05, 2026</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-secondary font-body-sm text-body-sm mb-4">
+                        <span class="material-symbols-outlined text-[16px]">location_on</span>
+                        <span>Virtual (Zoom)</span>
+                    </div>
+                    <div
+                        class="w-8 h-8 rounded-full bg-surface-variant border-2 border-surface-container-lowest flex items-center justify-center text-secondary font-label-sm text-label-sm">
+                        20</div>
+                </div>
+            </div>
+            <div
+                class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col group hover:shadow-sm transition-shadow">
+                <div class="h-48 w-full relative bg-surface-variant overflow-hidden">
+                    <img alt="Product Launch Gala"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        data-alt="An elegant evening gala setup with formal dining tables, ambient lighting, and a stage in the background. The mood is sophisticated and celebratory, suitable for a high-end corporate product launch in a clean aesthetic."
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDl_lPpwBIqDvx0NV_z2DlPGINLw8wXl-g1XJJtLLVKCqtycVxHTmRoc7bhf3s2BwI3hpp5wSZzl4YLA_aIh3_b5sN3LvY5R0Yqe2lKZI59kd5LE74q-kHrl8cFe95zCcVOB-PBgJ3xtbFMQP0tIMr3unWM1gYqrkNtnYBv4ghgZk6kzY-bhpngGDqrhKwKYMNjUmqmbaQb-cv6AlhYzgMzSM0Rb_mLIqYHjEFrN_fJEIrKlkgoZ7ThYOLOzouH-nSGr5VS8oIdvy8" />
+                    <div class="absolute top-4 right-4 bg-success-subtle text-success-emphasis px-2 py-1 rounded font-label-sm text-label-sm shadow-sm border border-outline-variant"
+                        style="background-color: #d1e7dd; color: #0f5132;">
+                        Hoy
+                    </div>
+                </div>
+                <div class="p-4 flex-grow flex flex-col">
+                    <h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Q4 Product Launch Gala</h3>
+                    <div class="flex items-center gap-2 text-secondary font-body-sm text-body-sm mb-2">
+                        <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+                        <span>Hoy!</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-secondary font-body-sm text-body-sm mb-4">
+                        <span class="material-symbols-outlined text-[16px]">location_on</span>
+                        <span>Grand Plaza Hotel, NY</span>
+                    </div>
+                    <div class="mt-auto pt-4 border-t border-surface-variant flex justify-between items-center">
+                        <div class="flex -space-x-2">
+                            <div
+                                class="w-8 h-8 rounded-full bg-surface-variant border-2 border-surface-container-lowest flex items-center justify-center text-secondary font-label-sm text-label-sm">
+                                250</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-center mt-stack-lg gap-2">
+            <button
+                class="p-2 border border-outline-variant rounded hover:bg-surface-container-low text-secondary disabled:opacity-50"><span
+                    class="material-symbols-outlined text-[20px]">chevron_left</span></button>
+            <button class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md">1</button>
+            <button
+                class="px-4 py-2 border border-outline-variant rounded hover:bg-surface-container-low text-on-surface font-label-md text-label-md">2</button>
+            <button
+                class="px-4 py-2 border border-outline-variant rounded hover:bg-surface-container-low text-on-surface font-label-md text-label-md">3</button>
+            <button
+                class="p-2 border border-outline-variant rounded hover:bg-surface-container-low text-secondary"><span
+                    class="material-symbols-outlined text-[20px]">chevron_right</span></button>
+        </div>
+    </main>
+    <footer
+        class="bg-surface-container-lowest dark:bg-inverse-surface w-full bottom-0 border-t border-outline-variant dark:border-outline mt-auto">
+        <div
+            class="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop py-8 max-w-container-max-width mx-auto gap-4">
+            <span class="font-label-md text-label-md font-bold text-on-surface dark:text-on-primary-fixed">© 2024
+                EventMaster Logistics. All rights reserved.</span>
+            <div class="flex gap-4">
+                <a class="text-secondary hover:text-primary transition-colors font-body-sm text-body-sm hover:underline hover:text-primary dark:hover:text-primary-fixed-dim"
+                    href="#">Privacy Policy</a>
+                <a class="text-secondary hover:text-primary transition-colors font-body-sm text-body-sm hover:underline hover:text-primary dark:hover:text-primary-fixed-dim"
+                    href="#">Terms of Service</a>
+                <a class="text-secondary hover:text-primary transition-colors font-body-sm text-body-sm hover:underline hover:text-primary dark:hover:text-primary-fixed-dim"
+                    href="#">Support</a>
+                <a class="text-secondary hover:text-primary transition-colors font-body-sm text-body-sm hover:underline hover:text-primary dark:hover:text-primary-fixed-dim"
+                    href="#">Contact</a>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
