@@ -13,6 +13,8 @@ const usuariosRoutes = require('./routes/usuariosRoutes');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Serve frontend static files from project-level `frontend/` (allows accessing registro.html, etc.)
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const apiRoutes = [

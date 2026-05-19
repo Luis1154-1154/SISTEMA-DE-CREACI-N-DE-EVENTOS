@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS eventos (
   ubicacion VARCHAR(200) NOT NULL,
   lugar_id INT DEFAULT NULL,
   estatus ENUM('activo','cancelado','finalizado') DEFAULT 'activo',
+  metodo_inscripcion VARCHAR(50) DEFAULT 'gratuito',
+  tipo VARCHAR(50) DEFAULT NULL,
   descripcion TEXT,
   organizador VARCHAR(150),
   organizador_id INT DEFAULT NULL,

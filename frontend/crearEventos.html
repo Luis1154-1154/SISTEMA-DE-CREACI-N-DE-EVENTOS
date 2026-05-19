@@ -184,6 +184,33 @@
                         class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                         id="eventDescription" placeholder="Detalles adicionales sobre el evento..." rows="4"></textarea>
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block font-label-md text-label-md text-on-surface mb-2" for="eventStatus">Estado</label>
+                        <select id="eventStatus" name="estatus" class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3">
+                            <option value="activo">Activo</option>
+                            <option value="cancelado">Cancelado</option>
+                            <option value="finalizado">Finalizado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-md text-label-md text-on-surface mb-2" for="eventMethod">Método de inscripción</label>
+                        <select id="eventMethod" name="metodo_inscripcion" class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3">
+                            <option value="gratuito">Gratuito</option>
+                            <option value="pagado">Pagado</option>
+                            <option value="invitacion">Invitación</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-md text-label-md text-on-surface mb-2" for="eventTipo">Tipo de evento</label>
+                        <select id="eventTipo" name="tipo" class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3">
+                            <option value="culturales">Culturales</option>
+                            <option value="deportivos">Deportivos</option>
+                            <option value="educativos">Educativos</option>
+                            <option value="sociales">Sociales</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-outline-variant">
                     <button
                         class="px-6 py-3 rounded-lg border border-outline text-secondary font-label-md text-label-md hover:bg-surface-container-low transition-colors w-full sm:w-auto"
@@ -200,18 +227,13 @@
         </div>
     </main>
     <footer class="bg-surface-container-lowest border-t border-outline-variant w-full mt-auto">
-        <div
-            class="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop py-8 max-w-container-max-width mx-auto gap-4">
+        <div class="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop py-8 max-w-container-max-width mx-auto gap-4">
             <span class="font-label-md text-label-md font-bold text-on-surface">© 2026 EventMaster Enterprise. Todos los derechos reservados.</span>
             <div class="flex gap-6">
-                <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors"
-                    href="#">Politicas de Privacidad</a>
-                <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors"
-                    href="#">Terminos del Servicio</a>
-                <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors"
-                    href="#">Soporte</a>
-                <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors"
-                    href="#">Contacto</a>
+                <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors" href="#">Politicas de Privacidad</a>
+                <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors" href="#">Terminos del Servicio</a>
+                <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors" href="#">Soporte</a>
+                <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors" href="#">Contacto</a>
             </div>
         </div>
     </footer>

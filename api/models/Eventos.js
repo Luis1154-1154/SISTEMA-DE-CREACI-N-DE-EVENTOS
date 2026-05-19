@@ -9,8 +9,10 @@ exports.getAllEventos = (callback) => {
         e.hora,
         e.ubicacion,
         e.lugar_id,
-        e.estatus,
-      e.descripcion,
+          e.estatus,
+          e.metodo_inscripcion,
+          e.tipo,
+        e.descripcion,
       e.organizador,
         e.categoria_id,
       c.nombre AS categoria_nombre,
@@ -33,8 +35,13 @@ exports.getEventoById = (id, callback) => {
       e.fecha,
       e.hora,
       e.ubicacion,
+      e.lugar_id,
+      e.estatus,
+      e.metodo_inscripcion,
+      e.tipo,
       e.descripcion,
       e.organizador,
+      e.organizador_id,
       e.categoria_id,
       c.nombre AS categoria_nombre
     FROM eventos e
@@ -45,7 +52,7 @@ exports.getEventoById = (id, callback) => {
 };
 
 exports.addEvento = (eventoData, callback) => {
-  const query = 'INSERT INTO eventos (nombre, fecha, hora, ubicacion, lugar_id, estatus, descripcion, organizador, organizador_id, categoria_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  const query = 'INSERT INTO eventos (nombre, fecha, hora, ubicacion, lugar_id, estatus, metodo_inscripcion, tipo, descripcion, organizador, organizador_id, categoria_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
   db.query(
     query,
     [
@@ -55,6 +62,8 @@ exports.addEvento = (eventoData, callback) => {
       eventoData.ubicacion,
       eventoData.lugar_id || null,
       eventoData.estatus || 'activo',
+      eventoData.metodo_inscripcion || 'gratuito',
+      eventoData.tipo || null,
       eventoData.descripcion || null,
       eventoData.organizador || null,
       eventoData.organizador_id || null,
@@ -65,7 +74,7 @@ exports.addEvento = (eventoData, callback) => {
 };
 
 exports.updateEvento = (id, eventoData, callback) => {
-  const query = 'UPDATE eventos SET nombre = ?, fecha = ?, hora = ?, ubicacion = ?, lugar_id = ?, estatus = ?, descripcion = ?, organizador = ?, organizador_id = ?, categoria_id = ? WHERE id = ?';
+  const query = 'UPDATE eventos SET nombre = ?, fecha = ?, hora = ?, ubicacion = ?, lugar_id = ?, estatus = ?, metodo_inscripcion = ?, tipo = ?, descripcion = ?, organizador = ?, organizador_id = ?, categoria_id = ? WHERE id = ?';
   db.query(
     query,
     [
@@ -75,6 +84,8 @@ exports.updateEvento = (id, eventoData, callback) => {
       eventoData.ubicacion,
       eventoData.lugar_id || null,
       eventoData.estatus || 'activo',
+      eventoData.metodo_inscripcion || 'gratuito',
+      eventoData.tipo || null,
       eventoData.descripcion || null,
       eventoData.organizador || null,
       eventoData.organizador_id || null,
