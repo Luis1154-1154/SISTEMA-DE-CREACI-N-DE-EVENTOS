@@ -11,7 +11,7 @@ const testRoutes = require('./routes/testRoutes');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const apiRoutes = [
   { method: 'GET', path: '/api', description: 'Listado de endpoints disponibles' },
