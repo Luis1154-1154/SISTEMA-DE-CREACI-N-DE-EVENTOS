@@ -7,6 +7,7 @@ exports.getByEvento = (eventoId, callback) => {
       i.evento_id,
       i.participante_id,
       i.asistio,
+      i.metodo,
       i.fecha_inscripcion,
       p.nombre AS participante_nombre,
       p.email AS participante_email
@@ -19,8 +20,8 @@ exports.getByEvento = (eventoId, callback) => {
 };
 
 exports.addInscripcion = (payload, callback) => {
-  const query = 'INSERT INTO inscripciones (evento_id, participante_id, asistio) VALUES (?, ?, ?)';
-  db.query(query, [payload.evento_id, payload.participante_id, payload.asistio || 0], callback);
+  const query = 'INSERT INTO inscripciones (evento_id, participante_id, asistio, metodo) VALUES (?, ?, ?, ?)';
+  db.query(query, [payload.evento_id, payload.participante_id, payload.asistio || 0, payload.metodo || 'gratuito'], callback);
 };
 
 exports.updateAsistencia = (id, asistio, callback) => {

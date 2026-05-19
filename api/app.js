@@ -8,6 +8,8 @@ const participantesRoutes = require('./routes/participantesRoutes');
 const inscripcionesRoutes = require('./routes/inscripcionesRoutes');
 const reportesRoutes = require('./routes/reportesRoutes');
 const testRoutes = require('./routes/testRoutes');
+const lugaresRoutes = require('./routes/lugaresRoutes');
+const usuariosRoutes = require('./routes/usuariosRoutes');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -54,6 +56,8 @@ app.use('/', participantesRoutes);
 app.use('/', inscripcionesRoutes);
 app.use('/', reportesRoutes);
 app.use('/test', testRoutes);
+app.use('/', lugaresRoutes);
+app.use('/', usuariosRoutes);
 
 app.use('/api', eventosRoutes);
 app.use('/api', categoriasRoutes);
@@ -61,6 +65,8 @@ app.use('/api', participantesRoutes);
 app.use('/api', inscripcionesRoutes);
 app.use('/api', reportesRoutes);
 app.use('/api', testRoutes);
+app.use('/api', lugaresRoutes);
+app.use('/api', usuariosRoutes);
 
 app.use((req, res) => {
   res.status(404).send('<h1>Error 404</h1><p>La ruta que intentas acceder no existe.</p>');
