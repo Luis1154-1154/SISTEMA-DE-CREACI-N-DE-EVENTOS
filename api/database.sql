@@ -59,3 +59,20 @@ CREATE TABLE IF NOT EXISTS usuarios (
   contrasena VARCHAR(255) DEFAULT NULL,
   rol ENUM('organizador','participante','invitado','administrador') DEFAULT 'participante'
 );
+
+-- Seed categorias predefinidas (no duplicar si ya existen)
+INSERT INTO categorias (nombre)
+SELECT 'Tecnología' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Tecnología');
+INSERT INTO categorias (nombre)
+SELECT 'Educativos' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Educativos');
+INSERT INTO categorias (nombre)
+SELECT 'Culturales' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Culturales');
+INSERT INTO categorias (nombre)
+SELECT 'Sociales' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Sociales');
+INSERT INTO categorias (nombre)
+SELECT 'Deportivos' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Deportivos');
+INSERT INTO categorias (nombre)
+SELECT 'Conferencias' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Conferencias');
+INSERT INTO categorias (nombre)
+SELECT 'Talleres' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Talleres');
+
