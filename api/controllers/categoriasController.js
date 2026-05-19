@@ -17,10 +17,10 @@ exports.getCategoriaById = (req, res) => {
 };
 
 exports.addCategoria = (req, res) => {
-  const { nombre, descripcion } = req.body;
+  const { nombre } = req.body;
   if (!nombre) return res.status(400).json({ message: 'El nombre es obligatorio' });
 
-  Categoria.addCategoria({ nombre, descripcion }, (err, result) => {
+  Categoria.addCategoria({ nombre }, (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.status(201).json({ message: 'Categoria creada', id: result.insertId });
   });
@@ -28,10 +28,10 @@ exports.addCategoria = (req, res) => {
 
 exports.updateCategoria = (req, res) => {
   const { id } = req.params;
-  const { nombre, descripcion } = req.body;
+  const { nombre } = req.body;
   if (!nombre) return res.status(400).json({ message: 'El nombre es obligatorio' });
 
-  Categoria.updateCategoria(id, { nombre, descripcion }, (err, result) => {
+  Categoria.updateCategoria(id, { nombre }, (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!result.affectedRows) return res.status(404).json({ message: 'Categoria no encontrada' });
     res.status(200).json({ message: 'Categoria actualizada' });

@@ -3,8 +3,7 @@ USE eventos_db;
 
 CREATE TABLE IF NOT EXISTS categorias (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(100) NOT NULL,
-  descripcion TEXT
+  nombre VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS eventos (
