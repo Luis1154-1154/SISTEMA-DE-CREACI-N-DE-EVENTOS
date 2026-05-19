@@ -12,8 +12,27 @@
     imgWrap.appendChild(img);
 
     const badge = document.createElement('div');
-    badge.className = 'absolute top-4 right-4 bg-surface-container-lowest px-2 py-1 rounded text-primary font-label-sm text-label-sm shadow-sm border border-outline-variant';
-    badge.textContent = event.estatus || 'Por venir';
+    badge.className = 'absolute top-4 right-4 px-2 py-1 rounded font-label-sm text-label-sm shadow-sm border border-outline-variant';
+    // map status to colors
+    const status = (event.estatus || 'activo').toLowerCase();
+    badge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    if (status === 'activo') {
+      badge.style.backgroundColor = '#d1e7dd';
+      badge.style.color = '#0f5132';
+      badge.style.borderColor = '#bcd7c6';
+    } else if (status === 'cancelado') {
+      badge.style.backgroundColor = '#f8d7da';
+      badge.style.color = '#721c24';
+      badge.style.borderColor = '#f1b0b7';
+    } else if (status === 'finalizado') {
+      badge.style.backgroundColor = '#e9ecef';
+      badge.style.color = '#495057';
+      badge.style.borderColor = '#d3d7da';
+    } else {
+      badge.style.backgroundColor = '#fff3cd';
+      badge.style.color = '#664d03';
+      badge.style.borderColor = '#ffeeba';
+    }
     imgWrap.appendChild(badge);
 
     const body = document.createElement('div');

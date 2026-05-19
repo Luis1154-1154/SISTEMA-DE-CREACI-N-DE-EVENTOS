@@ -8,7 +8,7 @@ window.MOCK_EVENTS = [
     seccion: 'educativos',
     descripcion: 'Conferencias y mesas redondas sobre tecnología y transformación digital.',
     organizador: 'TechCorp',
-    estatus: 'por venir',
+    estatus: 'activo',
     inscritos: ['Juan Díaz', 'Ana Kim', 'Luis Pérez']
   },
   {
@@ -20,7 +20,7 @@ window.MOCK_EVENTS = [
     seccion: 'culturales',
     descripcion: 'Taller para ejecutivos enfocado en liderazgo y gestión de equipos.',
     organizador: 'LeadWell',
-    estatus: 'por venir',
+    estatus: 'cancelado',
     inscritos: ['María Ruiz', 'Carlos Gómez']
   },
   {
@@ -32,7 +32,7 @@ window.MOCK_EVENTS = [
     seccion: 'sociales',
     descripcion: 'Gala de lanzamiento de producto con invitados especiales.',
     organizador: 'BrandWorks',
-    estatus: 'hoy',
+    estatus: 'finalizado',
     inscritos: ['Equipo interno', 'Partners']
   }
   ,
@@ -45,7 +45,7 @@ window.MOCK_EVENTS = [
     seccion: 'deportivos',
     descripcion: 'Carrera anual de 10K por las principales avenidas de la ciudad.',
     organizador: 'RunClub',
-    estatus: 'por venir',
+    estatus: 'activo',
     inscritos: ['Corredor1', 'Corredor2']
   }
 ];
