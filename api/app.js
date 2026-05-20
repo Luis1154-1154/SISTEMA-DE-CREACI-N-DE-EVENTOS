@@ -4,6 +4,7 @@ const app = express();
 const PORT = 3000;
 const eventosRoutes = require('./routes/eventosRoutes');
 const categoriasRoutes = require('./routes/categoriasRoutes');
+const estudiantesRoutes = require('./routes/estudiantesRoutes');
 const participantesRoutes = require('./routes/participantesRoutes');
 const inscripcionesRoutes = require('./routes/inscripcionesRoutes');
 const reportesRoutes = require('./routes/reportesRoutes');
@@ -13,7 +14,7 @@ const usuariosRoutes = require('./routes/usuariosRoutes');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Serve frontend static files from project-level `frontend/` (allows accessing registro.html, etc.)
+
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -41,7 +42,7 @@ const apiRoutes = [
   { method: 'GET', path: '/api/reportes/asistencia/evento', description: 'Reporte de asistencia por evento' },
   { method: 'GET', path: '/api/reportes/asistencia/tipo-evento', description: 'Reporte de asistencia por tipo de evento' },
   { method: 'GET', path: '/api/reportes/asistencia/organizador', description: 'Reporte de asistencia por organizador' },
-  { method: 'GET', path: '/api/test-db', description: 'Probar conexión a la base de datos' }
+ 
 ];
 
 app.get('/api', (req, res) => {
@@ -54,19 +55,19 @@ app.get('/api', (req, res) => {
 
 app.use('/', eventosRoutes);
 app.use('/', categoriasRoutes);
+app.use('/', estudiantesRoutes);
 app.use('/', participantesRoutes);
 app.use('/', inscripcionesRoutes);
 app.use('/', reportesRoutes);
-app.use('/test', testRoutes);
 app.use('/', lugaresRoutes);
 app.use('/', usuariosRoutes);
 
 app.use('/api', eventosRoutes);
 app.use('/api', categoriasRoutes);
+app.use('/api', estudiantesRoutes);
 app.use('/api', participantesRoutes);
 app.use('/api', inscripcionesRoutes);
 app.use('/api', reportesRoutes);
-app.use('/api', testRoutes);
 app.use('/api', lugaresRoutes);
 app.use('/api', usuariosRoutes);
 

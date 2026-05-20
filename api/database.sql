@@ -60,6 +60,15 @@ CREATE TABLE IF NOT EXISTS usuarios (
   rol ENUM('organizador','participante','invitado','administrador') DEFAULT 'participante'
 );
 
+CREATE TABLE IF NOT EXISTS estudiantes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL,
+  correo VARCHAR(150) NOT NULL UNIQUE,
+  contrase VARCHAR(255) DEFAULT NULL,
+  grado VARCHAR(50) DEFAULT NULL,
+  estatus ENUM('activo','inactivo') DEFAULT 'activo'
+);
+
 -- Seed categorias predefinidas (no duplicar si ya existen)
 INSERT INTO categorias (nombre)
 SELECT 'Tecnología' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Tecnología');
