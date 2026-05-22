@@ -15,6 +15,8 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
     <script src="js/tailwind-config.js" id="tailwind-config"></script>
+    <script src="js/api-config.js"></script>
+    <link rel="stylesheet" href="style/main.css">
 </head>
 
 <body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
@@ -32,14 +34,15 @@
             </div>
         </div>
     </nav>
-    <main class="flex-grow flex items-center justify-center p-margin-mobile md:p-margin-desktop">
-        <div
-            class="w-full max-w-3xl bg-surface-container-lowest border border-outline-variant rounded-xl p-8 md:p-12 shadow-sm">
+    <main class="page-shell flex-grow py-8 md:py-12">
+        <div class="desktop-dashboard">
+        <section class="dashboard-panel">
+        <div class="dashboard-panel-inner">
             <div class="mb-8">
                 <h1 class="font-headline-md text-headline-md text-on-surface mb-2">Crear Nuevo Evento</h1>
-                <p class="font-body-md text-body-md text-on-surface-variant">Llena el formulario para crear tu evento.</p>
+                <p class="font-body-md text-body-md text-on-surface-variant">Llena el formulario para crear tu evento en un panel más amplio y cómodo para escritorio.</p>
             </div>
-            <form class="space-y-6">
+            <form class="event-form space-y-6">
                 <div>
                     <label class="block font-label-md text-label-md text-on-surface mb-2" for="eventName">Nombre del
                         evento <span class="text-error">*</span></label>
@@ -136,11 +139,18 @@
                 </div>
             </form>
         </div>
+        </section>
+        <aside class="hidden xl:flex flex-col gap-4">
+            <div class="desktop-sidebar-card">
+               
+            </div>
+        </aside>
+        </div>
     </main>
     <footer class="bg-surface-container-lowest border-t border-outline-variant w-full mt-auto">
         <div class="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop py-8 max-w-container-max-width mx-auto gap-4">
             <span class="font-label-md text-label-md font-bold text-on-surface">© 2026 EventMaster Enterprise. Todos los derechos reservados.</span>
-            <div class="flex gap-6">
+            <div class="flex gap-6 flex-wrap justify-center md:justify-end">
                 <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors" href="#">Politicas de Privacidad</a>
                 <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors" href="#">Terminos del Servicio</a>
                 <a class="font-body-sm text-body-sm text-secondary hover:text-primary hover:underline transition-colors" href="#">Soporte</a>

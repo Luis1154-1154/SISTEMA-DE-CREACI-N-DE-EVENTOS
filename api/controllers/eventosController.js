@@ -1,6 +1,7 @@
 const Evento = require('../models/Eventos');
 
 exports.getAllEventos = (req, res) => {
+  console.log('getAllEventos called:', req.method, req.originalUrl);
   Evento.getAllEventos((err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.status(200).json(results);

@@ -1,7 +1,7 @@
 (function () {
   const form = document.getElementById('registerForm');
   if (!form) return;
-  form.addEventListener('submit', function (e) {
+  form.addEventListener('submit', async function (e) {
     e.preventDefault();
     const fullName = document.getElementById('fullName').value.trim();
     const email = document.getElementById('email').value.trim();
@@ -28,35 +28,31 @@
     // Asignar el rol solicitado sin restricciones
     const finalRol = requestedRol;
 
-    // guardado en localStorage.users
-    const key = 'users_mock_v1';
-    let users = JSON.parse(localStorage.getItem(key) || '[]');
+    // Crear usuario vía API en lugar de localStorage
+    try {
+      const resp = await apiFetch('/api/usuarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: fullName, email: email, contrasena: password, rol: finalRol })
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        const msg = data.error || data.message || 'No se pudo crear el usuario.';
+        alert(msg);
+        return;
+      }
 
-    // Evitar duplicados
-    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
-      alert('Este correo electrónico ya está registrado.');
-      return;
+      // guardar sesión mínima en localStorage (token/auth no implementado aún)
+      localStorage.setItem('userRole', finalRol);
+      localStorage.setItem('currentUserEmail', email);
+
+      const roleText = finalRol === 'administrador' ? 'Administrador' :
+        finalRol === 'organizador' ? 'Organizador' :
+        finalRol === 'invitado' ? 'Invitado' : 'Participante';
+      alert(`¡Registro exitoso!\nBienvenido ${fullName}!\nRol: ${roleText}`);
+      window.location.href = 'eventos.html';
+    } catch (err) {
+      alert('Error de conexión: ' + err.message);
     }
-
-    users.push({
-      name: fullName,
-      email: email,
-      password: password,
-      rol: finalRol
-    });
-    localStorage.setItem(key, JSON.stringify(users));
-
-    // establecimiento de la sesion actual
-    localStorage.setItem('userRole', finalRol);
-    localStorage.setItem('currentUserEmail', email);
-
-    // mensaje de bienvenida
-    const roleText = finalRol === 'administrador' ? 'Administrador' :
-      finalRol === 'organizador' ? 'Organizador' :
-      finalRol === 'invitado' ? 'Invitado' : 'Participante';
-    alert(`¡Registro exitoso!\nBienvenido ${fullName}!\nRol: ${roleText}`);
-
-    // redirección a eventos
-    window.location.href = 'eventos.html';
   });
 })();

@@ -10,7 +10,6 @@
 
     return {
       ...event,
-      source: event.source || 'api',
       lugar: event.lugar || event.ubicacion || '',
       seccion: event.seccion || event.tipo || '',
       fechaTexto,
@@ -20,11 +19,23 @@
 
   async function fetchEvents() {
     try {
-      const response = await fetch('/api/eventos');
+      const response = await apiFetch('/api/eventos');
       if (!response.ok) return [];
       const data = await response.json();
       return Array.isArray(data) ? data.map(normalizeEvent) : [];
     } catch (error) {
+      return [];
+    }
+  }
+
+  async function fetchInscritos(eventId) {
+    try {
+      const resp = await apiFetch(`/api/eventos/${eventId}/inscripciones`);
+      if (!resp.ok) return [];
+      const rows = await resp.json();
+      // map to display names/emails
+      return Array.isArray(rows) ? rows.map(r => r.participante_email || r.participante_nombre || r.email || r.participante_nombre) : [];
+    } catch (err) {
       return [];
     }
   }
@@ -112,13 +123,10 @@
     // obtener usuario actual y rol
     const currentEmail = localStorage.getItem('currentUserEmail') || null;
     const currentUserRole = localStorage.getItem('userRole') || null;
-    const usersList = JSON.parse(localStorage.getItem('users_mock_v1') || '[]');
-    const currentUserName = (usersList.find(u => u.email && currentEmail && u.email.toLowerCase() === currentEmail.toLowerCase()) || {}).name || null;
 
     // mostrar lista de participantes si el usuario es el organizador del evento
     const isOrganizer = currentEmail && event.organizador && (
-      (event.organizador.toLowerCase && currentEmail.toLowerCase && event.organizador.toLowerCase().includes(currentEmail.toLowerCase())) ||
-      (currentUserName && event.organizador.toLowerCase && event.organizador.toLowerCase().includes(currentUserName.toLowerCase()))
+      event.organizador.toLowerCase && currentEmail.toLowerCase && event.organizador.toLowerCase().includes(currentEmail.toLowerCase())
     );
 
     if (isOrganizer) {
@@ -154,51 +162,103 @@
       del.textContent = 'Eliminar evento';
       del.onclick = function () {
         if (!confirm('¿Estás seguro de eliminar este evento?')) return;
-        if (event.source === 'api') {
-          fetch('/api/eventos/' + event.id, { method: 'DELETE' })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error('No se pudo eliminar el evento');
-              }
-              if (card && card.parentNode) card.parentNode.removeChild(card);
-            })
-            .catch((error) => {
-              alert(error.message);
-            });
-          return;
-        }
-
-        if (card && card.parentNode) card.parentNode.removeChild(card);
+        apiFetch('/api/eventos/' + event.id, { method: 'DELETE' })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('No se pudo eliminar el evento');
+            }
+            if (card && card.parentNode) card.parentNode.removeChild(card);
+          })
+          .catch((error) => {
+            alert(error.message);
+          });
       };
       footer.appendChild(del);
     }
 
-    // botón Unirse / estado persistente
+    // botón Unirse / estado persistente (ahora persistimos en la API)
     const btn = document.createElement('button');
     btn.className = 'px-4 py-2 bg-primary text-on-primary rounded mt-2 w-full';
-    const key = 'inscripciones_event_' + event.id;
-    let arr = JSON.parse(localStorage.getItem(key) || '[]');
+    let arr = [];
     const currentUser = localStorage.getItem('currentUserEmail') || null;
-    const isJoined = currentUser && arr.includes(currentUser);
-    btn.textContent = isJoined ? 'Unid@' : 'Unirse';
-    btn.disabled = !!isJoined;
-    btn.onclick = function () {
-      let arrLocal = JSON.parse(localStorage.getItem(key) || '[]');
-      const current = localStorage.getItem('currentUserEmail') || 'Usuario';
-      if (!arrLocal.includes(current)) arrLocal.push(current);
-      localStorage.setItem(key, JSON.stringify(arrLocal));
-      btn.textContent = 'Unid@';
-      btn.disabled = true;
-      // lista de participantes
+    btn.textContent = 'Unirse';
+    btn.disabled = false;
+    // initialize joined state by querying inscripciones
+    (async () => {
+      const inscritos = await fetchInscritos(event.id);
+      arr = Array.isArray(inscritos) ? inscritos : [];
+      const isJoined = currentUser && arr.some(a => a && currentUser && a.toLowerCase && a.toLowerCase() === currentUser.toLowerCase());
+      btn.textContent = isJoined ? 'Unid@' : 'Unirse';
+      btn.disabled = !!isJoined;
+      // update participants list if visible
       const participantsList = footer.querySelector('.participants-list');
       if (participantsList) {
         participantsList.innerHTML = '';
-        JSON.parse(localStorage.getItem(key) || '[]').forEach(p => {
-          const li = document.createElement('div');
-          li.className = 'text-body-sm text-secondary';
-          li.textContent = p;
-          participantsList.appendChild(li);
-        });
+        const unique = [...new Set(arr)];
+        if (unique.length === 0) {
+          const none = document.createElement('div');
+          none.className = 'text-body-sm text-secondary';
+          none.textContent = 'No hay participantes aún.';
+          participantsList.appendChild(none);
+        } else {
+          unique.forEach(p => {
+            const li = document.createElement('div');
+            li.className = 'text-body-sm text-secondary';
+            li.textContent = p;
+            participantsList.appendChild(li);
+          });
+        }
+      }
+    })();
+
+    btn.onclick = async function () {
+      if (!currentUser) { alert('Debes iniciar sesión para inscribirte.'); window.location.href = 'inicioDeSesión.html'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Procesando...';
+      try {
+        // obtener participantes existentes y buscar por email
+        const pResp = await apiFetch('/api/participantes');
+        let participanteId = null;
+        if (pResp.ok) {
+          const participantes = await pResp.json();
+          const found = (participantes || []).find(p => p.email && p.email.toLowerCase() === currentUser.toLowerCase());
+          if (found) participanteId = found.id;
+        }
+        // si no existe participante, crearlo
+        if (!participanteId) {
+          const createResp = await apiFetch('/api/participantes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: currentUser, email: currentUser }) });
+          if (!createResp.ok) throw new Error('No se pudo crear participante');
+          const createData = await createResp.json();
+          participanteId = createData.id;
+        }
+
+        // crear inscripcion
+        const insResp = await apiFetch('/api/inscripciones', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evento_id: event.id, participante_id: participanteId }) });
+        if (!insResp.ok) {
+          const err = await insResp.json();
+          throw new Error(err.message || 'No se pudo crear la inscripción');
+        }
+
+        // actualizar UI
+        const addedName = currentUser;
+        arr.push(addedName);
+        btn.textContent = 'Unid@';
+        btn.disabled = true;
+        const participantsList = footer.querySelector('.participants-list');
+        if (participantsList) {
+          participantsList.innerHTML = '';
+          const unique = [...new Set(arr)];
+          unique.forEach(p => {
+            const li = document.createElement('div');
+            li.className = 'text-body-sm text-secondary';
+            li.textContent = p;
+            participantsList.appendChild(li);
+          });
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+        btn.textContent = 'Unirse';
+        btn.disabled = false;
       }
     };
     footer.appendChild(btn);
@@ -214,13 +274,15 @@
     const container = document.getElementById('eventsContainer');
     if (!container) return;
     container.innerHTML = '';
+    if (!Array.isArray(events) || events.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'col-span-full text-center text-secondary py-10 border border-outline-variant rounded-lg bg-surface-container-lowest';
+      empty.textContent = 'No hay eventos aún. Crea uno para comenzar.';
+      container.appendChild(empty);
+      return;
+    }
     events.forEach(ev => {
-      // mostrar los participantes
-      const key = 'inscripciones_event_' + ev.id;
-      const localIns = JSON.parse(localStorage.getItem(key) || '[]');
-      const merged = Object.assign({}, ev);
-      merged.inscritos = (ev.inscritos || []).concat(localIns);
-      const card = createCard(merged);
+      const card = createCard(ev);
       container.appendChild(card);
     });
   }
@@ -230,12 +292,9 @@
     render: render
   };
 
-  // tarjetas pre-creadas
   document.addEventListener('DOMContentLoaded', function () {
-    // Combinar eventos de la API con los eventos de ejemplo
-    const mockEvents = (window.MOCK_EVENTS || []).map((event) => Object.assign({}, event, { source: 'mock' }));
     fetchEvents().then((apiEvents) => {
-      render([...mockEvents, ...apiEvents]);
+      render(apiEvents);
     });
   });
 

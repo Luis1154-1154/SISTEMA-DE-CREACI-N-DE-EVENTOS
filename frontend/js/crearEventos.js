@@ -101,7 +101,7 @@
     };
 
     try {
-      const response = await fetch('/api/eventos', {
+      const response = await apiFetch('/api/eventos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

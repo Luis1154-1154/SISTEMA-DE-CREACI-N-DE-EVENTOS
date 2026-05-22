@@ -15,6 +15,7 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
     <script src="js/tailwind-config.js" id="tailwind-config"></script>
+    <script src="js/api-config.js"></script>
     <link rel="stylesheet" href="style/main.css">
 </head>
 
@@ -52,36 +53,55 @@
             </div>
         </div>
     </nav>
-    <main class="flex-grow w-full px-margin-mobile md:px-margin-desktop py-stack-lg max-w-container-max-width mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-stack-lg gap-4">
-            <div>
-                <h1
-                    class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-stack-sm">
-                    Eventos</h1>
-                <p class="font-body-md text-body-md text-secondary" id="pageDescription">Todos los eventos disponibles.</p>
-            </div>
-            <div class="flex gap-4">
-                <!-- Admin panel removed per UI update -->
-                <a id="createEventLink" class="hidden md:flex items-center gap-2 bg-primary text-on-primary px-6 py-2 rounded hover:opacity-90 transition-opacity hidden"
-                    href="crearEventos.html">
-                    <span class="material-symbols-outlined text-[18px]">add</span>
-                    <span class="font-label-md text-label-md">Crear Evento</span>
-                </a>
-            </div>
-        </div>
-        <div id="eventsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter"></div>
-        <div class="flex justify-center mt-stack-lg gap-2">
-            <button
-                class="p-2 border border-outline-variant rounded hover:bg-surface-container-low text-secondary disabled:opacity-50"><span
-                    class="material-symbols-outlined text-[20px]">chevron_left</span></button>
-            <button class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md">1</button>
-            <button
-                class="px-4 py-2 border border-outline-variant rounded hover:bg-surface-container-low text-on-surface font-label-md text-label-md">2</button>
-            <button
-                class="px-4 py-2 border border-outline-variant rounded hover:bg-surface-container-low text-on-surface font-label-md text-label-md">3</button>
-            <button
-                class="p-2 border border-outline-variant rounded hover:bg-surface-container-low text-secondary"><span
-                    class="material-symbols-outlined text-[20px]">chevron_right</span></button>
+    <main class="page-shell flex-grow py-8 md:py-12">
+        <div class="desktop-dashboard">
+            <section class="dashboard-panel">
+                <div class="dashboard-panel-inner">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-stack-lg gap-4">
+                        <div>
+                            <h1
+                                class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-stack-sm">
+                                Eventos</h1>
+                            <p class="font-body-md text-body-md text-secondary" id="pageDescription">Todos los eventos disponibles.</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <a id="createEventLink" class="hidden md:flex items-center gap-2 bg-primary text-on-primary px-6 py-2 rounded hover:opacity-90 transition-opacity hidden"
+                                href="crearEventos.html">
+                                <span class="material-symbols-outlined text-[18px]">add</span>
+                                <span class="font-label-md text-label-md">Crear Evento</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div id="eventsContainer" class="grid grid-cols-1 xl:grid-cols-2 gap-gutter"></div>
+                    <div class="flex justify-center mt-stack-lg gap-2">
+                        <button
+                            class="p-2 border border-outline-variant rounded hover:bg-surface-container-low text-secondary disabled:opacity-50"><span
+                                class="material-symbols-outlined text-[20px]">chevron_left</span></button>
+                        <button class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md">1</button>
+                        <button
+                            class="px-4 py-2 border border-outline-variant rounded hover:bg-surface-container-low text-on-surface font-label-md text-label-md">2</button>
+                        <button
+                            class="px-4 py-2 border border-outline-variant rounded hover:bg-surface-container-low text-on-surface font-label-md text-label-md">3</button>
+                        <button
+                            class="p-2 border border-outline-variant rounded hover:bg-surface-container-low text-secondary"><span
+                                class="material-symbols-outlined text-[20px]">chevron_right</span></button>
+                    </div>
+                </div>
+            </section>
+            <aside class="hidden xl:flex flex-col gap-4">
+                <div class="desktop-sidebar-card">
+                    
+                  
+                   
+                </div>
+                <div class="desktop-sidebar-card">
+                    <p class="font-label-md text-label-md text-secondary mb-2">Acceso rápido</p>
+                    <div class="flex flex-col gap-3">
+                        <a href="crearEventos.html" class="px-4 py-3 rounded-lg bg-primary text-on-primary text-center font-label-md text-label-md">Crear evento</a>
+                        <a href="registro.html" class="px-4 py-3 rounded-lg border border-outline-variant text-center font-label-md text-label-md text-on-surface hover:bg-surface-container-low">Ir a registro</a>
+                    </div>
+                </div>
+            </aside>
         </div>
     </main>
     
@@ -103,7 +123,6 @@
             </div>
         </div>
     </footer>
-    <script src="mock/events.js"></script>
     <script src="js/renderEvents.js"></script>
     <script src="js/events.js"></script>
 </body>

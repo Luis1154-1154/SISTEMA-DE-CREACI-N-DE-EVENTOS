@@ -1,5 +1,23 @@
 const db = require('../config/db');
 
+exports.getAll = (callback) => {
+  const query = `
+    SELECT
+      i.id,
+      i.evento_id,
+      i.participante_id,
+      i.asistio,
+      i.metodo,
+      i.fecha_inscripcion,
+      p.nombre AS participante_nombre,
+      p.email AS participante_email
+    FROM inscripciones i
+    INNER JOIN participantes p ON p.id = i.participante_id
+    ORDER BY i.fecha_inscripcion DESC
+  `;
+  db.query(query, callback);
+};
+
 exports.getByEvento = (eventoId, callback) => {
   const query = `
     SELECT

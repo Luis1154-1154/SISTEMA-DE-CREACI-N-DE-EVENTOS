@@ -1,5 +1,12 @@
 const Inscripcion = require('../models/Inscripciones');
 
+exports.getAllInscripciones = (req, res) => {
+  Inscripcion.getAll((err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(200).json(results);
+  });
+};
+
 exports.getInscripcionesByEvento = (req, res) => {
   const { eventoId } = req.params;
   Inscripcion.getByEvento(eventoId, (err, results) => {
