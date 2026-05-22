@@ -13,7 +13,10 @@
   const form = document.querySelector('form');
   if (!form) return;
 
-  // Función para validar campos obligatorios
+  function getCurrentRole() {
+    return (localStorage.getItem('userRole') || '').toString().trim().toLowerCase();
+  }
+
   function validarFormulario() {
     const nombre = document.getElementById('eventName').value.trim();
     const fecha = document.getElementById('eventDate').value.trim();
@@ -23,14 +26,12 @@
 
     const errores = [];
 
-    // Validar nombre
     if (!nombre || nombre.length === 0) {
       errores.push('El nombre del evento es obligatorio.');
     } else if (nombre.length < 3) {
       errores.push('El nombre del evento debe tener al menos 3 caracteres.');
     }
 
-    // Validar fecha
     if (!fecha) {
       errores.push('La fecha del evento es obligatoria.');
     } else {
@@ -40,7 +41,6 @@
       }
     }
 
-    // Validar hora
     if (!hora) {
       errores.push('La hora del evento es obligatoria.');
     } else {
@@ -50,69 +50,78 @@
       }
     }
 
-    // Validar ubicación
     if (!ubicacion || ubicacion.length === 0) {
       errores.push('La ubicación del evento es obligatoria.');
     } else if (ubicacion.length < 3) {
       errores.push('La ubicación debe tener al menos 3 caracteres.');
     }
 
-    // Validar invitados
     if (!invitados) {
       errores.push('La capacidad máxima de invitados es obligatoria.');
     } else {
-      const invitadosNum = parseInt(invitados);
-      if (isNaN(invitadosNum) || invitadosNum <= 0) {
-        errores.push('La capacidad máxima de invitados debe ser mayor a 0.');
+      const invitadosNum = Number(invitados);
+      if (!Number.isInteger(invitadosNum) || invitadosNum <= 0) {
+        errores.push('La capacidad máxima de invitados debe ser un entero mayor a 0.');
       }
     }
 
     return errores;
   }
 
-  form.addEventListener('submit', function(e) {
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    // Re-check role before allowing submit (defense in depth)
-    const roleNow = (localStorage.getItem('userRole') || '').toString().trim().toLowerCase();
+    const roleNow = getCurrentRole();
     if (roleNow !== 'organizador' && roleNow !== 'administrador') {
       alert('No tienes permiso para crear eventos. Solo usuarios con rol Organizador o Administrador pueden crear eventos.');
       window.location.href = 'eventos.html';
       return;
     }
 
-    // Validar campos antes de guardar
     const errores = validarFormulario();
     if (errores.length > 0) {
       alert('Por favor, completa los siguientes campos:\n\n' + errores.join('\n'));
       return;
     }
 
-    // Capturar datos del formulario
+    const capacidad = Number(document.getElementById('eventGuests').value);
     const eventData = {
-      id: 'evento_' + Date.now(),
       nombre: document.getElementById('eventName').value.trim(),
       fecha: document.getElementById('eventDate').value,
       hora: document.getElementById('eventTime').value,
-      lugar: document.getElementById('eventLocation').value.trim(),
-      capacidad: document.getElementById('eventGuests').value,
+      ubicacion: document.getElementById('eventLocation').value.trim(),
       descripcion: document.getElementById('eventDescription').value.trim(),
+      organizador: localStorage.getItem('currentUserEmail') || 'Usuario',
+      categoria_id: null,
+      capacidad,
+      invitados: capacidad,
       estatus: document.getElementById('eventStatus').value,
       metodo_inscripcion: document.getElementById('eventMethod').value,
-      tipo: document.getElementById('eventTipo').value,
-      organizador: localStorage.getItem('currentUserEmail') || 'Usuario',
-      fechaTexto: new Date(document.getElementById('eventDate').value).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }),
-      seccion: document.getElementById('eventTipo').value
+      tipo: document.getElementById('eventTipo').value
     };
 
-    // Guardar evento en localStorage
-    const key = 'user_created_events';
-    let eventos = JSON.parse(localStorage.getItem(key) || '[]');
-    eventos.push(eventData);
-    localStorage.setItem(key, JSON.stringify(eventos));
+    try {
+      const response = await fetch('/api/eventos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eventData)
+      });
 
-    alert('Evento creado correctamente.');
-    // Redirigir a eventos
-    window.location.href = 'eventos.html';
+      const result = await response.json();
+      if (!response.ok) {
+        const mensaje = Array.isArray(result.errores) && result.errores.length > 0
+          ? result.errores.join('\n')
+          : (result.error || result.message || 'No se pudo crear el evento.');
+        alert(mensaje);
+        return;
+      }
+
+      alert('Evento creado correctamente.');
+      window.location.href = 'eventos.html';
+    } catch (error) {
+      alert('No se pudo conectar con el servidor: ' + error.message);
+    }
   });
 })();

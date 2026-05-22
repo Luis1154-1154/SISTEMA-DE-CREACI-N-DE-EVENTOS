@@ -28,7 +28,7 @@
     // Asignar el rol solicitado sin restricciones
     const finalRol = requestedRol;
 
-    // store in localStorage.users (simple mock)
+    // guardado en localStorage.users
     const key = 'users_mock_v1';
     let users = JSON.parse(localStorage.getItem(key) || '[]');
 
@@ -46,17 +46,17 @@
     });
     localStorage.setItem(key, JSON.stringify(users));
 
-    // set current session
+    // establecimiento de la sesion actual
     localStorage.setItem('userRole', finalRol);
     localStorage.setItem('currentUserEmail', email);
 
-    // Show welcome message
+    // mensaje de bienvenida
     const roleText = finalRol === 'administrador' ? 'Administrador' :
       finalRol === 'organizador' ? 'Organizador' :
       finalRol === 'invitado' ? 'Invitado' : 'Participante';
     alert(`¡Registro exitoso!\nBienvenido ${fullName}!\nRol: ${roleText}`);
 
-    // redirect to eventos (simulate auto-login)
+    // redirección a eventos
     window.location.href = 'eventos.html';
   });
 })();

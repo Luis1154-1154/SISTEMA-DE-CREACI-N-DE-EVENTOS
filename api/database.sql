@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS eventos (
   fecha DATE NOT NULL,
   hora TIME NOT NULL,
   ubicacion VARCHAR(200) NOT NULL,
+  capacidad INT DEFAULT NULL,
   lugar_id INT DEFAULT NULL,
   estatus ENUM('activo','cancelado','finalizado') DEFAULT 'activo',
   metodo_inscripcion VARCHAR(50) DEFAULT 'gratuito',

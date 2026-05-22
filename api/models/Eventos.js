@@ -8,6 +8,7 @@ exports.getAllEventos = (callback) => {
       e.fecha,
         e.hora,
         e.ubicacion,
+        e.capacidad,
         e.lugar_id,
           e.estatus,
           e.metodo_inscripcion,
@@ -35,6 +36,7 @@ exports.getEventoById = (id, callback) => {
       e.fecha,
       e.hora,
       e.ubicacion,
+      e.capacidad,
       e.lugar_id,
       e.estatus,
       e.metodo_inscripcion,
@@ -52,7 +54,7 @@ exports.getEventoById = (id, callback) => {
 };
 
 exports.addEvento = (eventoData, callback) => {
-  const query = 'INSERT INTO eventos (nombre, fecha, hora, ubicacion, lugar_id, estatus, metodo_inscripcion, tipo, descripcion, organizador, organizador_id, categoria_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  const query = 'INSERT INTO eventos (nombre, fecha, hora, ubicacion, capacidad, lugar_id, estatus, metodo_inscripcion, tipo, descripcion, organizador, organizador_id, categoria_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
   db.query(
     query,
     [
@@ -60,6 +62,7 @@ exports.addEvento = (eventoData, callback) => {
       eventoData.fecha,
       eventoData.hora,
       eventoData.ubicacion,
+      eventoData.capacidad || null,
       eventoData.lugar_id || null,
       eventoData.estatus || 'activo',
       eventoData.metodo_inscripcion || 'gratuito',
@@ -74,7 +77,7 @@ exports.addEvento = (eventoData, callback) => {
 };
 
 exports.updateEvento = (id, eventoData, callback) => {
-  const query = 'UPDATE eventos SET nombre = ?, fecha = ?, hora = ?, ubicacion = ?, lugar_id = ?, estatus = ?, metodo_inscripcion = ?, tipo = ?, descripcion = ?, organizador = ?, organizador_id = ?, categoria_id = ? WHERE id = ?';
+  const query = 'UPDATE eventos SET nombre = ?, fecha = ?, hora = ?, ubicacion = ?, capacidad = ?, lugar_id = ?, estatus = ?, metodo_inscripcion = ?, tipo = ?, descripcion = ?, organizador = ?, organizador_id = ?, categoria_id = ? WHERE id = ?';
   db.query(
     query,
     [
@@ -82,6 +85,7 @@ exports.updateEvento = (id, eventoData, callback) => {
       eventoData.fecha,
       eventoData.hora,
       eventoData.ubicacion,
+      eventoData.capacidad || null,
       eventoData.lugar_id || null,
       eventoData.estatus || 'activo',
       eventoData.metodo_inscripcion || 'gratuito',

@@ -19,7 +19,7 @@ exports.getEventoById = (req, res) => {
 };
 
 exports.addEvento = (req, res) => {
-  const { nombre, fecha, hora, ubicacion, descripcion, organizador, categoria_id, invitados, estatus, metodo_inscripcion, tipo } = req.body;
+  const { nombre, fecha, hora, ubicacion, descripcion, organizador, categoria_id, invitados, capacidad, estatus, metodo_inscripcion, tipo } = req.body;
 
   // Validar todos los campos obligatorios de forma estricta
   const errores = [];
@@ -55,8 +55,9 @@ exports.addEvento = (req, res) => {
   }
   
   // Validar capacidad de invitados
-  const invitadosNum = parseInt(invitados);
-  if (!invitados || isNaN(invitadosNum) || invitadosNum <= 0) {
+  const capacidadValor = capacidad ?? invitados;
+  const invitadosNum = parseInt(capacidadValor, 10);
+  if (capacidadValor === undefined || capacidadValor === null || capacidadValor === '' || isNaN(invitadosNum) || invitadosNum <= 0) {
     errores.push('La capacidad máxima de invitados es obligatoria y debe ser mayor a 0.');
   }
 
@@ -77,6 +78,7 @@ exports.addEvento = (req, res) => {
     descripcion: descripcion || '',
     organizador: organizador || 'Sin especificar',
     categoria_id,
+    capacidad: invitadosNum,
     estatus: estatus || 'activo',
     metodo_inscripcion: metodo_inscripcion || 'gratuito',
     tipo: tipo || null
@@ -90,7 +92,7 @@ exports.addEvento = (req, res) => {
 
 exports.updateEvento = (req, res) => {
   const { id } = req.params;
-  const { nombre, fecha, hora, ubicacion, descripcion, organizador, categoria_id, invitados, estatus, metodo_inscripcion, tipo } = req.body;
+  const { nombre, fecha, hora, ubicacion, descripcion, organizador, categoria_id, invitados, capacidad, estatus, metodo_inscripcion, tipo } = req.body;
 
   // Validar todos los campos obligatorios de forma estricta
   const errores = [];
@@ -126,8 +128,9 @@ exports.updateEvento = (req, res) => {
   }
   
   // Validar capacidad de invitados (si se proporciona)
-  if (invitados) {
-    const invitadosNum = parseInt(invitados);
+  if (invitados || capacidad) {
+    const capacidadValor = capacidad ?? invitados;
+    const invitadosNum = parseInt(capacidadValor, 10);
     if (isNaN(invitadosNum) || invitadosNum <= 0) {
       errores.push('La capacidad máxima de invitados debe ser mayor a 0.');
     }
@@ -150,6 +153,7 @@ exports.updateEvento = (req, res) => {
     descripcion: descripcion || '',
     organizador: organizador || 'Sin especificar',
     categoria_id,
+    capacidad: capacidad ? parseInt(capacidad, 10) : (invitados ? parseInt(invitados, 10) : null),
     estatus: estatus || 'activo',
     metodo_inscripcion: metodo_inscripcion || 'gratuito',
     tipo: tipo || null

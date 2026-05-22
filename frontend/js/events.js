@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
       createLink.classList.remove('hidden');
       createLink.classList.add('flex');
     } else {
-      // remove node to avoid any accidental visibility
+      // remueve el nodo
       if (createLink.parentNode) createLink.parentNode.removeChild(createLink);
     }
   }
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Logout global
+  // Logout
   window.logout = function () {
     localStorage.removeItem('currentUserEmail');
     localStorage.removeItem('userRole');

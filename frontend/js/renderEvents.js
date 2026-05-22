@@ -1,4 +1,34 @@
 (function () {
+  function normalizeEvent(event) {
+    const fechaTexto = event.fechaTexto || (event.fecha
+      ? new Date(event.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      : '');
+
+    return {
+      ...event,
+      source: event.source || 'api',
+      lugar: event.lugar || event.ubicacion || '',
+      seccion: event.seccion || event.tipo || '',
+      fechaTexto,
+      inscritos: Array.isArray(event.inscritos) ? event.inscritos : []
+    };
+  }
+
+  async function fetchEvents() {
+    try {
+      const response = await fetch('/api/eventos');
+      if (!response.ok) return [];
+      const data = await response.json();
+      return Array.isArray(data) ? data.map(normalizeEvent) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
   function createCard(event) {
     const card = document.createElement('div');
     card.className = 'bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col group hover:shadow-sm transition-shadow';
@@ -13,7 +43,7 @@
 
     const badge = document.createElement('div');
     badge.className = 'absolute top-4 right-4 px-2 py-1 rounded font-label-sm text-label-sm shadow-sm border border-outline-variant';
-    // map status to colors
+    // colores de status
     const status = (event.estatus || 'activo').toLowerCase();
     badge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
     if (status === 'activo') {
@@ -50,7 +80,11 @@
     placeRow.className = 'flex items-center gap-2 text-secondary font-body-sm text-body-sm mb-4';
     placeRow.innerHTML = '<span class="material-symbols-outlined text-[16px]">location_on</span><span>' + (event.lugar || '') + '</span>';
 
-    // sección (categoría / sección)
+    const capacityRow = document.createElement('div');
+    capacityRow.className = 'flex items-center gap-2 text-secondary font-body-sm text-body-sm mb-4';
+    capacityRow.innerHTML = '<span class="material-symbols-outlined text-[16px]">group</span><span>Capacidad: ' + (event.capacidad ?? event.invitados ?? 'N/D') + '</span>';
+
+    // sección/categoria
     const sectionRow = document.createElement('div');
     sectionRow.className = 'flex items-center gap-2 text-secondary font-body-sm text-body-sm mb-2';
     sectionRow.innerHTML = '<span class="material-symbols-outlined text-[16px]">category</span><span>' + (event.seccion || '') + '</span>';
@@ -63,6 +97,7 @@
     body.appendChild(dateRow);
     body.appendChild(sectionRow);
     body.appendChild(placeRow);
+    body.appendChild(capacityRow);
     body.appendChild(desc);
 
     const footer = document.createElement('div');
@@ -119,19 +154,20 @@
       del.textContent = 'Eliminar evento';
       del.onclick = function () {
         if (!confirm('¿Estás seguro de eliminar este evento?')) return;
-        // eliminar de eventos creados por el usuario si existe allí
-        const created = JSON.parse(localStorage.getItem('user_created_events') || '[]');
-        const idx = created.findIndex(e => e.id === event.id);
-        if (idx > -1) {
-          created.splice(idx, 1);
-          localStorage.setItem('user_created_events', JSON.stringify(created));
-        } else {
-          // marcar como eliminado globalmente
-          const deleted = JSON.parse(localStorage.getItem('deleted_event_ids') || '[]');
-          if (!deleted.includes(event.id)) deleted.push(event.id);
-          localStorage.setItem('deleted_event_ids', JSON.stringify(deleted));
+        if (event.source === 'api') {
+          fetch('/api/eventos/' + event.id, { method: 'DELETE' })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error('No se pudo eliminar el evento');
+              }
+              if (card && card.parentNode) card.parentNode.removeChild(card);
+            })
+            .catch((error) => {
+              alert(error.message);
+            });
+          return;
         }
-        // remover tarjeta del DOM
+
         if (card && card.parentNode) card.parentNode.removeChild(card);
       };
       footer.appendChild(del);
@@ -153,7 +189,7 @@
       localStorage.setItem(key, JSON.stringify(arrLocal));
       btn.textContent = 'Unid@';
       btn.disabled = true;
-      // optionally re-render participant list
+      // lista de participantes
       const participantsList = footer.querySelector('.participants-list');
       if (participantsList) {
         participantsList.innerHTML = '';
@@ -178,11 +214,8 @@
     const container = document.getElementById('eventsContainer');
     if (!container) return;
     container.innerHTML = '';
-    // ocultar eventos borrados (persistente)
-    const deleted = JSON.parse(localStorage.getItem('deleted_event_ids') || '[]');
     events.forEach(ev => {
-      if (deleted.includes(ev.id)) return; // skip deleted
-      // merge localStorage inscripciones for participant counts when showing avatars
+      // mostrar los participantes
       const key = 'inscripciones_event_' + ev.id;
       const localIns = JSON.parse(localStorage.getItem(key) || '[]');
       const merged = Object.assign({}, ev);
@@ -192,18 +225,18 @@
     });
   }
 
-  // expose for manual trigger
+  // trigger
   window.EVENTS_RENDER = {
     render: render
   };
 
-  // auto-run if MOCK_EVENTS present
+  // tarjetas pre-creadas
   document.addEventListener('DOMContentLoaded', function () {
-    // Combinar eventos mock con eventos creados por usuario
-    const mockEvents = window.MOCK_EVENTS || [];
-    const userCreatedEvents = JSON.parse(localStorage.getItem('user_created_events') || '[]');
-    const allEvents = [...mockEvents, ...userCreatedEvents];
-    render(allEvents);
+    // Combinar eventos de la API con los eventos de ejemplo
+    const mockEvents = (window.MOCK_EVENTS || []).map((event) => Object.assign({}, event, { source: 'mock' }));
+    fetchEvents().then((apiEvents) => {
+      render([...mockEvents, ...apiEvents]);
+    });
   });
 
 })();
