@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>EventMaster - Events</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="js/tailwind-config.js" id="tailwind-config"></script>
+    <link rel="stylesheet" href="style/main.css">
+</head>
+
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+    <nav
+        class="bg-surface-container-lowest dark:bg-inverse-surface w-full top-0 border-b border-outline-variant dark:border-outline">
+        <div class="flex justify-between items-center w-full px-margin-desktop py-4 max-w-container-max-width mx-auto">
+            <div class="flex items-center gap-6">
+                <span
+                    class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed-dim">EventMaster</span>
+                <div class="hidden md:flex gap-4">
+                    <a class="text-primary dark:text-primary-fixed-dim border-b-2 border-primary dark:border-primary-fixed-dim pb-1 font-bold font-body-md text-body-md"
+                        href="#">Eventos</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative hidden md:block">
+                    <input
+                        class="border border-outline-variant rounded-full py-2 pl-4 pr-10 bg-surface-container-lowest text-body-sm font-body-sm focus:outline-none focus:border-primary"
+                        placeholder="Buscar Eventos..." type="text" />
+                    <span class="material-symbols-outlined absolute right-3 top-2.5 text-outline text-sm">Buscar</span>
+                </div>
+                <div id="userInfoContainer" class="hidden md:flex items-center gap-2 px-3 py-2 bg-surface-container-low rounded">
+                    <div class="flex flex-col">
+                        <span id="userEmail" class="font-body-sm text-body-sm text-on-surface"></span>
+                        <span id="userRole" class="font-label-sm text-label-sm text-secondary"></span>
+                    </div>
+                </div>
+                <a id="createEventMobile" class="md:hidden text-primary font-label-md text-label-md bg-primary-container text-on-primary-container px-4 py-2 rounded hidden"
+                    href="crearEventos.html">Crear Evento</a>
+                <button onclick="logout()" class="text-secondary font-label-md text-label-md border border-outline-variant px-4 py-2 rounded hover:bg-surface-container-low transition-colors">
+                    <span class="material-symbols-outlined inline">logout</span>
+                    Salir
+                </button>
+            </div>
+        </div>
+    </nav>
+    <main class="flex-grow w-full px-margin-mobile md:px-margin-desktop py-stack-lg max-w-container-max-width mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-stack-lg gap-4">
+            <div>
+                <h1
+                    class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-stack-sm">
+                    Eventos</h1>
+                <p class="font-body-md text-body-md text-secondary" id="pageDescription">Todos los eventos disponibles.</p>
+            </div>
+            <div class="flex gap-4">
+                <!-- Admin panel removed per UI update -->
+                <a id="createEventLink" class="hidden md:flex items-center gap-2 bg-primary text-on-primary px-6 py-2 rounded hover:opacity-90 transition-opacity hidden"
+                    href="crearEventos.html">
+                    <span class="material-symbols-outlined text-[18px]">add</span>
+                    <span class="font-label-md text-label-md">Crear Evento</span>
+                </a>
+            </div>
+        </div>
+        <div id="eventsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter"></div>
+        <div class="flex justify-center mt-stack-lg gap-2">
+            <button
+                class="p-2 border border-outline-variant rounded hover:bg-surface-container-low text-secondary disabled:opacity-50"><span
+                    class="material-symbols-outlined text-[20px]">chevron_left</span></button>
+            <button class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md">1</button>
+            <button
+                class="px-4 py-2 border border-outline-variant rounded hover:bg-surface-container-low text-on-surface font-label-md text-label-md">2</button>
+            <button
+                class="px-4 py-2 border border-outline-variant rounded hover:bg-surface-container-low text-on-surface font-label-md text-label-md">3</button>
+            <button
+                class="p-2 border border-outline-variant rounded hover:bg-surface-container-low text-secondary"><span
+                    class="material-symbols-outlined text-[20px]">chevron_right</span></button>
+        </div>
+    </main>
+    
+    <footer
+        class="bg-surface-container-lowest dark:bg-inverse-surface w-full bottom-0 border-t border-outline-variant dark:border-outline mt-auto">
+        <div
+            class="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop py-8 max-w-container-max-width mx-auto gap-4">
+            <span class="font-label-md text-label-md font-bold text-on-surface dark:text-on-primary-fixed">© 2024
+                EventMaster Logistics. All rights reserved.</span>
+            <div class="flex gap-4">
+                <a class="text-secondary hover:text-primary transition-colors font-body-sm text-body-sm hover:underline hover:text-primary dark:hover:text-primary-fixed-dim"
+                    href="#">Privacy Policy</a>
+                <a class="text-secondary hover:text-primary transition-colors font-body-sm text-body-sm hover:underline hover:text-primary dark:hover:text-primary-fixed-dim"
+                    href="#">Terms of Service</a>
+                <a class="text-secondary hover:text-primary transition-colors font-body-sm text-body-sm hover:underline hover:text-primary dark:hover:text-primary-fixed-dim"
+                    href="#">Support</a>
+                <a class="text-secondary hover:text-primary transition-colors font-body-sm text-body-sm hover:underline hover:text-primary dark:hover:text-primary-fixed-dim"
+                    href="#">Contact</a>
+            </div>
+        </div>
+    </footer>
+    <script src="mock/events.js"></script>
+    <script src="js/renderEvents.js"></script>
+    <script src="js/events.js"></script>
+</body>
+
+</html>

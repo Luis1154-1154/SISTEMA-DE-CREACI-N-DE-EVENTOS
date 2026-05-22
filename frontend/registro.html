@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Register - EventMaster</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="js/tailwind-config.js" id="tailwind-config"></script>
+    <link rel="stylesheet" href="style/main.css">
+</head>
+
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md">
+    <main class="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop">
+        <div class="w-full max-w-md mx-auto">
+            <div class="text-center mb-8">
+                <h1 class="font-headline-lg text-headline-lg text-primary mb-2 hidden md:block">EventMaster</h1>
+                <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-2 md:hidden">EventMaster</h1>
+                <p class="font-body-lg text-body-lg text-on-surface-variant">Crea tu cuenta para empezar a administrar
+                    tus eventos.</p>
+            </div>
+            <div class="card shadow-sm border-outline-variant mx-auto">
+                <div class="card-header border-outline-variant bg-surface-container-low text-center">
+                    <h2 class="font-headline-sm text-headline-sm text-on-surface">Registro</h2>
+                </div>
+                <div class="card-body">
+                    <form id="registerForm" action="#" class="flex flex-col gap-4 w-full md:w-3/4 mx-auto" method="POST">
+                        <div>
+                            <label class="form-label font-label-md text-label-md text-on-surface" for="fullName">Nombre
+                                Completo</label>
+                            <input class="form-control" id="fullName" name="fullName" placeholder="Ramirez Anguiano" required=""
+                                type="text" />
+                        </div>
+                        <div>
+                            <label class="form-label font-label-md text-label-md text-on-surface" for="email">Correo Electronico</label>
+                            <input class="form-control" id="email" name="email" placeholder="RamirezAnguiano@ucol.mx"
+                                required="" type="email" />
+                        </div>
+                        <div>
+                            <label class="form-label font-label-md text-label-md text-on-surface"
+                                for="password">Contraseña</label>
+                            <input class="form-control" id="password" name="password" placeholder="••••••••" required=""
+                                type="password" />
+                            <div class="mt-1 font-body-sm text-body-sm text-secondary">Debe de tener al menos 8
+                                caracteres de largo.</div>
+                        </div>
+                        <div>
+                            <label class="form-label font-label-md text-label-md text-on-surface" for="rol">Rol</label>
+                            <select id="rol" name="rol" class="form-control">
+                                <option value="participante">Participante</option>
+                                <option value="organizador">Organizador</option>
+                                <option value="invitado">Invitado</option>
+                                <option value="administrador">Administrador</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label font-label-md text-label-md text-on-surface"
+                                for="confirmPassword">Confirmar Contraseña</label>
+                            <input class="form-control" id="confirmPassword" name="confirmPassword"
+                                placeholder="••••••••" required="" type="password" />
+                        </div>
+                        <div class="flex items-start mt-2">
+                            <div class="flex items-center h-5">
+                                <input
+                                    class="w-4 h-4 border border-outline-variant rounded bg-surface-container-lowest focus:ring-3 focus:ring-primary-container text-primary"
+                                    id="terms" name="terms" required="" type="checkbox" />
+                            </div>
+                            <label class="ml-2 font-body-sm text-body-sm text-on-surface-variant" for="terms">
+                                Acepto los <a class="text-primary hover:underline font-semibold" href="#">Terminos de
+                                    servicio</a> y la <a class="text-primary hover:underline font-semibold"
+                                    href="#">Politica de privacidad</a>.
+                            </label>
+                        </div>
+                        <button class="btn-primary w-full mt-4 flex justify-center items-center gap-2" type="submit">
+                            <span>Crear Cuenta</span>
+                            <span class="material-symbols-outlined"
+                                style="font-variation-settings: 'FILL' 0;">arrow_forward</span>
+                        </button>
+                    </form>
+                    <script src="mock/administrators.js"></script>
+                    <script src="js/register.js"></script>
+                </div>
+                <div class="p-4 border-t border-outline-variant bg-surface-container-lowest text-center rounded-b-lg">
+                    <p class="font-body-md text-body-md text-on-surface-variant">
+                        Ya tienes una cuenta? <a class="text-primary font-bold hover:underline" href="inicioDeSesión.html">Iniciar
+                            Sesión</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
