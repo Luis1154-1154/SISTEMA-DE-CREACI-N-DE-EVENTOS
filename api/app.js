@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = 3000;
+const cookieParser = require('cookie-parser');
 const eventosRoutes = require('./routes/eventosRoutes');
 const categoriasRoutes = require('./routes/categoriasRoutes');
 const participantesRoutes = require('./routes/participantesRoutes');
@@ -9,10 +10,18 @@ const inscripcionesRoutes = require('./routes/inscripcionesRoutes');
 const reportesRoutes = require('./routes/reportesRoutes');
 const lugaresRoutes = require('./routes/lugaresRoutes');
 const usuariosRoutes = require('./routes/usuariosRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 // Simple CORS middleware: allow any origin (for local dev)
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
@@ -23,6 +32,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 // Serve frontend static files from project-level `frontend/` (allows accessing registro.html, etc.)
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -93,6 +103,7 @@ app.use('/api', inscripcionesRoutes);
 app.use('/api', reportesRoutes);
 app.use('/api', lugaresRoutes);
 app.use('/api', usuariosRoutes);
+app.use('/api', authRoutes);
 
 app.use((req, res) => {
   res.status(404).send('<h1>Error 404</h1><p>La ruta que intentas acceder no existe.</p>');

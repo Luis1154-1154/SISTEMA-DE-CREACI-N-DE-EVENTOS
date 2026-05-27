@@ -28,7 +28,6 @@
     // Asignar el rol solicitado sin restricciones
     const finalRol = requestedRol;
 
-    // Crear usuario vía API en lugar de localStorage
     try {
       const resp = await apiFetch('/api/usuarios', {
         method: 'POST',
@@ -42,14 +41,20 @@
         return;
       }
 
-      // guardar sesión mínima en localStorage (token/auth no implementado aún)
-      localStorage.setItem('userRole', finalRol);
-      localStorage.setItem('currentUserEmail', email);
+      const loginResp = await apiFetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const loginData = await loginResp.json().catch(() => ({}));
+      if (!loginResp.ok) {
+        alert(loginData.message || 'No se pudo iniciar sesión automáticamente');
+        window.location.href = 'inicioDeSesión.html';
+        return;
+      }
 
-      const roleText = finalRol === 'administrador' ? 'Administrador' :
-        finalRol === 'organizador' ? 'Organizador' :
-        finalRol === 'invitado' ? 'Invitado' : 'Participante';
-      alert(`¡Registro exitoso!\nBienvenido ${fullName}!\nRol: ${roleText}`);
+      window.__CURRENT_USER = loginData;
+      alert(`¡Registro exitoso!\nBienvenido ${fullName}!\nRol: ${loginData.rol || finalRol}`);
       window.location.href = 'eventos.html';
     } catch (err) {
       alert('Error de conexión: ' + err.message);

@@ -1,4 +1,5 @@
 (function () {
+  let currentUser = null;
   function formatFechaEvento(fecha) {
     if (!fecha) return '';
     let parsed = null;
@@ -138,9 +139,9 @@
 
     footer.appendChild(org);
 
-    // obtener usuario actual y rol
-    const currentEmail = localStorage.getItem('currentUserEmail') || null;
-    const currentUserRole = localStorage.getItem('userRole') || null;
+    // obtener usuario actual y rol desde el servidor
+    const currentEmail = currentUser ? currentUser.email : null;
+    const currentUserRole = currentUser ? currentUser.rol : null;
 
     // mostrar lista de participantes si el usuario es el organizador del evento
     const isOrganizer = currentEmail && event.organizador && (
@@ -198,14 +199,13 @@
     const btn = document.createElement('button');
     btn.className = 'px-4 py-2 bg-primary text-on-primary rounded mt-2 w-full';
     let arr = [];
-    const currentUser = localStorage.getItem('currentUserEmail') || null;
     btn.textContent = 'Unirse';
     btn.disabled = false;
     // initialize joined state by querying inscripciones
     (async () => {
       const inscritos = await fetchInscritos(event.id);
       arr = Array.isArray(inscritos) ? inscritos : [];
-      const isJoined = currentUser && arr.some(a => a && currentUser && a.toLowerCase && a.toLowerCase() === currentUser.toLowerCase());
+      const isJoined = currentUser && currentUser.email && arr.some(a => a && a.toLowerCase && a.toLowerCase() === currentUser.email.toLowerCase());
       btn.textContent = isJoined ? 'Unid@' : 'Unirse';
       btn.disabled = !!isJoined;
       // update participants list if visible
@@ -239,12 +239,12 @@
         let participanteId = null;
         if (pResp.ok) {
           const participantes = await pResp.json();
-          const found = (participantes || []).find(p => p.email && p.email.toLowerCase() === currentUser.toLowerCase());
+          const found = (participantes || []).find(p => p.email && currentUser && p.email.toLowerCase() === currentUser.email.toLowerCase());
           if (found) participanteId = found.id;
         }
         // si no existe participante, crearlo
         if (!participanteId) {
-          const createResp = await apiFetch('/api/participantes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: currentUser, email: currentUser }) });
+          const createResp = await apiFetch('/api/participantes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: currentUser.email, email: currentUser.email }) });
           if (!createResp.ok) throw new Error('No se pudo crear participante');
           const createData = await createResp.json();
           participanteId = createData.id;
@@ -258,7 +258,7 @@
         }
 
         // actualizar UI
-        const addedName = currentUser;
+        const addedName = currentUser.email;
         arr.push(addedName);
         btn.textContent = 'Unid@';
         btn.disabled = true;
@@ -311,8 +311,15 @@
   };
 
   document.addEventListener('DOMContentLoaded', function () {
-    fetchEvents().then((apiEvents) => {
-      render(apiEvents);
+    window.getCurrentUser().then((user) => {
+      currentUser = user || null;
+      if (!currentUser) {
+        window.location.href = 'inicioDeSesión.html';
+        return;
+      }
+      fetchEvents().then((apiEvents) => {
+        render(apiEvents);
+      });
     });
   });
 

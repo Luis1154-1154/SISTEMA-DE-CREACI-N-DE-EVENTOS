@@ -1,20 +1,21 @@
-(function() {
-  // Bloquear acceso si el usuario no es organizador ni administrador
-  const roleRaw = localStorage.getItem('userRole');
-  const role = (roleRaw || '').toString().trim().toLowerCase();
-  const email = localStorage.getItem('currentUserEmail');
+(async function() {
+  const user = await window.getCurrentUser().catch(() => null);
+  const role = (user && user.rol ? user.rol : '').toString().trim().toLowerCase();
+  const email = user && user.email ? user.email : null;
   if (!email) {
     window.location.href = 'inicioDeSesión.html';
+    return;
   } else if (role !== 'organizador' && role !== 'administrador') {
     alert('Solo usuarios con rol Organizador o Administrador pueden crear eventos.');
     window.location.href = 'eventos.html';
+    return;
   }
 
   const form = document.querySelector('form');
   if (!form) return;
 
   function getCurrentRole() {
-    return (localStorage.getItem('userRole') || '').toString().trim().toLowerCase();
+    return (window.__CURRENT_USER && window.__CURRENT_USER.rol || '').toString().trim().toLowerCase();
   }
 
   function validarFormulario() {
@@ -91,7 +92,7 @@
       hora: document.getElementById('eventTime').value,
       ubicacion: document.getElementById('eventLocation').value.trim(),
       descripcion: document.getElementById('eventDescription').value.trim(),
-      organizador: localStorage.getItem('currentUserEmail') || 'Usuario',
+      organizador: email || 'Usuario',
       categoria_id: null,
       capacidad,
       invitados: capacidad,
