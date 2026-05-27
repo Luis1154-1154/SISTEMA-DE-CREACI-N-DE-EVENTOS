@@ -1,12 +1,30 @@
 (function () {
+  function formatFechaEvento(fecha) {
+    if (!fecha) return '';
+    let parsed = null;
+    if (fecha instanceof Date) {
+      parsed = fecha;
+    } else if (typeof fecha === 'string') {
+      const raw = fecha.trim();
+      if (!raw) return '';
+      parsed = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? new Date(raw + 'T00:00:00') : new Date(raw);
+    } else {
+      parsed = new Date(fecha);
+    }
+
+    if (!parsed || Number.isNaN(parsed.getTime())) {
+      return typeof fecha === 'string' ? fecha : '';
+    }
+
+    return parsed.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
   function normalizeEvent(event) {
-    const fechaTexto = event.fechaTexto || (event.fecha
-      ? new Date(event.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
-      : '');
+    const fechaTexto = event.fechaTexto || formatFechaEvento(event.fecha);
 
     return {
       ...event,

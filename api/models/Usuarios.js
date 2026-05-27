@@ -5,7 +5,7 @@ exports.getAllUsuarios = (callback) => {
 };
 
 exports.getUsuarioById = (id, callback) => {
-  db.query('SELECT id, nombre, email, rol FROM usuarios WHERE id = ?', [id], callback);
+  db.query('SELECT id, nombre, email, contrasena, rol FROM usuarios WHERE id = ?', [id], callback);
 };
 
 exports.addUsuario = (usuario, callback) => {
