@@ -109,7 +109,7 @@ function renderEditForm(appointment) {
         <div class="row g-3">
           <div class="col-12 col-md-6">
             <label class="form-label">Teléfono</label>
-            <input class="form-control" name="phone" value="${escapeHtml(user.phone || '')}" required />
+            <input class="form-control" name="phone" value="${escapeHtml(appointment.phone || '')}" required />
           </div>
           <div class="col-12 col-md-3">
             <label class="form-label">Fecha</label>
@@ -359,6 +359,9 @@ function renderUserItem(user, isSelected, recordCount) {
           <span class="badge ${role === 'admin' ? 'text-bg-dark' : 'text-bg-primary'} rounded-pill">${escapeHtml(formatRole(role))}</span>
           <div class="small text-muted mt-1">${recordCount} registros</div>
         </div>
+        <div class="ms-2">
+          <button type="button" class="btn btn-sm btn-outline-danger" data-delete-user="${escapeHtml(user.id || '')}" title="Eliminar usuario">Eliminar</button>
+        </div>
       </div>
     </button>
   `;
@@ -552,6 +555,24 @@ async function loadClinicalRecords(initialUserId = null) {
           renderSelectedUser();
         });
       });
+
+      // Wire delete user buttons
+      usersContainer.querySelectorAll('[data-delete-user]').forEach((btn) => {
+        btn.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          const id = btn.getAttribute('data-delete-user');
+          if (!id) return;
+          const confirmed = window.confirm('¿Eliminar este usuario y todas sus citas? Esta acción no se puede deshacer.');
+          if (!confirmed) return;
+          try {
+            await api.deleteUser(id);
+            await loadClinicalRecords();
+            showMessage(feedback, 'Usuario eliminado.', 'success');
+          } catch (error) {
+            showMessage(feedback, error.message);
+          }
+        });
+      });
     };
 
     renderSelectedUser();
@@ -600,6 +621,11 @@ if (adminForm) {
 
     const feedback = document.querySelector('[data-admin-feedback]');
     try {
+      if (!payload.phone || !payload.date || !payload.time) {
+        showMessage(feedback, 'Nombre, teléfono, fecha y hora son obligatorios.');
+        return;
+      }
+
       await api.adminCreateAppointment(payload);
       adminForm.reset();
       await loadAdminAppointments(adminPageMode);
