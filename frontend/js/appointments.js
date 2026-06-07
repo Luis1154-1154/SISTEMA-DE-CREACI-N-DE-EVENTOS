@@ -66,6 +66,11 @@ function renderAppointmentCard(appointment) {
   `;
 }
 
+function isAuthError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return message.includes('no autenticado') || message.includes('no autorizado') || message.includes('token inválido');
+}
+
 async function loadUserAppointments() {
   const session = await requireSession('user');
   if (!session) return;
@@ -95,6 +100,11 @@ async function loadUserAppointments() {
 
     container.innerHTML = appointments.map(renderAppointmentCard).join('');
   } catch (error) {
+    if (isAuthError(error)) {
+      window.location.assign('./login.html');
+      return;
+    }
+
     showMessage(feedback, error.message);
   }
 }

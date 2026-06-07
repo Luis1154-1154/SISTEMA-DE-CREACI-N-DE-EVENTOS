@@ -62,6 +62,11 @@ function renderHistoryCard(appointment) {
   `;
 }
 
+function isAuthError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return message.includes('no autenticado') || message.includes('no autorizado') || message.includes('token inválido');
+}
+
 async function loadHistory() {
   const session = await requireSession('user');
   if (!session) return;
@@ -90,6 +95,11 @@ async function loadHistory() {
 
     container.innerHTML = appointments.map(renderHistoryCard).join('');
   } catch (error) {
+    if (isAuthError(error)) {
+      window.location.assign('./login.html');
+      return;
+    }
+
     showMessage(feedback, error.message);
   }
 }
