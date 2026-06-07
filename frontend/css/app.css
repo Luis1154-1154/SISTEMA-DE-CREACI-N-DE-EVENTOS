@@ -149,15 +149,8 @@ body {
 }
 
 @media (max-width: 767.98px) {
-  .mobile-actions {
-    width: 100%;
-  }
-
-  .mobile-actions .btn {
-    min-width: 9rem;
-  }
-
-  .site-top .container {
-    justify-content: center !important;
+  .create-appointment-card .form-label,
+  .create-appointment-card .text-primary {
+    display: block;
   }
 }
