@@ -20,17 +20,24 @@ function getCookieOptions() {
 
 exports.login = (req, res) => {
   const { phone, password } = req.body || {};
-  if (!phone || !password) {
-    return res.status(400).json({ message: 'Teléfono y contraseña requeridos' });
-  }
+  if (!phone) return res.status(400).json({ message: 'Teléfono requerido' });
 
   Usuario.getUsuarioByPhone(phone, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!results || !results.length) return res.status(401).json({ message: 'Credenciales inválidas' });
 
     const user = results[0];
-    if (!user.password || !bcrypt.compareSync(password, user.password)) {
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+
+    // If a password is provided, validate it (admin or user)
+    if (password) {
+      if (!user.password || !bcrypt.compareSync(password, user.password)) {
+        return res.status(401).json({ message: 'Credenciales inválidas' });
+      }
+    } else {
+      // No password provided: only allow phone-only login for non-admin users
+      if (String(user.role || '').toLowerCase() === 'admin') {
+        return res.status(401).json({ message: 'Credenciales inválidas' });
+      }
     }
 
     const payload = { id: user.id, phone: user.phone, name: user.name, role: user.role };

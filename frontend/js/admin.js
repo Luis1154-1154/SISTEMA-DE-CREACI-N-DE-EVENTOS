@@ -99,6 +99,37 @@ function renderEditForm(appointment) {
         <button class="btn btn-primary btn-sm rounded-pill px-3" type="submit">Guardar cambios</button>
       </div>
     </form>
+
+    <form class="card border-0 shadow-sm mb-4 admin-page-card" data-create-appointment-for-user>
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+          <h3 class="h6 mb-0">Crear cita para este usuario</h3>
+          <span class="badge text-bg-primary rounded-pill">Reservar</span>
+        </div>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label">Teléfono</label>
+            <input class="form-control" name="phone" value="${escapeHtml(user.phone || '')}" required />
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label">Fecha</label>
+            <input class="form-control" name="date" type="date" required />
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label">Hora</label>
+            <input class="form-control" name="time" type="time" required />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-control" name="description" rows="2" placeholder="Opcional"></textarea>
+          </div>
+        </div>
+        <div data-create-appointment-feedback class="mt-3"></div>
+        <div class="d-flex justify-content-end mt-3">
+          <button class="btn btn-primary rounded-pill px-4" type="submit">Reservar cita</button>
+        </div>
+      </div>
+    </form>
   `;
 }
 
@@ -424,6 +455,38 @@ function wireClinicalRecordInteractions(container, feedback, selectedUser, refre
       restore();
     }
   });
+
+  const createForm = container.querySelector('[data-create-appointment-for-user]');
+  if (createForm) {
+    createForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(createForm);
+      const payload = {
+        userId: selectedUser.id,
+        phone: String(formData.get('phone') || '').trim(),
+        date: String(formData.get('date') || '').trim(),
+        time: String(formData.get('time') || '').trim(),
+        description: String(formData.get('description') || '').trim(),
+      };
+
+      const feedbackBox = createForm.querySelector('[data-create-appointment-feedback]');
+      const submitButton = createForm.querySelector('button[type="submit"]');
+      const restore = setLoading(submitButton, 'Reservando...');
+      try {
+        if (!payload.phone || !payload.date || !payload.time) {
+          showMessage(feedbackBox, 'Teléfono, fecha y hora son obligatorios.');
+          return;
+        }
+        await api.adminCreateAppointment(payload);
+        showMessage(feedback, 'Cita creada correctamente.', 'success');
+        await refresh(selectedUser.id);
+      } catch (error) {
+        showMessage(feedbackBox, error.message);
+      } finally {
+        restore();
+      }
+    });
+  }
 }
 
 async function loadClinicalRecords(initialUserId = null) {

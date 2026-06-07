@@ -9,12 +9,24 @@ if (form) {
   const phoneInput = form.querySelector('[name="phone"]');
   const passwordInput = form.querySelector('[name="password"]');
   const togglePasswordButton = form.querySelector('[data-toggle-password]');
+  const adminCheck = form.querySelector('#admin-check');
 
   if (togglePasswordButton && passwordInput) {
     togglePasswordButton.addEventListener('click', () => {
       const reveal = passwordInput.type === 'password';
       passwordInput.type = reveal ? 'text' : 'password';
       togglePasswordButton.textContent = reveal ? 'Ocultar contraseña' : 'Mostrar contraseña';
+    });
+  }
+
+  if (adminCheck && passwordInput) {
+    adminCheck.addEventListener('change', () => {
+      const panel = document.getElementById('admin-password-panel');
+      if (adminCheck.checked) {
+        panel.classList.remove('d-none');
+      } else {
+        panel.classList.add('d-none');
+      }
     });
   }
 
@@ -26,17 +38,27 @@ if (form) {
 
     const phone = normalizePhone(phoneInput?.value);
     const password = String(passwordInput?.value || '').trim();
+    const isAdmin = adminCheck ? adminCheck.checked : false;
 
-    if (!phone || !password) {
-      showMessage(feedback, 'Completa el número de teléfono y la contraseña.');
+    if (!phone) {
+      showMessage(feedback, 'Completa el número de teléfono.');
+      return;
+    }
+
+    if (isAdmin && !password) {
+      showMessage(feedback, 'Ingresa la contraseña de admin.');
       return;
     }
 
     const restore = setLoading(submitButton, 'Entrando...');
     try {
-      const payload = isAdminCredentials(phone, password)
-        ? await api.login({ phone, password, roleHint: 'admin' })
-        : await api.login({ phone, password });
+      let payload;
+      if (isAdmin) {
+        payload = await api.login({ phone, password });
+      } else {
+        // User login by phone only
+        payload = await api.login({ phone });
+      }
 
       const target = payload?.role === 'admin' ? './admin-appointments.html' : './appointments.html';
       window.location.assign(target);
