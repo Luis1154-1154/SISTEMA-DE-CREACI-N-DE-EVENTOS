@@ -33,6 +33,7 @@ export const api = {
   resetPassword: (body) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(body) }),
   me: () => request('/auth/me'),
   logout: () => request('/auth/logout', { method: 'POST' }),
+  listUsers: () => request('/usuarios'),
   createAppointment: (body) => request('/appointments', { method: 'POST', body: JSON.stringify(body) }),
   cancelAppointment: (id, body) => request(`/appointments/${encodeURIComponent(id)}/cancel`, { method: 'PATCH', body: JSON.stringify(body) }),
   adminCreateAppointment: (body) => request('/admin/appointments', { method: 'POST', body: JSON.stringify(body) }),

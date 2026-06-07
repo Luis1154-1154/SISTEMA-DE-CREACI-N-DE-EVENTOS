@@ -99,6 +99,10 @@ input[type='time']::-webkit-calendar-picker-indicator {
   --site-bar-height: 64px;
 }
 
+body[data-admin-page] {
+  --site-bar-height: 96px;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap');
 
 .site-top,
@@ -148,6 +152,96 @@ body {
   color: rgba(255,255,255,0.9) !important;
 }
 
+.admin-navbar {
+  width: 100%;
+  gap: 1rem;
+}
+
+.admin-navbar-brand {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+}
+
+.admin-nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.admin-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.admin-nav-link:hover,
+.admin-nav-link.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.admin-page-intro {
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.05), rgba(15, 118, 110, 0.04));
+  border-radius: 1.25rem;
+  border: 1px solid rgba(13, 110, 253, 0.08);
+}
+
+.admin-page-card,
+.record-detail-panel,
+.record-user-panel {
+  border-radius: 1.25rem;
+}
+
+.record-user-list {
+  gap: 0.65rem;
+}
+
+.record-user-item {
+  border: 1px solid rgba(13, 110, 253, 0.1);
+  border-radius: 1rem;
+  margin-bottom: 0.65rem;
+  background: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.record-user-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(13, 110, 253, 0.22);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+}
+
+.record-user-item.active {
+  border-color: rgba(13, 110, 253, 0.5);
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.08), rgba(255, 255, 255, 1));
+}
+
+.record-panel-header {
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.06), rgba(15, 118, 110, 0.04));
+  border-radius: 1rem;
+}
+
+.record-summary-chip {
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+}
+
+.admin-appointment-item {
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
 .cancel-panel,
 .edit-panel {
   background: rgba(13, 110, 253, 0.04);
@@ -163,15 +257,24 @@ body {
 }
 
 .admin-appointment-item {
-  cursor: pointer;
+  border-radius: 0.9rem;
 }
 
 .admin-appointment-item:hover {
   background: rgba(13, 110, 253, 0.03);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
 }
 
 .admin-action-group .btn {
-  min-width: 7rem;
+  min-width: 0;
+  border-radius: 999px;
+  padding-inline: 0.95rem;
+  white-space: nowrap;
+}
+
+.admin-action-group {
+  align-items: center;
 }
 
 @media (max-width: 767.98px) {

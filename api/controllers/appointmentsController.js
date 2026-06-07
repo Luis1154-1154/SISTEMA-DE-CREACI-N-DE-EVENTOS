@@ -1,4 +1,5 @@
 const Appointments = require('../models/Appointments');
+const Usuario = require('../models/Usuarios');
 
 exports.createForUser = (req, res) => {
   const user = req.user;
@@ -29,24 +30,48 @@ exports.createForAdmin = (req, res) => {
   if (!user) return res.status(401).json({ message: 'No autenticado' });
   if (user.role !== 'admin') return res.status(403).json({ message: 'No autorizado' });
 
-  const { name, phone, date, time, description } = req.body || {};
-  if (!name || !date || !time) return res.status(400).json({ message: 'Nombre, fecha y hora son requeridos' });
+  const { userId, user_id: legacyUserId, name, phone, date, time, description } = req.body || {};
+  const selectedUserId = userId || legacyUserId || null;
 
-  const appointment = {
-    user_id: null,
-    phone: phone && String(phone).trim() ? String(phone).trim() : null,
-    name,
-    date,
-    time,
-    description,
-    status: 'pending',
-    cancel_reason: null
+  if (!date || !time) return res.status(400).json({ message: 'Fecha y hora son requeridos' });
+
+  const createAppointment = (resolvedName, resolvedPhone, resolvedUserId) => {
+    const appointment = {
+      user_id: resolvedUserId || null,
+      phone: resolvedPhone && String(resolvedPhone).trim() ? String(resolvedPhone).trim() : null,
+      name: String(resolvedName || '').trim(),
+      date,
+      time,
+      description,
+      status: 'pending',
+      cancel_reason: null
+    };
+
+    if (!appointment.name) {
+      return res.status(400).json({ message: 'Nombre requerido' });
+    }
+
+    Appointments.create(appointment, (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ id: result.insertId, message: 'Cita creada por admin' });
+    });
   };
 
-  Appointments.create(appointment, (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.status(201).json({ id: result.insertId, message: 'Cita creada por admin' });
-  });
+  if (selectedUserId) {
+    Usuario.getUsuarioById(selectedUserId, (lookupErr, results) => {
+      if (lookupErr) return res.status(500).json({ error: lookupErr.message });
+      if (!results || !results.length) {
+        return res.status(404).json({ message: 'Usuario no encontrado' });
+      }
+
+      const selectedUser = results[0];
+      createAppointment(selectedUser.name, selectedUser.phone, selectedUser.id);
+    });
+    return;
+  }
+
+  if (!name) return res.status(400).json({ message: 'Nombre requerido' });
+  createAppointment(name, phone, null);
 };
 
 exports.listMyAppointments = (req, res) => {
