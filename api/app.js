@@ -96,9 +96,10 @@ app.get('/debug-cors', (req, res) => {
   res.json({ ok: true });
 });
 
+// Mount public auth routes before protected routers so register/login remain reachable.
+app.use('/api', authRoutes);
 // Mount API routes under /api only to avoid duplicate endpoints at root
 app.use('/api', usuariosRoutes);
-app.use('/api', authRoutes);
 app.use('/api', appointmentsRoutes);
 // Mount debug helpers only in non-production environments
 if (process.env.NODE_ENV !== 'production') {
