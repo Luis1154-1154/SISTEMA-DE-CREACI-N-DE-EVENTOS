@@ -22,21 +22,15 @@ if (form) {
 
     const phone = String(form.querySelector('[name="phone"]')?.value || '').trim();
     const name = String(form.querySelector('[name="name"]')?.value || '').trim();
-    const password = String(form.querySelector('[name="password"]')?.value || '').trim();
 
-    if (!phone || !name || !password) {
-      showMessage(feedback, 'No dejes ningún campo vacío.');
-      return;
-    }
-
-    if (password.length < 6) {
-      showMessage(feedback, 'La contraseña debe tener al menos 6 caracteres.');
+    if (!phone || !name) {
+      showMessage(feedback, 'Completa número y nombre.');
       return;
     }
 
     const restore = setLoading(submitButton, 'Creando cuenta...');
     try {
-      await api.register({ phone, name, password });
+      await api.register({ phone, name });
       window.location.assign('./login.html');
     } catch (error) {
       showMessage(feedback, error.message);

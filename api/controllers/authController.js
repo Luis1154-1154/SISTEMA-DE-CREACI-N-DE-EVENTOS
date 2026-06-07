@@ -20,7 +20,7 @@ function getCookieOptions() {
 
 exports.login = (req, res) => {
   const { phone, password } = req.body || {};
-  if (!phone || !password) return res.status(400).json({ message: 'Teléfono y contraseña requeridos' });
+  if (!phone) return res.status(400).json({ message: 'Teléfono requerido' });
 
   Usuario.getUsuarioByPhone(phone, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -28,8 +28,15 @@ exports.login = (req, res) => {
 
     const user = results[0];
 
-    if (!user.password || !bcrypt.compareSync(password, user.password)) {
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+    // If password provided, validate it. If not, allow phone-only login for non-admin users.
+    if (password) {
+      if (!user.password || !bcrypt.compareSync(password, user.password)) {
+        return res.status(401).json({ message: 'Credenciales inválidas' });
+      }
+    } else {
+      if (String(user.role || '').toLowerCase() === 'admin') {
+        return res.status(401).json({ message: 'Credenciales inválidas' });
+      }
     }
 
     const payload = { id: user.id, phone: user.phone, name: user.name, role: user.role };
@@ -46,9 +53,9 @@ exports.login = (req, res) => {
 
 exports.register = (req, res) => {
   const { phone, name, password } = req.body || {};
-  if (!phone || !name || !password) return res.status(400).json({ message: 'Teléfono, nombre y contraseña requeridos' });
+  if (!phone || !name) return res.status(400).json({ message: 'Teléfono y nombre requeridos' });
 
-  if (String(password).trim().length < 6) {
+  if (password && String(password).trim().length < 6) {
     return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
   }
 
@@ -64,7 +71,7 @@ exports.register = (req, res) => {
       }
       return res.status(400).json({ message: 'Ya existe un usuario duplicado' });
     }
-    const hashed = bcrypt.hashSync(String(password).trim(), 10);
+    const hashed = password ? bcrypt.hashSync(String(password).trim(), 10) : null;
     Usuario.addUsuario({ phone, name, password: hashed, role: 'user' }, (err2, result) => {
       if (err2) return res.status(500).json({ error: err2.message });
 
