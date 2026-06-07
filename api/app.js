@@ -1,19 +1,25 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const cookieParser = require('cookie-parser');
 const usuariosRoutes = require('./routes/usuariosRoutes');
 const authRoutes = require('./routes/authRoutes');
 const appointmentsRoutes = require('./routes/appointmentsRoutes');
 const debugRoutes = require('./routes/debugRoutes');
 
-// Simple CORS middleware: allow any origin (for local dev)
+const configuredOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_ORIGIN || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
+// CORS middleware: allow configured origins when provided, otherwise echo the browser origin.
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  // Use the provided Origin when available, otherwise fallback to localhost dev origin.
-  const allowOrigin = origin || 'http://localhost:3000';
-  res.setHeader('Access-Control-Allow-Origin', allowOrigin);
+  const allowOrigin = configuredOrigins.length === 0 || configuredOrigins.includes(origin);
+  if (origin && allowOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Vary', 'Origin');
   // Always allow credentials so cookies can be set when requested by the browser.
   res.setHeader('Access-Control-Allow-Credentials', 'true');
