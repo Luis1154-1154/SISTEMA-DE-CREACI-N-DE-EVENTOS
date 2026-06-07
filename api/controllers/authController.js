@@ -9,11 +9,11 @@ function getCookieOptions() {
   const sameSite = String(process.env.COOKIE_SAMESITE || 'lax').toLowerCase();
   const secure = process.env.COOKIE_SECURE
     ? String(process.env.COOKIE_SECURE).toLowerCase() !== 'false'
-    : process.env.NODE_ENV === 'production' || sameSite === 'none';
+    : process.env.NODE_ENV === 'production';
 
   return {
     httpOnly: true,
-    sameSite,
+    sameSite: process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === 'production' ? 'none' : sameSite),
     secure,
   };
 }

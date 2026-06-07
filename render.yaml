@@ -29,4 +29,6 @@ services:
       - key: CORS_ORIGIN
         sync: false
       - key: COOKIE_SAMESITE
-        sync: false
+        value: none
+      - key: COOKIE_SECURE
+        value: true
