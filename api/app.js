@@ -7,6 +7,7 @@ const usuariosRoutes = require('./routes/usuariosRoutes');
 const authRoutes = require('./routes/authRoutes');
 const appointmentsRoutes = require('./routes/appointmentsRoutes');
 const debugRoutes = require('./routes/debugRoutes');
+const { ensureAppointmentSchema } = require('./config/migrations');
 
 const configuredOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_ORIGIN || '')
   .split(',')
@@ -108,8 +109,16 @@ app.use((req, res) => {
   res.status(404).send('<h1>Error 404</h1><p>La ruta que intentas acceder no existe.</p>');
 });
 
+function startServer() {
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  });
+}
 
-
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
+ensureAppointmentSchema()
+  .catch((error) => {
+    console.error('No se pudo asegurar el esquema de citas:', error);
+  })
+  .finally(() => {
+    startServer();
+  });

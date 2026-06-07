@@ -13,7 +13,9 @@ exports.createForUser = (req, res) => {
     name: user.name || '',
     date,
     time,
-    description
+    description,
+    status: 'pending',
+    cancel_reason: null
   };
 
   Appointments.create(appointment, (err, result) => {
@@ -36,7 +38,9 @@ exports.createForAdmin = (req, res) => {
     name,
     date,
     time,
-    description
+    description,
+    status: 'pending',
+    cancel_reason: null
   };
 
   Appointments.create(appointment, (err, result) => {
@@ -55,6 +59,48 @@ exports.listMyAppointments = (req, res) => {
   });
 };
 
+exports.listMyHistory = (req, res) => {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'No autenticado' });
+
+  Appointments.findHistoryByUser(user.id, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+};
+
+exports.cancelMyAppointment = (req, res) => {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'No autenticado' });
+
+  const { id } = req.params;
+  const { reason } = req.body || {};
+  const cancelReason = String(reason || '').trim();
+
+  if (!cancelReason) {
+    return res.status(400).json({ message: 'Debes indicar el motivo de cancelación' });
+  }
+
+  Appointments.findById(id, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!results || !results.length) return res.status(404).json({ message: 'Cita no encontrada' });
+
+    const appointment = results[0];
+    if (String(appointment.user_id) !== String(user.id)) {
+      return res.status(403).json({ message: 'No autorizado' });
+    }
+
+    if (appointment.status && appointment.status !== 'pending') {
+      return res.status(400).json({ message: 'Solo puedes cancelar citas pendientes' });
+    }
+
+    Appointments.updateStatusById(id, 'canceled', cancelReason, (updateErr) => {
+      if (updateErr) return res.status(500).json({ error: updateErr.message });
+      return res.json({ message: 'Cita cancelada' });
+    });
+  });
+};
+
 exports.listAll = (req, res) => {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'No autenticado' });
@@ -63,6 +109,70 @@ exports.listAll = (req, res) => {
   Appointments.findAll((err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
+  });
+};
+
+exports.updateAppointment = (req, res) => {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'No autenticado' });
+  if (user.role !== 'admin') return res.status(403).json({ message: 'No autorizado' });
+
+  const { id } = req.params;
+  const { name, phone, date, time, description, status, cancel_reason: cancelReason, cancelReason: camelCancelReason } = req.body || {};
+  const normalizedStatus = String(status || 'pending').trim().toLowerCase();
+  const normalizedCancelReason = String(cancelReason || camelCancelReason || '').trim();
+
+  if (!name || !date || !time) {
+    return res.status(400).json({ message: 'Nombre, fecha y hora son requeridos' });
+  }
+
+  if (!['pending', 'attended', 'canceled'].includes(normalizedStatus)) {
+    return res.status(400).json({ message: 'Estado inválido' });
+  }
+
+  if (normalizedStatus === 'canceled' && !normalizedCancelReason) {
+    return res.status(400).json({ message: 'Debes indicar el motivo de cancelación' });
+  }
+
+  Appointments.updateById(
+    id,
+    {
+      name: String(name).trim(),
+      phone: phone && String(phone).trim() ? String(phone).trim() : null,
+      date,
+      time,
+      description,
+      status: normalizedStatus,
+      cancel_reason: normalizedStatus === 'canceled' ? normalizedCancelReason : null
+    },
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Cita actualizada' });
+    }
+  );
+};
+
+exports.updateAppointmentStatus = (req, res) => {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'No autenticado' });
+  if (user.role !== 'admin') return res.status(403).json({ message: 'No autorizado' });
+
+  const { id } = req.params;
+  const { status, reason, cancel_reason: cancelReason, cancelReason: camelCancelReason } = req.body || {};
+  const normalizedStatus = String(status || '').trim().toLowerCase();
+  const normalizedCancelReason = String(reason || cancelReason || camelCancelReason || '').trim();
+
+  if (!['pending', 'attended', 'canceled'].includes(normalizedStatus)) {
+    return res.status(400).json({ message: 'Estado inválido' });
+  }
+
+  if (normalizedStatus === 'canceled' && !normalizedCancelReason) {
+    return res.status(400).json({ message: 'Debes indicar el motivo de cancelación' });
+  }
+
+  Appointments.updateStatusById(id, normalizedStatus, normalizedStatus === 'canceled' ? normalizedCancelReason : null, (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Estado actualizado' });
   });
 };
 

@@ -34,8 +34,12 @@ export const api = {
   me: () => request('/auth/me'),
   logout: () => request('/auth/logout', { method: 'POST' }),
   createAppointment: (body) => request('/appointments', { method: 'POST', body: JSON.stringify(body) }),
+  cancelAppointment: (id, body) => request(`/appointments/${encodeURIComponent(id)}/cancel`, { method: 'PATCH', body: JSON.stringify(body) }),
   adminCreateAppointment: (body) => request('/admin/appointments', { method: 'POST', body: JSON.stringify(body) }),
   listMyAppointments: () => request('/appointments/me'),
+  listMyAppointmentHistory: () => request('/appointments/me/history'),
   listAppointmentsByDay: () => request('/admin/appointments'),
+  updateAppointment: (id, body) => request(`/admin/appointments/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(body) }),
+  updateAppointmentStatus: (id, body) => request(`/admin/appointments/${encodeURIComponent(id)}/status`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteAppointment: (id) => request(`/admin/appointments/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 };

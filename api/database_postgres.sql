@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS appointments (
   date DATE NOT NULL,
   time TIME NOT NULL,
   description TEXT,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  cancel_reason TEXT DEFAULT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 

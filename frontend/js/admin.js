@@ -1,6 +1,6 @@
 import { api } from './api-client.js';
 import { requireSession } from './auth-guard.js';
-import { clearMessage, escapeHtml, showMessage } from './ui-utils.js';
+import { clearMessage, escapeHtml, setLoading, showMessage } from './ui-utils.js';
 
 function groupByDay(appointments) {
   return appointments.reduce((groups, appointment) => {
@@ -22,9 +22,98 @@ function formatDateTime(dateStr, timeStr) {
     const dateFmt = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'long', day: 'numeric' }).format(dt);
     const timeFmt = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(dt);
     return { date: dateFmt, time: timeFmt };
-  } catch (e) {
+  } catch (error) {
     return { date: dateStr || '', time: timeStr || '' };
   }
+}
+
+function statusBadgeClass(status) {
+  if (status === 'attended') return 'text-bg-success';
+  if (status === 'canceled') return 'text-bg-danger';
+  return 'text-bg-warning text-dark';
+}
+
+function statusText(status) {
+  if (status === 'attended') return 'Atendida';
+  if (status === 'canceled') return 'Cancelada';
+  return 'Pendiente';
+}
+
+function renderEditForm(appointment) {
+  const id = escapeHtml(appointment.id || '');
+  const status = String(appointment.status || 'pending').toLowerCase();
+  return `
+    <form class="edit-panel d-none mt-3 border-top pt-3" data-edit-form="${id}">
+      <div class="row g-2">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Nombre</label>
+          <input class="form-control" name="name" value="${escapeHtml(appointment.name || '')}" required />
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label">Teléfono</label>
+          <input class="form-control" name="phone" value="${escapeHtml(appointment.phone || '')}" />
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">Fecha</label>
+          <input class="form-control" name="date" type="date" value="${escapeHtml(appointment.date || '')}" required />
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">Hora</label>
+          <input class="form-control" name="time" type="time" value="${escapeHtml(appointment.time || '')}" required />
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">Estado</label>
+          <select class="form-select" name="status">
+            <option value="pending" ${status === 'pending' ? 'selected' : ''}>Pendiente</option>
+            <option value="attended" ${status === 'attended' ? 'selected' : ''}>Atendida</option>
+            <option value="canceled" ${status === 'canceled' ? 'selected' : ''}>Cancelada</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descripción</label>
+          <textarea class="form-control" name="description" rows="3">${escapeHtml(appointment.description || '')}</textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Motivo de cancelación</label>
+          <textarea class="form-control" name="cancelReason" rows="2" placeholder="Obligatorio si el estado es cancelada">${escapeHtml(appointment.cancel_reason || '')}</textarea>
+        </div>
+      </div>
+      <div data-edit-feedback class="mt-2"></div>
+      <div class="d-flex flex-wrap gap-2 justify-content-end mt-3">
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-edit-hide="${id}">Cerrar</button>
+        <button class="btn btn-primary btn-sm" type="submit">Guardar cambios</button>
+      </div>
+    </form>
+  `;
+}
+
+function renderAppointmentItem(appointment) {
+  const formatted = formatDateTime(appointment.date, appointment.time);
+  const id = escapeHtml(appointment.id || '');
+  const status = String(appointment.status || 'pending').toLowerCase();
+
+  return `
+    <div class="list-group-item py-3" data-appointment-item="${id}">
+      <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+        <div class="flex-grow-1">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <div class="fw-semibold">${escapeHtml(appointment.name || 'Paciente')}</div>
+            <span class="badge ${statusBadgeClass(status)}">${escapeHtml(statusText(status))}</span>
+          </div>
+          <div class="text-muted small">${escapeHtml(appointment.phone || '')}</div>
+          <div class="text-muted small">${escapeHtml(formatted.time || appointment.time || '')}</div>
+          <div class="mt-2">${escapeHtml(appointment.description || 'Sin descripción')}</div>
+          ${status === 'canceled' && appointment.cancel_reason ? `<div class="alert alert-warning py-2 small mt-3 mb-0">Motivo de cancelación: ${escapeHtml(appointment.cancel_reason)}</div>` : ''}
+        </div>
+        <div class="text-md-end d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
+          ${status === 'pending' ? `<button class="btn btn-success btn-sm" type="button" data-attend-appointment="${id}">Atender</button>` : ''}
+          <button class="btn btn-outline-primary btn-sm" type="button" data-edit-appointment="${id}">Editar</button>
+          <button class="btn btn-outline-danger btn-sm" type="button" data-delete-appointment="${id}">Eliminar</button>
+        </div>
+      </div>
+      ${renderEditForm(appointment)}
+    </div>
+  `;
 }
 
 async function loadAdminAppointments() {
@@ -42,7 +131,16 @@ async function loadAdminAppointments() {
     const days = Object.keys(groups).sort();
 
     if (!days.length) {
-      container.innerHTML = '<div class="col-12"><div class="card border-0 shadow-sm"><div class="card-body text-center py-5"><h2 class="h5 mb-2">No hay citas registradas</h2><p class="mb-0 text-muted">Cuando entren citas, aparecerán organizadas por día.</p></div></div></div>';
+      container.innerHTML = `
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+              <h2 class="h5 mb-2">No hay citas registradas</h2>
+              <p class="mb-0 text-muted">Cuando entren citas, aparecerán organizadas por día.</p>
+            </div>
+          </div>
+        </div>
+      `;
       return;
     }
 
@@ -54,30 +152,32 @@ async function loadAdminAppointments() {
               <h2 class="h5 mb-0">${escapeHtml(formatDateTime(day, null).date || day)}</h2>
             </div>
             <div class="list-group list-group-flush">
-              ${groups[day]
-                .map(
-                  (appointment) => `
-                    <div class="list-group-item py-3">
-                      <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
-                        <div>
-                          <div class="fw-semibold mb-1">${escapeHtml(appointment.name || 'Paciente')}</div>
-                          <div class="text-muted small">${escapeHtml(appointment.phone || '')}</div>
-                          <div class="text-muted small">${escapeHtml(formatDateTime(appointment.date, appointment.time).time || appointment.time || '')}</div>
-                          <div class="mt-2">${escapeHtml(appointment.description || 'Sin descripción')}</div>
-                        </div>
-                        <div class="text-md-end">
-                          <button class="btn btn-outline-danger btn-sm" data-delete-appointment="${escapeHtml(appointment.id || appointment._id)}">Eliminar</button>
-                        </div>
-                      </div>
-                    </div>
-                  `,
-                )
-                .join('')}
+              ${groups[day].map(renderAppointmentItem).join('')}
             </div>
           </section>
         </div>
       `)
       .join('');
+
+    container.querySelectorAll('[data-attend-appointment]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const appointmentId = button.getAttribute('data-attend-appointment');
+        if (!appointmentId) return;
+
+        const confirmed = window.confirm('¿Marcar esta cita como atendida?');
+        if (!confirmed) return;
+
+        const restore = setLoading(button, 'Atendiendo...');
+        try {
+          await api.updateAppointmentStatus(appointmentId, { status: 'attended' });
+          await loadAdminAppointments();
+        } catch (error) {
+          showMessage(feedback, error.message);
+        } finally {
+          restore();
+        }
+      });
+    });
 
     container.querySelectorAll('[data-delete-appointment]').forEach((button) => {
       button.addEventListener('click', async () => {
@@ -95,6 +195,64 @@ async function loadAdminAppointments() {
         }
       });
     });
+
+    container.querySelectorAll('[data-edit-appointment]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const appointmentId = button.getAttribute('data-edit-appointment');
+        if (!appointmentId) return;
+        const form = container.querySelector(`[data-edit-form="${CSS.escape(appointmentId)}"]`);
+        if (form) form.classList.toggle('d-none');
+      });
+    });
+
+    container.querySelectorAll('[data-edit-hide]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const appointmentId = button.getAttribute('data-edit-hide');
+        if (!appointmentId) return;
+        const form = container.querySelector(`[data-edit-form="${CSS.escape(appointmentId)}"]`);
+        if (form) form.classList.add('d-none');
+      });
+    });
+
+    container.querySelectorAll('[data-edit-form]').forEach((form) => {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const appointmentId = form.getAttribute('data-edit-form');
+        const feedbackBox = form.querySelector('[data-edit-feedback]');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const formData = new FormData(form);
+        const payload = {
+          name: String(formData.get('name') || '').trim(),
+          phone: String(formData.get('phone') || '').trim(),
+          date: String(formData.get('date') || '').trim(),
+          time: String(formData.get('time') || '').trim(),
+          description: String(formData.get('description') || '').trim(),
+          status: String(formData.get('status') || 'pending').trim(),
+          cancelReason: String(formData.get('cancelReason') || '').trim(),
+        };
+
+        if (!payload.name || !payload.date || !payload.time) {
+          showMessage(feedbackBox, 'Nombre, fecha y hora son obligatorios.');
+          return;
+        }
+
+        if (payload.status === 'canceled' && !payload.cancelReason) {
+          showMessage(feedbackBox, 'Si cancelas, debes indicar el motivo.');
+          return;
+        }
+
+        const restore = setLoading(submitButton, 'Guardando...');
+        try {
+          await api.updateAppointment(appointmentId, payload);
+          showMessage(feedback, 'Cita actualizada correctamente.', 'success');
+          await loadAdminAppointments();
+        } catch (error) {
+          showMessage(feedbackBox, error.message);
+        } finally {
+          restore();
+        }
+      });
+    });
   } catch (error) {
     showMessage(feedback, error.message);
   }
@@ -106,32 +264,30 @@ if (container) {
   loadAdminAppointments();
 }
 
-// logout button handler
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', async () => {
     try {
       await api.logout();
-    } catch (e) {
+    } catch {
       // ignore
     }
     window.location.assign('./index.html');
   });
 }
 
-// admin create form
 const adminForm = document.getElementById('admin-create-form');
 if (adminForm) {
   adminForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(adminForm);
-    const rawPhone = formData.get('phone')?.trim();
+    const rawPhone = String(formData.get('phone') || '').trim();
     const payload = {
-      name: formData.get('name')?.trim(),
+      name: String(formData.get('name') || '').trim(),
       phone: rawPhone && rawPhone.length ? rawPhone : null,
-      date: formData.get('date')?.trim(),
-      time: formData.get('time')?.trim(),
-      description: formData.get('description')?.trim()
+      date: String(formData.get('date') || '').trim(),
+      time: String(formData.get('time') || '').trim(),
+      description: String(formData.get('description') || '').trim(),
     };
 
     const feedback = document.querySelector('[data-admin-feedback]');

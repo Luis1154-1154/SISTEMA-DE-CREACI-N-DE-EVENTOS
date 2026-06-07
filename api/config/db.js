@@ -29,6 +29,7 @@ if (DB_CLIENT === 'postgres' || DB_CLIENT === 'pg') {
       if (typeof params === 'function') { cb = params; params = []; }
       cb = cb || function(){};
       const isInsert = /^\s*INSERT\s+/i.test(sql);
+      const isSelect = /^\s*SELECT\s+/i.test(sql);
       let pgSql = sql;
       if (isInsert && !/RETURNING\s+/i.test(sql)) {
         pgSql = sql + ' RETURNING id';
@@ -40,8 +41,10 @@ if (DB_CLIENT === 'postgres' || DB_CLIENT === 'pg') {
           if (isInsert) {
             const fake = { insertId: result.rows && result.rows[0] ? result.rows[0].id : undefined, rows: result.rows };
             cb(null, fake);
-          } else {
+          } else if (isSelect) {
             cb(null, result.rows);
+          } else {
+            cb(null, { affectedRows: result.rowCount || 0, rows: result.rows });
           }
         })
         .catch(err => cb(err));

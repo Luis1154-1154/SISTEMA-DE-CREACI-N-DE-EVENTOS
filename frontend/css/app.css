@@ -148,6 +148,20 @@ body {
   color: rgba(255,255,255,0.9) !important;
 }
 
+.cancel-panel,
+.edit-panel {
+  background: rgba(13, 110, 253, 0.04);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.cancel-panel textarea,
+.edit-panel textarea,
+.edit-panel input,
+.edit-panel select {
+  background-color: #fff;
+}
+
 @media (max-width: 767.98px) {
   .create-appointment-card .form-label,
   .create-appointment-card .text-primary {
