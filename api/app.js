@@ -3,25 +3,20 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 const cookieParser = require('cookie-parser');
-const eventosRoutes = require('./routes/eventosRoutes');
-const categoriasRoutes = require('./routes/categoriasRoutes');
-const participantesRoutes = require('./routes/participantesRoutes');
-const inscripcionesRoutes = require('./routes/inscripcionesRoutes');
-const reportesRoutes = require('./routes/reportesRoutes');
-const lugaresRoutes = require('./routes/lugaresRoutes');
 const usuariosRoutes = require('./routes/usuariosRoutes');
 const authRoutes = require('./routes/authRoutes');
+const appointmentsRoutes = require('./routes/appointmentsRoutes');
+const debugRoutes = require('./routes/debugRoutes');
 
 // Simple CORS middleware: allow any origin (for local dev)
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
+  // Use the provided Origin when available, otherwise fallback to localhost dev origin.
+  const allowOrigin = origin || 'http://localhost:3000';
+  res.setHeader('Access-Control-Allow-Origin', allowOrigin);
+  res.setHeader('Vary', 'Origin');
+  // Always allow credentials so cookies can be set when requested by the browser.
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
@@ -35,7 +30,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // Serve frontend static files from project-level `frontend/` (allows accessing registro.html, etc.)
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
-app.use(express.static(path.join(__dirname, 'public')));
 
 const fs = require('fs');
 const routesDir = path.join(__dirname, 'routes');
@@ -96,14 +90,13 @@ app.get('/debug-cors', (req, res) => {
 });
 
 // Mount API routes under /api only to avoid duplicate endpoints at root
-app.use('/api', eventosRoutes);
-app.use('/api', categoriasRoutes);
-app.use('/api', participantesRoutes);
-app.use('/api', inscripcionesRoutes);
-app.use('/api', reportesRoutes);
-app.use('/api', lugaresRoutes);
 app.use('/api', usuariosRoutes);
 app.use('/api', authRoutes);
+app.use('/api', appointmentsRoutes);
+// Mount debug helpers only in non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api', debugRoutes);
+}
 
 app.use((req, res) => {
   res.status(404).send('<h1>Error 404</h1><p>La ruta que intentas acceder no existe.</p>');

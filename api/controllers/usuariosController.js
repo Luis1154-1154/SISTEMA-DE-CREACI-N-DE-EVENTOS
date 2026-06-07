@@ -1,4 +1,5 @@
 const Usuario = require('../models/Usuarios');
+const bcrypt = require('bcryptjs');
 
 exports.getAllUsuarios = (req, res) => {
   Usuario.getAllUsuarios((err, results) => {
@@ -17,9 +18,10 @@ exports.getUsuarioById = (req, res) => {
 };
 
 exports.addUsuario = (req, res) => {
-  const { nombre, email, contrasena, rol } = req.body;
-  if (!nombre || !email) return res.status(400).json({ message: 'Nombre y email son obligatorios' });
-  Usuario.addUsuario({ nombre, email, contrasena, rol }, (err, result) => {
+  const { name, phone, password, role } = req.body;
+  if (!name || !phone) return res.status(400).json({ message: 'Nombre y teléfono son obligatorios' });
+  const hashed = password ? bcrypt.hashSync(password, 10) : null;
+  Usuario.addUsuario({ name, phone, password: hashed, role }, (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.status(201).json({ message: 'Usuario creado', id: result.insertId });
   });

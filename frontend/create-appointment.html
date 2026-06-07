@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agendar cita | Citas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="./css/app.css" rel="stylesheet" />
+  </head>
+  <body>
+    <main class="clinic-shell py-5">
+      <div class="container">
+          <header class="site-top px-4">
+            <div class="container d-flex justify-content-between align-items-center">
+              <div class="h5 mb-0">Dental Llamas</div>
+              <div class="d-flex align-items-center gap-2">
+                <a class="btn btn-outline-light btn-sm" href="./index.html">Inicio</a>
+                <a class="btn btn-outline-light btn-sm" href="./appointments.html">Ver mis citas</a>
+                <button id="logout-btn" class="btn btn-light btn-sm text-dark">Cerrar sesión</button>
+              </div>
+            </div>
+          </header>
+        <div class="row justify-content-center">
+          <div class="col-12 col-md-10 col-lg-7">
+            <div class="card border-0 shadow-sm">
+              <div class="card-body p-4 p-md-5">
+                <div class="mb-4">
+                  <p class="text-uppercase text-muted small mb-1">Paciente</p>
+                  <h1 class="h3 page-title mb-2">Crear cita</h1>
+                  <p class="text-muted mb-0">Selecciona fecha y hora; la descripción es opcional.</p>
+                </div>
+                <div data-create-feedback class="mb-3"></div>
+                <form data-appointment-create-form class="d-grid gap-3" novalidate>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="date">Fecha</label>
+                      <input class="form-control" id="date" name="date" type="date" />
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="time">Hora</label>
+                      <select class="form-select" id="time" name="time">
+                        <option value="">Selecciona una hora</option>
+                        <option>08:00</option>
+                        <option>08:30</option>
+                        <option>09:00</option>
+                        <option>09:30</option>
+                        <option>10:00</option>
+                        <option>10:30</option>
+                        <option>11:00</option>
+                        <option>11:30</option>
+                        <option>12:00</option>
+                        <option>12:30</option>
+                        <option>13:00</option>
+                        <option>13:30</option>
+                        <option>14:00</option>
+                        <option>14:30</option>
+                        <option>15:00</option>
+                        <option>15:30</option>
+                        <option>16:00</option>
+                        <option>16:30</option>
+                        <option>17:00</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="form-label" for="description">Descripción opcional</label>
+                    <textarea class="form-control" id="description" name="description" rows="4" placeholder="Motivo de la cita"></textarea>
+                  </div>
+                  <button class="btn btn-primary btn-lg" type="submit">Agendar cita</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+          <footer class="site-bottom">
+            <div class="container d-flex justify-content-between">
+              <div>Monteczuma 94, Pihuamo, Jalisco</div>
+              <div>Tel: </div>
+            </div>
+          </footer>
+    </main>
+    <script type="module" src="./js/create-appointment.js"></script>
+  </body>
+</html>

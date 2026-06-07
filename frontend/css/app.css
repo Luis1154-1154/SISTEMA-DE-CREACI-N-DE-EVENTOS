@@ -1,0 +1,121 @@
+:root {
+  --clinic-bg: #f7fbff;
+  --clinic-surface: #ffffff;
+  --clinic-primary: #0d6efd;
+  --clinic-secondary: #0f766e;
+  --clinic-accent: #ffd166;
+  --clinic-text: #123047;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(13, 110, 253, 0.08), transparent 35%),
+    radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, var(--clinic-bg) 100%);
+  color: var(--clinic-text);
+}
+
+.clinic-shell {
+  min-height: 100vh;
+}
+
+.hero-card,
+.appointment-card,
+.empty-state,
+.auth-card,
+.dashboard-card {
+  border-radius: 1.25rem;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #ffffff 0%, #eef6ff 100%);
+}
+
+.brand-mark {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--clinic-primary), var(--clinic-secondary));
+  color: white;
+  font-weight: 700;
+}
+
+.soft-badge {
+  background: rgba(13, 110, 253, 0.1);
+  color: var(--clinic-primary);
+}
+
+.page-title {
+  letter-spacing: -0.03em;
+}
+
+.form-control,
+.form-select {
+  border-radius: 0.9rem;
+  min-height: 3rem;
+}
+
+.btn {
+  border-radius: 0.9rem;
+}
+
+.sticky-top-nav {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+/* Site top/bottom bars */
+:root {
+  --site-bar-height: 64px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap');
+
+.site-top,
+.site-bottom {
+  background: #111827; /* dark contrasting band */
+  color: #ffffff;
+  font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+}
+
+.site-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--site-bar-height);
+  z-index: 1040;
+  display: flex;
+  align-items: center;
+}
+
+.site-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--site-bar-height) * 0.75);
+  z-index: 1040;
+  display: flex;
+  align-items: center;
+}
+
+/* ensure page content is not hidden under fixed bars */
+body {
+  padding-top: var(--site-bar-height);
+  padding-bottom: calc(var(--site-bar-height) * 0.75 + 12px);
+}
+
+.site-top .h5,
+.site-top strong,
+.site-top .h1 {
+  color: #fff;
+  margin: 0;
+}
+
+.site-bottom .text-muted {
+  color: rgba(255,255,255,0.9) !important;
+}

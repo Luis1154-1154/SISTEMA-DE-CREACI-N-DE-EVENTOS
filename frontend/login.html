@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Iniciar sesión | Citas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="./css/app.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header class="site-top px-4">
+      <div class="container d-flex justify-content-between align-items-center">
+        <div class="h5 mb-0">Dental Llamas</div>
+        <div>
+          <a class="btn btn-outline-light btn-sm" href="./index.html">Inicio</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="clinic-shell py-5">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-12 col-md-10 col-lg-6">
+            <div class="auth-card card border-0 shadow-sm">
+              <div class="card-body p-4 p-md-5">
+                <div class="mb-4">
+                  <p class="text-uppercase text-muted small mb-1">Acceso</p>
+                  <h1 class="h3 page-title mb-2">Inicia sesión</h1>
+                  <p class="text-muted mb-0">Usa tu teléfono y contraseña para acceder a tu cuenta.</p>
+                </div>
+                <div data-login-feedback class="mb-3"></div>
+                <form data-login-form class="d-grid gap-3" novalidate>
+                  <div>
+                    <label class="form-label" for="phone">Número de teléfono</label>
+                    <input class="form-control" id="phone" name="phone" type="tel" inputmode="tel" placeholder="ej. 3123456789" />
+                  </div>
+                  <div>
+                    <label class="form-label" for="password">Contraseña</label>
+                    <input class="form-control" id="password" name="password" type="password" placeholder="Tu contraseña" />
+                  </div>
+                  <button class="btn btn-primary btn-lg" type="submit">Entrar</button>
+                  <p class="text-center mb-0 text-muted">¿No tienes cuenta? <a href="./register.html">Regístrate</a></p>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="site-bottom">
+      <div class="container d-flex justify-content-between">
+        <div>Monteczuma 94, Pihuamo, Jalisco</div>
+        <div>Tel: </div>
+      </div>
+    </footer>
+    <script type="module" src="./js/login.js"></script>
+  </body>
+</html>

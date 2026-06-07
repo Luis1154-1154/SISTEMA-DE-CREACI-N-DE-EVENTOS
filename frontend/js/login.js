@@ -1,35 +1,40 @@
-(function () {
-  const form = document.querySelector('form');
-  if (!form) return;
+import { api } from './api-client.js';
+import { APP_CONFIG, isAdminCredentials, normalizePhone } from './app-config.js';
+import { clearMessage, setLoading, showMessage } from './ui-utils.js';
 
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
+const form = document.querySelector('[data-login-form]');
+if (form) {
+  const feedback = document.querySelector('[data-login-feedback]');
+  const submitButton = form.querySelector('button[type="submit"]');
+  const phoneInput = form.querySelector('[name="phone"]');
+  const passwordInput = form.querySelector('[name="password"]');
 
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+  // do not prefill or expose admin phone in the placeholder
 
-    if (!email || !password) {
-      alert('Por favor, completa todos los campos.');
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    clearMessage(feedback);
+
+    const phone = normalizePhone(phoneInput?.value);
+    const password = String(passwordInput?.value || '').trim();
+
+    if (!phone || !password) {
+      showMessage(feedback, 'Completa el número de teléfono y la contraseña.');
       return;
     }
 
+    const restore = setLoading(submitButton, 'Entrando...');
     try {
-      const resp = await apiFetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+      const payload = isAdminCredentials(phone, password)
+        ? await api.login({ phone, password, roleHint: 'admin' })
+        : await api.login({ phone, password });
 
-      const data = await resp.json().catch(() => ({}));
-      if (!resp.ok) {
-        alert(data.message || 'Credenciales inválidas');
-        return;
-      }
-
-      window.__CURRENT_USER = data;
-      window.location.href = 'eventos.html';
-    } catch (err) {
-      alert('Error: ' + err.message);
+      const target = payload?.role === 'admin' ? './admin-appointments.html' : './appointments.html';
+      window.location.assign(target);
+    } catch (error) {
+      showMessage(feedback, error.message);
+    } finally {
+      restore();
     }
   });
-})();
+}

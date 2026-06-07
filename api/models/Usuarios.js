@@ -1,26 +1,26 @@
 const db = require('../config/db');
 
 exports.getAllUsuarios = (callback) => {
-  db.query('SELECT id, nombre, email, rol FROM usuarios ORDER BY nombre ASC', callback);
+  db.query('SELECT id, phone, name, role FROM users ORDER BY name ASC', callback);
 };
 
 exports.getUsuarioById = (id, callback) => {
-  db.query('SELECT id, nombre, email, contrasena, rol FROM usuarios WHERE id = ?', [id], callback);
+  db.query('SELECT id, phone, name, password, role FROM users WHERE id = ?', [id], callback);
 };
 
-exports.getUsuarioByEmail = (email, callback) => {
-  db.query('SELECT id, nombre, email, contrasena, rol FROM usuarios WHERE email = ?', [email], callback);
+exports.getUsuarioByPhone = (phone, callback) => {
+  db.query('SELECT id, phone, name, password, role FROM users WHERE phone = ?', [phone], callback);
 };
 
 exports.addUsuario = (usuario, callback) => {
-  // Note: password should be hashed in production; here stored as provided
-  db.query('INSERT INTO usuarios (nombre, email, contrasena, rol) VALUES (?, ?, ?, ?)', [usuario.nombre, usuario.email, usuario.contrasena || null, usuario.rol || 'participante'], callback);
+  // In production, hash passwords before storing
+  db.query('INSERT INTO users (phone, name, password, role) VALUES (?, ?, ?, ?)', [usuario.phone, usuario.name, usuario.password || null, usuario.role || 'user'], callback);
 };
 
 exports.updateUsuario = (id, usuario, callback) => {
-  db.query('UPDATE usuarios SET nombre = ?, email = ?, rol = ? WHERE id = ?', [usuario.nombre, usuario.email, usuario.rol || 'participante', id], callback);
+  db.query('UPDATE users SET phone = ?, name = ?, role = ? WHERE id = ?', [usuario.phone, usuario.name, usuario.role || 'user', id], callback);
 };
 
 exports.deleteUsuario = (id, callback) => {
-  db.query('DELETE FROM usuarios WHERE id = ?', [id], callback);
+  db.query('DELETE FROM users WHERE id = ?', [id], callback);
 };
