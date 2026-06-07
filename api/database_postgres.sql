@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   phone VARCHAR(50) NOT NULL UNIQUE,
-  name VARCHAR(150) NOT NULL,
+  name VARCHAR(150) NOT NULL UNIQUE,
   password VARCHAR(255) DEFAULT NULL,
   role VARCHAR(20) NOT NULL DEFAULT 'user',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
@@ -27,6 +27,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_user_datetime ON appointments (user_id, dat
 
 -- Index for fast date lookups
 CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (date);
+
+-- Prevent duplicate user names
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_name ON users (name);
 
 -- Seed admin user if not exists (phone 3123170997)
 INSERT INTO users (phone, name, password, role)

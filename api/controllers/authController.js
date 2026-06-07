@@ -38,9 +38,18 @@ exports.register = (req, res) => {
   const { phone, name, password } = req.body || {};
   if (!phone || !name || !password) return res.status(400).json({ message: 'Teléfono, nombre y contraseña requeridos' });
 
-  Usuario.getUsuarioByPhone(phone, (err, results) => {
+  Usuario.getUsuarioByPhoneOrName(phone, name, null, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (results && results.length) return res.status(400).json({ message: 'Usuario ya registrado con ese teléfono' });
+    if (results && results.length) {
+      const duplicate = results[0];
+      if (duplicate.phone === phone) {
+        return res.status(400).json({ message: 'Ya existe un usuario con ese teléfono' });
+      }
+      if (duplicate.name === name) {
+        return res.status(400).json({ message: 'Ya existe un usuario con ese nombre' });
+      }
+      return res.status(400).json({ message: 'Ya existe un usuario duplicado' });
+    }
 
     const hashed = bcrypt.hashSync(password, 10);
     Usuario.addUsuario({ phone, name, password: hashed, role: 'user' }, (err2, result) => {
