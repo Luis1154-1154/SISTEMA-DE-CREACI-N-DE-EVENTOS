@@ -147,3 +147,17 @@ body {
 .site-bottom .text-muted {
   color: rgba(255,255,255,0.9) !important;
 }
+
+@media (max-width: 767.98px) {
+  .mobile-actions {
+    width: 100%;
+  }
+
+  .mobile-actions .btn {
+    min-width: 9rem;
+  }
+
+  .site-top .container {
+    justify-content: center !important;
+  }
+}
