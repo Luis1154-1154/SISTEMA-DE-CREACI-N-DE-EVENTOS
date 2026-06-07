@@ -101,7 +101,9 @@ async function loadUserAppointments() {
     container.innerHTML = appointments.map(renderAppointmentCard).join('');
   } catch (error) {
     if (isAuthError(error)) {
-      window.location.assign('./login.html');
+      // Avoid immediate redirect to allow debugging and user retry.
+      showMessage(feedback, `Error de autenticación: ${error.message}. Si esto persiste, cierra sesión e intenta iniciar de nuevo.`);
+      console.error('Auth error when loading appointments:', error);
       return;
     }
 
