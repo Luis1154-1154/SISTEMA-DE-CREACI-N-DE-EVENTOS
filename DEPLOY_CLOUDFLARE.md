@@ -35,7 +35,8 @@ app.use((req, res, next) => {
 Cookies y sesiones
 -------------------
 - Para cookies cross-site (si frontend y backend están en dominios distintos):
-  - `res.cookie('sid', token, { httpOnly: true, sameSite: 'none', secure: true })`
+  - configura el backend con `COOKIE_SAMESITE=none` y, si hace falta, `COOKIE_SECURE=true`
+  - el backend debe responder con `res.cookie('sid', token, { httpOnly: true, sameSite: 'none', secure: true })`
   - Asegúrate de que el frontend haga `fetch(..., { credentials: 'include' })` (ya está configurado en `api-client.js`).
 
 Publicar con GitHub Pages (alternativa)

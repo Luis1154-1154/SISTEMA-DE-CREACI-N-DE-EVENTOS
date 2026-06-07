@@ -5,6 +5,19 @@ const Usuario = require('../models/Usuarios');
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 const COOKIE_NAME = 'sid';
 
+function getCookieOptions() {
+  const sameSite = String(process.env.COOKIE_SAMESITE || 'lax').toLowerCase();
+  const secure = process.env.COOKIE_SECURE
+    ? String(process.env.COOKIE_SECURE).toLowerCase() !== 'false'
+    : process.env.NODE_ENV === 'production' || sameSite === 'none';
+
+  return {
+    httpOnly: true,
+    sameSite,
+    secure,
+  };
+}
+
 exports.login = (req, res) => {
   const { phone, password } = req.body || {};
   if (!phone || !password) {
@@ -24,9 +37,7 @@ exports.login = (req, res) => {
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
 
     res.cookie(COOKIE_NAME, token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      ...getCookieOptions(),
       maxAge: 8 * 60 * 60 * 1000
     });
 
@@ -57,7 +68,7 @@ exports.register = (req, res) => {
 
       const payload = { id: result.insertId, phone, name, role: 'user' };
       const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
-      res.cookie(COOKIE_NAME, token, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 8 * 60 * 60 * 1000 });
+      res.cookie(COOKIE_NAME, token, { ...getCookieOptions(), maxAge: 8 * 60 * 60 * 1000 });
       return res.status(201).json({ id: result.insertId, phone, name, role: 'user' });
     });
   });
@@ -88,7 +99,7 @@ exports.resetPassword = (req, res) => {
 };
 
 exports.logout = (req, res) => {
-  res.clearCookie(COOKIE_NAME);
+  res.clearCookie(COOKIE_NAME, getCookieOptions());
   return res.json({ message: 'Sesión cerrada' });
 };
 
