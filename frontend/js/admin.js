@@ -60,10 +60,10 @@ function renderEditForm(appointment) {
   return `
     <form class="edit-panel d-none mt-3 border-top pt-3" data-edit-form="${id}">
       <div class="row g-2">
-        <div class="col-12 col-md-6">
-          <label class="form-label">Nombre</label>
-          <input class="form-control" name="name" value="${escapeHtml(appointment.name || '')}" required />
-        </div>
+            <div class="col-12 col-md-4">
+            <label class="form-label">Hora</label>
+            <input class="form-control" name="time" type="time" step="60" required />
+          </div>
         <div class="col-12 col-md-6">
           <label class="form-label">Teléfono</label>
           <input class="form-control" name="phone" value="${escapeHtml(appointment.phone || '')}" />
@@ -74,7 +74,7 @@ function renderEditForm(appointment) {
         </div>
         <div class="col-12 col-md-4">
           <label class="form-label">Hora</label>
-          <input class="form-control" name="time" type="time" value="${escapeHtml(appointment.time || '')}" required />
+          <input class="form-control" name="time" type="time" step="60" value="${escapeHtml(appointment.time || '')}" required />
         </div>
         <div class="col-12 col-md-4">
           <label class="form-label">Estado</label>
@@ -100,36 +100,7 @@ function renderEditForm(appointment) {
       </div>
     </form>
 
-    <form class="card border-0 shadow-sm mb-4 admin-page-card" data-create-appointment-for-user>
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
-          <h3 class="h6 mb-0">Crear cita para este usuario</h3>
-          <span class="badge text-bg-primary rounded-pill">Reservar</span>
-        </div>
-        <div class="row g-3">
-          <div class="col-12 col-md-6">
-            <label class="form-label">Teléfono</label>
-            <input class="form-control" name="phone" value="${escapeHtml(appointment.phone || '')}" required />
-          </div>
-          <div class="col-12 col-md-3">
-            <label class="form-label">Fecha</label>
-            <input class="form-control" name="date" type="date" required />
-          </div>
-          <div class="col-12 col-md-3">
-            <label class="form-label">Hora</label>
-            <input class="form-control" name="time" type="time" required />
-          </div>
-          <div class="col-12">
-            <label class="form-label">Descripción</label>
-            <textarea class="form-control" name="description" rows="2" placeholder="Opcional"></textarea>
-          </div>
-        </div>
-        <div data-create-appointment-feedback class="mt-3"></div>
-        <div class="d-flex justify-content-end mt-3">
-          <button class="btn btn-primary rounded-pill px-4" type="submit">Reservar cita</button>
-        </div>
-      </div>
-    </form>
+    
   `;
 }
 
