@@ -80,7 +80,7 @@ async function loadUserAppointments() {
   if (!container) return;
 
   try {
-    const payload = await api.listMyAppointments();
+    const payload = await api.listMyAppointmentsSelf();
     const appointments = Array.isArray(payload?.data) ? payload.data : payload;
 
     if (!appointments || appointments.length === 0) {

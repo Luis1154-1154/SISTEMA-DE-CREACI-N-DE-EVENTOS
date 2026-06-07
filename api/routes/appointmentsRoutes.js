@@ -6,8 +6,10 @@ const authMiddleware = require('../middleware/authMiddleware');
 router.post('/appointments', authMiddleware.optionalAuth, appointmentsController.createForUser);
 router.get('/appointments/me', authMiddleware.optionalAuth, appointmentsController.listMyAppointments);
 router.get('/appointments/active', authMiddleware.optionalAuth, appointmentsController.listMyAppointments);
+router.get('/appointments/self', authMiddleware.optionalAuth, appointmentsController.listMyAppointments);
 router.get('/appointments/me/history', authMiddleware.optionalAuth, appointmentsController.listMyHistory);
 router.get('/appointments/history', authMiddleware.optionalAuth, appointmentsController.listMyHistory);
+router.get('/appointments/self/history', authMiddleware.optionalAuth, appointmentsController.listMyHistory);
 router.patch('/appointments/:id/cancel', authMiddleware.optionalAuth, appointmentsController.cancelMyAppointment);
 
 // Admin endpoints
