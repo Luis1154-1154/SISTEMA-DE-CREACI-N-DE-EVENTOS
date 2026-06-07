@@ -17,6 +17,17 @@ exports.getUsuarioById = (req, res) => {
   });
 };
 
+exports.updateClinicalObservations = (req, res) => {
+  const { id } = req.params;
+  const { clinicalObservations, clinical_observations: legacyClinicalObservations } = req.body || {};
+  const payload = String(clinicalObservations || legacyClinicalObservations || '').trim();
+
+  Usuario.updateClinicalObservations(id, payload, (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(200).json({ message: 'Observaciones actualizadas' });
+  });
+};
+
 exports.addUsuario = (req, res) => {
   const { name, phone, password, role } = req.body;
   if (!name || !phone) return res.status(400).json({ message: 'Nombre y teléfono son obligatorios' });

@@ -33,6 +33,7 @@ async function addColumnIfMissing(table, column, definition) {
 async function ensureAppointmentSchema() {
   await addColumnIfMissing('appointments', 'status', "status VARCHAR(20) NOT NULL DEFAULT 'pending'");
   await addColumnIfMissing('appointments', 'cancel_reason', 'cancel_reason TEXT NULL');
+  await addColumnIfMissing('users', 'clinical_observations', 'clinical_observations TEXT NULL');
 }
 
 module.exports = {

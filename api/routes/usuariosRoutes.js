@@ -15,6 +15,7 @@ router.use((req, res, next) => {
 
 router.get('/usuarios', usuariosController.getAllUsuarios);
 router.get('/usuarios/:id', usuariosController.getUsuarioById);
+router.put('/usuarios/:id/observations', usuariosController.updateClinicalObservations);
 router.post('/usuarios', usuariosController.addUsuario);
 router.put('/usuarios/:id', usuariosController.updateUsuario);
 router.delete('/usuarios/:id', usuariosController.deleteUsuario);

@@ -336,6 +336,7 @@ function renderUserItem(user, isSelected, recordCount) {
 function renderClinicalDetail(user, appointments) {
   const role = String(user.role || 'user').toLowerCase();
   const totalRecords = appointments.length;
+  const observations = String(user.clinical_observations || '').trim();
 
   return `
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3 record-panel-header p-3">
@@ -350,11 +351,11 @@ function renderClinicalDetail(user, appointments) {
       </div>
     </div>
 
-    <form class="card border-0 shadow-sm mb-4 admin-page-card" data-clinical-add-form>
+    <form class="card border-0 shadow-sm mb-4 admin-page-card" data-clinical-observations-form>
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
-          <h3 class="h6 mb-0">Agregar al expediente</h3>
-          <span class="badge text-bg-success rounded-pill">Nuevo registro</span>
+          <h3 class="h6 mb-0">Observaciones clínicas</h3>
+          <span class="badge text-bg-primary rounded-pill">Editable</span>
         </div>
         <div class="row g-3">
           <div class="col-12 col-md-6">
@@ -365,26 +366,14 @@ function renderClinicalDetail(user, appointments) {
             <label class="form-label">Teléfono</label>
             <input class="form-control" value="${escapeHtml(user.phone || '')}" readonly />
           </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Fecha</label>
-            <input class="form-control" name="date" type="date" required />
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Hora</label>
-            <input class="form-control" name="time" type="time" required />
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Estado inicial</label>
-            <input class="form-control" value="Pendiente" readonly />
-          </div>
           <div class="col-12">
-            <label class="form-label">Descripción</label>
-            <textarea class="form-control" name="description" rows="3" placeholder="Procedimiento, observaciones o motivo de consulta"></textarea>
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-control" name="clinicalObservations" rows="5" placeholder="Notas, antecedentes, seguimiento, indicaciones...">${escapeHtml(observations)}</textarea>
           </div>
         </div>
-        <div data-clinical-add-feedback class="mt-3"></div>
+        <div data-clinical-observations-feedback class="mt-3"></div>
         <div class="d-flex justify-content-end mt-3">
-          <button class="btn btn-primary rounded-pill px-4" type="submit">Agregar al expediente</button>
+          <button class="btn btn-primary rounded-pill px-4" type="submit">Guardar observaciones</button>
         </div>
       </div>
     </form>
@@ -412,33 +401,23 @@ function renderClinicalDetail(user, appointments) {
 function wireClinicalRecordInteractions(container, feedback, selectedUser, refresh) {
   wireAppointmentInteractions(container, feedback, { showAttendAction: false, refresh: () => refresh(selectedUser.id) });
 
-  const addForm = container.querySelector('[data-clinical-add-form]');
-  if (!addForm) return;
+  const observationsForm = container.querySelector('[data-clinical-observations-form]');
+  if (!observationsForm) return;
 
-  addForm.addEventListener('submit', async (event) => {
+  observationsForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const formData = new FormData(addForm);
+    const formData = new FormData(observationsForm);
     const payload = {
-      userId: selectedUser.id,
-      name: selectedUser.name,
-      phone: selectedUser.phone,
-      date: String(formData.get('date') || '').trim(),
-      time: String(formData.get('time') || '').trim(),
-      description: String(formData.get('description') || '').trim(),
+      clinicalObservations: String(formData.get('clinicalObservations') || '').trim(),
     };
 
-    const feedbackBox = addForm.querySelector('[data-clinical-add-feedback]');
-    if (!payload.date || !payload.time) {
-      showMessage(feedbackBox, 'Fecha y hora son obligatorias.');
-      return;
-    }
-
-    const submitButton = addForm.querySelector('button[type="submit"]');
-    const restore = setLoading(submitButton, 'Agregando...');
+    const feedbackBox = observationsForm.querySelector('[data-clinical-observations-feedback]');
+    const submitButton = observationsForm.querySelector('button[type="submit"]');
+    const restore = setLoading(submitButton, 'Guardando...');
     try {
-      await api.adminCreateAppointment(payload);
+      await api.updateUserClinicalObservations(selectedUser.id, payload);
       await refresh(selectedUser.id);
-      showMessage(feedback, 'Registro agregado correctamente.', 'success');
+      showMessage(feedback, 'Observaciones guardadas correctamente.', 'success');
     } catch (error) {
       showMessage(feedbackBox, error.message);
     } finally {

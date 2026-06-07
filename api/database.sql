@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(150) NOT NULL UNIQUE,
   password VARCHAR(255) DEFAULT NULL,
   role ENUM('user','admin') NOT NULL DEFAULT 'user',
+  clinical_observations TEXT DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
