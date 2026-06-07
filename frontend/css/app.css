@@ -225,6 +225,13 @@ body {
 .record-user-item.active {
   border-color: rgba(13, 110, 253, 0.5);
   background: linear-gradient(135deg, rgba(13, 110, 253, 0.08), rgba(255, 255, 255, 1));
+  color: var(--clinic-text);
+}
+
+.record-user-item.active .fw-semibold,
+.record-user-item.active .small,
+.record-user-item.active .text-muted {
+  color: var(--clinic-text) !important;
 }
 
 .record-panel-header {

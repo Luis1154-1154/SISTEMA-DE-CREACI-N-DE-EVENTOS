@@ -458,16 +458,10 @@ async function loadClinicalRecords(initialUserId = null) {
 
     if (!sortedUsers.length) {
       usersContainer.innerHTML = `
-        <div class="list-group-item text-center py-4 border-0">
-          <h3 class="h6 mb-2">No hay usuarios registrados</h3>
-          <p class="mb-0 text-muted">Cuando alguien se registre aparecerá aquí.</p>
-        </div>
+        <div class="list-group-item border-0 py-2"></div>
       `;
       detailContainer.innerHTML = `
-        <div class="text-center text-muted py-5">
-          <h2 class="h5 mb-2">Sin expedientes</h2>
-          <p class="mb-0">Todavía no hay usuarios para mostrar.</p>
-        </div>
+        <div class="text-center text-muted py-5"></div>
       `;
       return;
     }
