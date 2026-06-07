@@ -13,6 +13,11 @@ export function normalizePhone(value) {
     .replace(/[\s()-]/g, '');
 }
 
+export function isValidPhone(value) {
+  const p = normalizePhone(value || '');
+  return /^[0-9]{10}$/.test(p);
+}
+
 export function isAdminCredentials(phone, password) {
   return normalizePhone(phone) === APP_CONFIG.adminPhone && String(password || '').trim() === APP_CONFIG.adminPassword;
 }

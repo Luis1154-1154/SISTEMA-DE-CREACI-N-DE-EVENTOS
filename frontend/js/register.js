@@ -1,5 +1,5 @@
 import { api } from './api-client.js';
-import { APP_CONFIG, normalizePhone } from './app-config.js';
+import { APP_CONFIG, normalizePhone, isValidPhone } from './app-config.js';
 import { clearMessage, setLoading, showMessage } from './ui-utils.js';
 
 const form = document.querySelector('[data-register-form]');
@@ -17,6 +17,11 @@ if (form) {
 
     if (!phone || !name) {
       showMessage(feedback, 'Completa número y nombre.');
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      showMessage(feedback, 'El teléfono debe tener 10 dígitos. Ejemplo: 3123456789');
       return;
     }
 

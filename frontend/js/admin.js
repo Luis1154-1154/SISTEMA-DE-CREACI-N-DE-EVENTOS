@@ -1,6 +1,7 @@
 import { api } from './api-client.js';
 import { requireSession } from './auth-guard.js';
 import { clearMessage, escapeHtml, setLoading, showMessage } from './ui-utils.js';
+import { normalizePhone, isValidPhone } from './app-config.js';
 
 const adminPageMode = String(document.body?.dataset?.adminPage || 'active').toLowerCase();
 
@@ -466,9 +467,11 @@ function wireClinicalRecordInteractions(container, feedback, selectedUser, refre
     createForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const formData = new FormData(createForm);
+      const rawPhone = String(formData.get('phone') || '').trim();
+      const phone = normalizePhone(rawPhone);
       const payload = {
         userId: selectedUser.id,
-        phone: String(formData.get('phone') || '').trim(),
+        phone: phone && phone.length ? phone : null,
         date: String(formData.get('date') || '').trim(),
         time: String(formData.get('time') || '').trim(),
         description: String(formData.get('description') || '').trim(),
@@ -480,6 +483,11 @@ function wireClinicalRecordInteractions(container, feedback, selectedUser, refre
       try {
         if (!payload.phone || !payload.date || !payload.time) {
           showMessage(feedbackBox, 'Teléfono, fecha y hora son obligatorios.');
+          return;
+        }
+
+        if (!isValidPhone(payload.phone)) {
+          showMessage(feedbackBox, 'El teléfono debe tener 10 dígitos. Ejemplo: 3123456789');
           return;
         }
         await api.adminCreateAppointment(payload);
@@ -623,9 +631,10 @@ if (adminForm) {
     event.preventDefault();
     const formData = new FormData(adminForm);
     const rawPhone = String(formData.get('phone') || '').trim();
+    const phone = normalizePhone(rawPhone);
     const payload = {
       name: String(formData.get('name') || '').trim(),
-      phone: rawPhone && rawPhone.length ? rawPhone : null,
+      phone: phone && phone.length ? phone : null,
       date: String(formData.get('date') || '').trim(),
       time: String(formData.get('time') || '').trim(),
       description: String(formData.get('description') || '').trim(),
@@ -636,6 +645,21 @@ if (adminForm) {
       if (!payload.phone || !payload.date || !payload.time) {
         showMessage(feedback, 'Nombre, teléfono, fecha y hora son obligatorios.');
         return;
+      }
+
+      if (!isValidPhone(payload.phone)) {
+        showMessage(feedback, 'El teléfono debe tener 10 dígitos. Ejemplo: 3123456789');
+        return;
+      }
+
+      // Try to find matching user by phone to link appointment to user record
+      try {
+        const usersPayload = await api.listUsers();
+        const users = Array.isArray(usersPayload?.data) ? usersPayload.data : usersPayload;
+        const matched = (Array.isArray(users) ? users : []).find((u) => normalizePhone(u.phone) === payload.phone);
+        if (matched) payload.userId = matched.id;
+      } catch (e) {
+        // ignore lookup errors; still proceed to create appointment
       }
 
       await api.adminCreateAppointment(payload);
