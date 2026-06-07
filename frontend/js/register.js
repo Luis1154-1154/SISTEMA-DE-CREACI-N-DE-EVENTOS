@@ -24,19 +24,21 @@ if (form) {
     const name = String(form.querySelector('[name="name"]')?.value || '').trim();
     const password = String(form.querySelector('[name="password"]')?.value || '').trim();
 
-    if (!phone || !name || !password) {
-      showMessage(feedback, 'No dejes ningún campo vacío.');
+    if (!phone || !name) {
+      showMessage(feedback, 'Completa número y nombre.');
       return;
     }
 
-    if (password.length < 6) {
-      showMessage(feedback, 'La contraseña debe tener al menos 6 caracteres.');
+    if (password && password.length < 6) {
+      showMessage(feedback, 'Si proporcionas contraseña, debe tener al menos 6 caracteres.');
       return;
     }
 
     const restore = setLoading(submitButton, 'Creando cuenta...');
     try {
-      await api.register({ phone, name, password });
+      const body = { phone, name };
+      if (password) body.password = password;
+      await api.register(body);
       window.location.assign('./login.html');
     } catch (error) {
       showMessage(feedback, error.message);
