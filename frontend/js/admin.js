@@ -266,12 +266,129 @@ function wireAppointmentInteractions(container, feedback, { showAttendAction = t
 }
 
 async function loadAdminAppointments(mode = adminPageMode) {
-  const session = await requireSession('admin');
-  if (!session) return;
+  // Try to fetch session directly so we can gracefully handle non-admin users
+  let session = null;
+  try {
+    session = await api.me();
+  } catch (e) {
+    const feedback = document.querySelector('[data-admin-feedback]');
+    showMessage(feedback, 'Error de autenticación: No autorizado. Si esto persiste, cierra sesión e intenta iniciar de nuevo.');
+    return;
+  }
 
   const container = document.querySelector('[data-admin-appointments-list]');
   const feedback = document.querySelector('[data-admin-feedback]');
   if (!container) return;
+
+  // If the user is not an admin, show their own appointments in this panel
+  if (!session || (session.role || session.user?.role) !== 'admin') {
+    // hide admin create form to avoid confusion
+    const adminForm = document.getElementById('admin-create-form');
+    if (adminForm) adminForm.style.display = 'none';
+
+    try {
+      const payload = await api.listMyAppointments();
+      const appointments = Array.isArray(payload?.data) ? payload.data : payload;
+
+      if (!appointments || appointments.length === 0) {
+        container.innerHTML = `
+          <div class="col-12">
+            <div class="empty-state card border-0 shadow-sm">
+              <div class="card-body text-center py-5">
+                <h2 class="h5 mb-2">No tienes citas pendientes</h2>
+                <p class="mb-0 text-muted">Las citas atendidas o canceladas estarán en el historial.</p>
+                <a class="btn btn-primary btn-sm mt-3" href="./create-appointment.html">Agendar cita</a>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const renderUserCard = (appointment) => {
+        const formatted = formatDateTime(appointment.date, appointment.time);
+        const id = escapeHtml(appointment.id || '');
+        return `
+          <div class="col-12 col-md-6 col-xl-4">
+            <article class="card appointment-card h-100 border-0 shadow-sm">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                  <div>
+                    <p class="text-uppercase text-muted small mb-1">Cita pendiente</p>
+                    <h2 class="h5 mb-0">${escapeHtml(formatted.date)}</h2>
+                  </div>
+                  <span class="badge text-bg-warning text-dark">Pendiente</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+                  <span class="badge text-bg-primary">${escapeHtml(formatted.time)}</span>
+                  <span class="text-muted small">${escapeHtml(appointment.phone || '')}</span>
+                </div>
+                <p class="text-muted mb-3">${escapeHtml(appointment.description || 'Sin descripción')}</p>
+
+                <div class="d-flex flex-wrap gap-2">
+                  <button class="btn btn-outline-danger btn-sm" type="button" data-toggle-cancel="${id}">Cancelar cita</button>
+                </div>
+
+                <form class="cancel-panel d-none mt-3" data-cancel-form="${id}">
+                  <div class="alert alert-warning py-2 small mb-3">Procura cancelar con anticipación para no afectar la agenda.</div>
+                  <div data-cancel-feedback class="mb-2"></div>
+                  <label class="form-label" for="cancel-reason-${id}">Motivo de cancelación</label>
+                  <textarea class="form-control" id="cancel-reason-${id}" name="reason" rows="3" placeholder="Escribe por qué cancelas la cita" required></textarea>
+                  <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-cancel-hide="${id}">Cerrar</button>
+                    <button class="btn btn-danger btn-sm" type="submit">Confirmar cancelación</button>
+                  </div>
+                </form>
+              </div>
+            </article>
+          </div>
+        `;
+      };
+
+      container.innerHTML = (Array.isArray(appointments) ? appointments : []).map(renderUserCard).join('');
+
+      // Wire cancel toggles and submits for user cards
+      container.querySelectorAll('[data-toggle-cancel]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-toggle-cancel');
+          const panel = container.querySelector(`[data-cancel-form="${CSS.escape(id)}"]`);
+          if (panel) panel.classList.toggle('d-none');
+        });
+      });
+
+      container.querySelectorAll('[data-cancel-hide]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-cancel-hide');
+          const panel = container.querySelector(`[data-cancel-form="${CSS.escape(id)}"]`);
+          if (panel) panel.classList.add('d-none');
+        });
+      });
+
+      container.querySelectorAll('[data-cancel-form]').forEach((form) => {
+        form.addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          const id = form.getAttribute('data-cancel-form');
+          const reason = String(form.querySelector('[name="reason"]')?.value || '').trim();
+          const feedbackBox = form.querySelector('[data-cancel-feedback]');
+          if (!reason) { showMessage(feedbackBox, 'Indica el motivo de cancelación.'); return; }
+          const submitBtn = form.querySelector('button[type="submit"]');
+          const restore = setLoading(submitBtn, 'Cancelando...');
+          try {
+            await api.cancelAppointment(id, { reason });
+            showMessage(feedback, 'Cita cancelada correctamente.', 'success');
+            await loadAdminAppointments(mode);
+          } catch (error) {
+            showMessage(feedbackBox, error.message);
+          } finally { restore(); }
+        });
+      });
+
+      return;
+    } catch (error) {
+      showMessage(feedback, error.message);
+      return;
+    }
+  }
 
   try {
     const payload = await api.listAppointmentsByDay();
