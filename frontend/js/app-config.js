@@ -2,7 +2,7 @@ const defaultOrigin = (window && window.location && window.location.origin) ? wi
 const resolvedOrigin = defaultOrigin && defaultOrigin !== 'null' ? defaultOrigin : 'http://localhost:3000';
 
 export const APP_CONFIG = {
-  apiBaseUrl: (window.APP_CONFIG && window.APP_CONFIG.apiBaseUrl) || `${resolvedOrigin}/api`,
+  apiBaseUrl: 'https://sistema-de-citas-de-consultorio.onrender.com/api',
   adminPhone: '3123170997',
   adminPassword: 'admin',
 };
