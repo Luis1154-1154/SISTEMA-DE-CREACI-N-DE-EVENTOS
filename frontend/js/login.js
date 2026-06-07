@@ -36,7 +36,7 @@ if (form) {
     event.preventDefault();
     clearMessage(feedback);
 
-    const phone = normalizePhone(phoneInput?.value);
+    const phone = normalizePhone(String(phoneInput?.value || '').trim());
     const password = String(passwordInput?.value || '').trim();
     const isAdmin = adminCheck ? adminCheck.checked : false;
 
@@ -58,6 +58,14 @@ if (form) {
       } else {
         // User login by phone only
         payload = await api.login({ phone });
+      }
+
+      // Confirm session is active and /auth/me works before redirecting.
+      try {
+        await api.me();
+      } catch (e) {
+        showMessage(feedback, 'Inicio fallido: no se pudo confirmar la sesión en el servidor. Intenta de nuevo.');
+        return;
       }
 
       const target = payload?.role === 'admin' ? './admin-appointments.html' : './appointments.html';
