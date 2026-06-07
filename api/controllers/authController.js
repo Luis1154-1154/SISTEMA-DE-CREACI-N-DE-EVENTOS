@@ -63,6 +63,30 @@ exports.register = (req, res) => {
   });
 };
 
+exports.resetPassword = (req, res) => {
+  const { phone, newPassword } = req.body || {};
+  if (!phone || !newPassword) {
+    return res.status(400).json({ message: 'Teléfono y nueva contraseña requeridos' });
+  }
+
+  if (String(newPassword).trim().length < 6) {
+    return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 6 caracteres' });
+  }
+
+  Usuario.getUsuarioByPhone(phone, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!results || !results.length) {
+      return res.status(404).json({ message: 'No existe usuario con ese teléfono' });
+    }
+
+    const hashed = bcrypt.hashSync(String(newPassword).trim(), 10);
+    Usuario.updatePasswordByPhone(phone, hashed, (err2) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      return res.json({ message: 'Contraseña restablecida correctamente' });
+    });
+  });
+};
+
 exports.logout = (req, res) => {
   res.clearCookie(COOKIE_NAME);
   return res.json({ message: 'Sesión cerrada' });

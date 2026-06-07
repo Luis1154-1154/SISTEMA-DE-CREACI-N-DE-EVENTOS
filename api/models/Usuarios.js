@@ -37,6 +37,10 @@ exports.updateUsuario = (id, usuario, callback) => {
   db.query('UPDATE users SET phone = ?, name = ?, role = ? WHERE id = ?', [usuario.phone, usuario.name, usuario.role || 'user', id], callback);
 };
 
+exports.updatePasswordByPhone = (phone, hashedPassword, callback) => {
+  db.query('UPDATE users SET password = ? WHERE phone = ?', [hashedPassword, phone], callback);
+};
+
 exports.deleteUsuario = (id, callback) => {
   db.query('DELETE FROM users WHERE id = ?', [id], callback);
 };

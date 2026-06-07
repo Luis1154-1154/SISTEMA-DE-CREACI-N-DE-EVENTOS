@@ -8,6 +8,15 @@ if (form) {
   const submitButton = form.querySelector('button[type="submit"]');
   const phoneInput = form.querySelector('[name="phone"]');
   const passwordInput = form.querySelector('[name="password"]');
+  const togglePasswordButton = form.querySelector('[data-toggle-password]');
+
+  if (togglePasswordButton && passwordInput) {
+    togglePasswordButton.addEventListener('click', () => {
+      const reveal = passwordInput.type === 'password';
+      passwordInput.type = reveal ? 'text' : 'password';
+      togglePasswordButton.textContent = reveal ? 'Ocultar contraseña' : 'Mostrar contraseña';
+    });
+  }
 
   // do not prefill or expose admin phone in the placeholder
 
