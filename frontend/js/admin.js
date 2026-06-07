@@ -331,7 +331,7 @@ function renderUserItem(user, isSelected, recordCount) {
           <div class="small text-muted mt-1">${recordCount} registros</div>
         </div>
         <div class="ms-2">
-          <button type="button" class="btn btn-sm btn-outline-danger" data-delete-user="${escapeHtml(user.id || '')}" title="Eliminar usuario">Eliminar</button>
+          <button type="button" class="btn btn-sm btn-outline-danger" data-delete-user="${escapeHtml(user.id || '')}" data-delete-role="${escapeHtml(role)}" title="Eliminar usuario">Eliminar</button>
         </div>
       </div>
     </button>
@@ -379,6 +379,37 @@ function renderClinicalDetail(user, appointments) {
         <div data-clinical-observations-feedback class="mt-3"></div>
         <div class="d-flex justify-content-end mt-3">
           <button class="btn btn-primary rounded-pill px-4" type="submit">Guardar observaciones</button>
+        </div>
+      </div>
+    </form>
+
+    <form class="card border-0 shadow-sm mb-4 admin-page-card" data-create-appointment-for-user>
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+          <h3 class="h6 mb-0">Crear cita para este usuario</h3>
+          <span class="badge text-bg-primary rounded-pill">Reservar</span>
+        </div>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label">Teléfono</label>
+            <input class="form-control" name="phone" value="${escapeHtml(user.phone || '')}" required />
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label">Fecha</label>
+            <input class="form-control" name="date" type="date" required />
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label">Hora</label>
+            <input class="form-control" name="time" type="time" step="60" required />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-control" name="description" rows="2" placeholder="Opcional"></textarea>
+          </div>
+        </div>
+        <div data-create-appointment-feedback class="mt-3"></div>
+        <div class="d-flex justify-content-end mt-3">
+          <button class="btn btn-primary rounded-pill px-4" type="submit">Reservar cita</button>
         </div>
       </div>
     </form>
@@ -532,9 +563,19 @@ async function loadClinicalRecords(initialUserId = null) {
         btn.addEventListener('click', async (ev) => {
           ev.stopPropagation();
           const id = btn.getAttribute('data-delete-user');
+          const role = btn.getAttribute('data-delete-role');
           if (!id) return;
-          const confirmed = window.confirm('¿Eliminar este usuario y todas sus citas? Esta acción no se puede deshacer.');
+          let confirmed = window.confirm('¿Eliminar este usuario y todas sus citas? Esta acción no se puede deshacer.');
           if (!confirmed) return;
+
+          if (String(role || '').toLowerCase() === 'admin') {
+            const confirmationInput = window.prompt('Este usuario tiene rol admin. Escribe ELIMINAR para confirmar.');
+            if (!confirmationInput || confirmationInput.trim().toUpperCase() !== 'ELIMINAR') {
+              showMessage(feedback, 'Confirmación no válida. No se eliminó al usuario.');
+              return;
+            }
+          }
+
           try {
             await api.deleteUser(id);
             await loadClinicalRecords();
