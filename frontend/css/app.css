@@ -162,6 +162,18 @@ body {
   background-color: #fff;
 }
 
+.admin-appointment-item {
+  cursor: pointer;
+}
+
+.admin-appointment-item:hover {
+  background: rgba(13, 110, 253, 0.03);
+}
+
+.admin-action-group .btn {
+  min-width: 7rem;
+}
+
 @media (max-width: 767.98px) {
   .create-appointment-card .form-label,
   .create-appointment-card .text-primary {

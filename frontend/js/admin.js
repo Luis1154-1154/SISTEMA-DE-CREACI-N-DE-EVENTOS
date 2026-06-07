@@ -93,7 +93,7 @@ function renderAppointmentItem(appointment) {
   const status = String(appointment.status || 'pending').toLowerCase();
 
   return `
-    <div class="list-group-item py-3" data-appointment-item="${id}">
+    <div class="list-group-item py-3 admin-appointment-item" role="button" tabindex="0" data-appointment-item="${id}">
       <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
         <div class="flex-grow-1">
           <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
@@ -105,7 +105,7 @@ function renderAppointmentItem(appointment) {
           <div class="mt-2">${escapeHtml(appointment.description || 'Sin descripción')}</div>
           ${status === 'canceled' && appointment.cancel_reason ? `<div class="alert alert-warning py-2 small mt-3 mb-0">Motivo de cancelación: ${escapeHtml(appointment.cancel_reason)}</div>` : ''}
         </div>
-        <div class="text-md-end d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
+        <div class="text-md-end d-flex flex-wrap gap-2 justify-content-start justify-content-md-end admin-action-group">
           ${status === 'pending' ? `<button class="btn btn-success btn-sm" type="button" data-attend-appointment="${id}">Atender</button>` : ''}
           <button class="btn btn-outline-primary btn-sm" type="button" data-edit-appointment="${id}">Editar</button>
           <button class="btn btn-outline-danger btn-sm" type="button" data-delete-appointment="${id}">Eliminar</button>
@@ -158,6 +158,24 @@ async function loadAdminAppointments() {
         </div>
       `)
       .join('');
+
+    container.querySelectorAll('.admin-appointment-item').forEach((item) => {
+      const appointmentId = item.getAttribute('data-appointment-item');
+      if (!appointmentId) return;
+
+      item.addEventListener('click', (event) => {
+        if (event.target.closest('button, a, input, textarea, select, option, label')) return;
+        const form = container.querySelector(`[data-edit-form="${appointmentId}"]`);
+        if (form) form.classList.toggle('d-none');
+      });
+
+      item.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        const form = container.querySelector(`[data-edit-form="${appointmentId}"]`);
+        if (form) form.classList.toggle('d-none');
+      });
+    });
 
     container.querySelectorAll('[data-attend-appointment]').forEach((button) => {
       button.addEventListener('click', async () => {
