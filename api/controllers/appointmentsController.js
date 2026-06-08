@@ -3,6 +3,13 @@ const Usuario = require('../models/Usuarios');
 
 exports.createForUser = (req, res) => {
   const user = req.user;
+  // Debug logging: record auth headers and resolved user for deployed troubleshooting
+  try {
+    console.log('createForUser called - authHeader=', req.headers && (req.headers.authorization || req.headers.Authorization), 'cookie_sid=', req.cookies && req.cookies['sid'], 'resolvedUser=', user);
+  } catch (e) {
+    console.error('createForUser logging failed', e && e.message);
+  }
+
   if (!user) return res.status(401).json({ message: 'No autenticado' });
 
   const { date, time, description } = req.body || {};
