@@ -5,7 +5,7 @@ let authToken = null;
 
 function loadAuthToken() {
   try {
-    return sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+    return localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
   } catch {
     return null;
   }
@@ -15,12 +15,12 @@ export function setAuthToken(token) {
   authToken = token || null;
   try {
     if (token) {
-      sessionStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
     } else {
-      sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+      localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     }
   } catch {
-    // ignore sessionStorage failures
+    // ignore localStorage failures
   }
 }
 
@@ -37,7 +37,7 @@ async function request(path, options = {}) {
   }
 
   const response = await fetch(`${APP_CONFIG.apiBaseUrl}${path}`, {
-    credentials: 'include',
+    credentials: 'omit',
     headers,
     ...options,
   });
