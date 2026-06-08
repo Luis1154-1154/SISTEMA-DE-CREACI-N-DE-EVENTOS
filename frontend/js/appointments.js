@@ -1,6 +1,6 @@
 import { api } from './api-client.js';
 import { requireSession } from './auth-guard.js';
-import { clearMessage, escapeHtml, setLoading, showMessage } from './ui-utils.js';
+import { clearMessage, escapeHtml, initMobileNavToggle, setLoading, showMessage } from './ui-utils.js';
 
 function normalizeDateValue(value) {
   if (!value) return '';
@@ -205,3 +205,5 @@ if (logoutBtn) {
     window.location.assign('./index.html');
   });
 }
+
+initMobileNavToggle();

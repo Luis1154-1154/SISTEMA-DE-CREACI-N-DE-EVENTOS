@@ -88,6 +88,24 @@ export function showFloatingConfirm(message) {
   });
 }
 
+export function initMobileNavToggle(toggleSelector = '[data-site-nav-toggle]', linksSelector = '[data-site-nav-links]') {
+  const toggle = document.querySelector(toggleSelector);
+  const links = document.querySelector(linksSelector);
+  if (!toggle || !links) return;
+
+  toggle.addEventListener('click', () => {
+    const isOpen = links.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  links.addEventListener('click', (event) => {
+    if (event.target.closest('a') || event.target.closest('button')) {
+      links.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+}
+
 export function escapeHtml(value) {
   return String(value ?? '')
     .replaceAll('&', '&amp;')

@@ -13,7 +13,10 @@
         <header class="site-top px-4">
           <div class="container d-flex justify-content-between align-items-center">
             <div class="h5 mb-0">Dental Llamas</div>
-            <div class="d-flex align-items-center gap-2">
+            <button type="button" class="site-nav-toggle btn btn-light btn-sm d-md-none" data-site-nav-toggle aria-expanded="false" aria-label="Mostrar menú">
+              <span class="hamburger-icon"></span>
+            </button>
+            <div class="site-nav-links align-items-center gap-2" data-site-nav-links>
               <a class="btn btn-outline-light btn-sm" href="./appointments.html">Citas activas</a>
               <a class="btn btn-outline-light btn-sm" href="./create-appointment.html">Nueva cita</a>
               <button id="logout-btn" class="btn btn-light btn-sm text-dark">Cerrar sesión</button>

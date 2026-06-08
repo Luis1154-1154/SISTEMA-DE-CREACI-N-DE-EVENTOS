@@ -1,5 +1,5 @@
 import { api } from './api-client.js';
-import { clearMessage, setLoading, showMessage } from './ui-utils.js';
+import { clearMessage, initMobileNavToggle, setLoading, showMessage } from './ui-utils.js';
 
 async function loadOptionalSession() {
   try {
@@ -60,3 +60,5 @@ if (logoutBtn) {
     window.location.assign('./index.html');
   });
 }
+
+initMobileNavToggle();

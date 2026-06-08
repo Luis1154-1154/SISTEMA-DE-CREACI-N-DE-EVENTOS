@@ -105,11 +105,11 @@ function renderAppointmentItem(appointment, { mode = adminPageMode } = {}) {
           <div class="row g-2 align-items-end">
             <div class="col-6">
               <label class="form-label small">Fecha</label>
-              <input class="form-control form-control-sm" name="date" type="date" value="${escapeHtml(normalizeDateValue(appointment.date || ''))}" required />
+              <input class="form-control form-control-sm" name="date" type="date" placeholder="Fecha de la cita" title="Fecha de la cita" aria-label="Fecha de la cita" value="${escapeHtml(normalizeDateValue(appointment.date || ''))}" required />
             </div>
             <div class="col-6">
               <label class="form-label small">Hora</label>
-              <input class="form-control form-control-sm" name="time" type="time" step="60" value="${escapeHtml(normalizeTimeValue(appointment.time || ''))}" required />
+              <input class="form-control form-control-sm" name="time" type="time" step="60" placeholder="Hora de la cita" title="Hora de la cita" aria-label="Hora de la cita" value="${escapeHtml(normalizeTimeValue(appointment.time || ''))}" required />
             </div>
             <div class="col-12 text-end mt-2">
               <button class="btn btn-sm btn-primary" type="submit">Guardar</button>

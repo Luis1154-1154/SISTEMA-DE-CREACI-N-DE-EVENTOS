@@ -1,6 +1,6 @@
 import { api } from './api-client.js';
 import { requireSession } from './auth-guard.js';
-import { clearMessage, escapeHtml, showMessage } from './ui-utils.js';
+import { clearMessage, escapeHtml, initMobileNavToggle, showMessage } from './ui-utils.js';
 
 function formatDateTime(dateStr, timeStr) {
   try {
@@ -121,3 +121,5 @@ if (logoutBtn) {
     window.location.assign('./index.html');
   });
 }
+
+initMobileNavToggle();
