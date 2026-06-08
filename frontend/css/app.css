@@ -177,10 +177,23 @@ input[type='time']::-webkit-calendar-picker-indicator {
   background: rgba(255, 255, 255, 0.08);
 }
 
+/* Site top/bottom bars */
+:root {
+  --site-bar-height: 64px;
+}
+
+body[data-admin-page] {
+  --site-bar-height: 96px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap');
+
 .site-top,
 .site-bottom {
-  background: rgba(17, 24, 39, 0.92);
+  background: #111827;
   color: #ffffff;
+  font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+  font-weight: 700;
   backdrop-filter: blur(14px);
   box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
 }
@@ -190,6 +203,7 @@ input[type='time']::-webkit-calendar-picker-indicator {
   top: 0;
   left: 0;
   right: 0;
+  width: 100%;
   height: var(--site-bar-height);
   z-index: 1040;
   display: flex;
@@ -201,10 +215,55 @@ input[type='time']::-webkit-calendar-picker-indicator {
   bottom: 0;
   left: 0;
   right: 0;
+  width: 100%;
   height: calc(var(--site-bar-height) * 0.75);
   z-index: 1040;
   display: flex;
   align-items: center;
+}
+
+/* Ensure page content is not hidden under fixed bars */
+body {
+  padding-top: var(--site-bar-height);
+  padding-bottom: calc(var(--site-bar-height) * 0.75 + 12px);
+}
+
+@media (max-width: 767.98px) {
+  .site-top,
+  .site-bottom {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 1rem 1rem;
+    margin: 0;
+    margin-left: 0;
+    margin-right: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .site-top {
+    order: -1;
+  }
+
+  .site-top.px-4 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  body {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .clinic-shell {
+    padding-bottom: 1.5rem;
+  }
+
+  .clinic-shell.py-5 {
+    padding-top: 1rem !important;
+    padding-bottom: 1.5rem !important;
+  }
 }
 
 .site-top .container,
@@ -212,6 +271,18 @@ input[type='time']::-webkit-calendar-picker-indicator {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+}
+
+.site-top .h5,
+.site-top strong,
+.site-top .h1 {
+  color: #fff;
+  margin: 0;
+}
+
+.site-bottom .text-muted {
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 main .page-title + p {
@@ -235,76 +306,9 @@ main .page-title + p {
   color: var(--clinic-text);
 }
 
-@media (max-width: 767.98px) {
-  .site-top,
-  .site-bottom {
-    position: static;
-    height: auto;
-    padding: 1rem 0;
-  }
-  body {
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-}
-
 .sticky-top-nav {
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.78);
-}
-
-/* Site top/bottom bars */
-:root {
-  --site-bar-height: 64px;
-}
-
-body[data-admin-page] {
-  --site-bar-height: 96px;
-}
-
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap');
-
-.site-top,
-.site-bottom {
-  background: #111827; /* dark contrasting band */
-  color: #ffffff;
-  font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
-  font-weight: 700;
-}
-
-.site-top {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--site-bar-height);
-  z-index: 1040;
-  display: flex;
-  align-items: center;
-}
-
-.site-bottom {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: calc(var(--site-bar-height) * 0.75);
-  z-index: 1040;
-  display: flex;
-  align-items: center;
-}
-
-/* ensure page content is not hidden under fixed bars */
-body {
-  padding-top: var(--site-bar-height);
-  padding-bottom: calc(var(--site-bar-height) * 0.75 + 12px);
-}
-
-.site-top .h5,
-.site-top strong,
-.site-top .h1 {
-  color: #fff;
-  margin: 0;
 }
 
 .site-bottom .text-muted {
@@ -320,11 +324,27 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+@media (max-width: 767.98px) {
+  .admin-navbar {
+    gap: 0.75rem;
+    padding: 1rem 0.75rem;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 0.75rem;
+  }
+}
+
 .admin-navbar-brand {
   color: #ffffff;
   text-decoration: none;
   font-size: 1.05rem;
   letter-spacing: 0.01em;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767.98px) {
+  .admin-navbar-brand {
+    font-size: 0.95rem;
+  }
 }
 
 .admin-navbar-toggle {
@@ -428,6 +448,15 @@ body {
   border: 1px solid rgba(13, 110, 253, 0.08);
 }
 
+@media (max-width: 767.98px) {
+  .admin-page-intro {
+    border-radius: 1rem;
+    padding: 1.25rem 1rem !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+}
+
 .admin-page-card,
 .record-detail-panel,
 .record-user-panel {
@@ -514,9 +543,57 @@ body {
   align-items: center;
 }
 
+/* Appointment cards - improved spacing for mobile */
+.row[data-appointments-list],
+.row[data-admin-appointments-list],
+.row[data-history-list] {
+  gap: 1.25rem;
+}
+
 @media (max-width: 767.98px) {
-  .create-appointment-card .form-label,
-  .create-appointment-card .text-primary {
-    display: block;
+  .row[data-appointments-list] .col-12,
+  .row[data-admin-appointments-list] .col-12,
+  .row[data-history-list] .col-12,
+  .appointment-card {
+    margin-bottom: 0;
   }
+
+  .row[data-appointments-list],
+  .row[data-admin-appointments-list],
+  .row[data-history-list] {
+    gap: 1.75rem !important;
+    padding: 0 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  main.clinic-shell.py-5 {
+    padding-top: 0 !important;
+    padding-bottom: 2rem !important;
+  }
+
+  main .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .mb-4.mt-4 {
+    margin-top: 1.5rem !important;
+    padding: 0 0.75rem;
+  }
+
+  [data-appointments-feedback],
+  [data-history-feedback],
+  [data-admin-feedback] {
+    padding: 0 0.75rem;
+  }
+}
+
+.appointment-card {
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.appointment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
 }
