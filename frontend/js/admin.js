@@ -269,6 +269,8 @@ async function loadClinicalRecords() {
   const detailContainer = document.querySelector('[data-records-detail]');
   if (!usersContainer || !detailContainer) return;
   clearMessage(feedback);
+  usersContainer.innerHTML = '<div class="text-muted p-3">Cargando usuarios...</div>';
+  detailContainer.innerHTML = '<div class="text-muted p-3">Cargando expediente...</div>';
   try {
     const currentAdmin = await api.me().catch(() => null);
     const usersPayload = await api.listUsers();
@@ -306,14 +308,23 @@ async function loadClinicalRecords() {
           </div>
         `;
         
-        detailContainer.querySelector('[data-delete-user]').addEventListener('click', async () => {
-          if (!(await showFloatingConfirm('¿Eliminar este usuario y todos sus datos?'))) return;
+        detailContainer.querySelector('[data-delete-user]').addEventListener('click', async (ev) => {
+          const deleteBtn = ev.currentTarget;
+          const restore = setLoading(deleteBtn, 'Eliminando...');
+          if (!(await showFloatingConfirm('¿Eliminar este usuario y todos sus datos?'))) {
+            restore();
+            return;
+          }
+          detailContainer.innerHTML = '<div class="text-muted p-3">Eliminando usuario...</div>';
+          usersContainer.innerHTML = '<div class="text-muted p-3">Actualizando lista...</div>';
           try {
             await api.deleteUser(user.id);
             showMessage(feedback, 'Usuario eliminado.', 'success');
             await loadClinicalRecords();
           } catch (err) {
             showMessage(feedback, err.message);
+          } finally {
+            restore();
           }
         });
       } catch (err) {
