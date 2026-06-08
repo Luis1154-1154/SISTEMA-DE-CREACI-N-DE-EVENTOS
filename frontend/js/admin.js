@@ -1,6 +1,6 @@
 import { api } from './api-client.js';
 import { requireSession } from './auth-guard.js';
-import { clearMessage, escapeHtml, setLoading, showMessage } from './ui-utils.js';
+import { clearMessage, escapeHtml, setLoading, showMessage, showFloatingConfirm } from './ui-utils.js';
 import { normalizePhone, isValidPhone } from './app-config.js';
 
 const adminPageMode = String(document.body?.dataset?.adminPage || 'active').toLowerCase();
@@ -128,7 +128,7 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
     if (deleteBtn) {
       const id = deleteBtn.getAttribute('data-delete-appointment');
       if (!id) return;
-      if (!confirm('Eliminar esta cita?')) return;
+      if (!(await showFloatingConfirm('Eliminar esta cita?'))) return;
       try {
         await api.deleteAppointment(id);
         showMessage(feedback, 'Cita eliminada.', 'success');
@@ -150,7 +150,7 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
     if (activateBtn) {
       const id = activateBtn.getAttribute('data-activate-appointment');
       if (!id) return;
-      if (!confirm('Marcar esta cita como atendida?')) return;
+      if (!(await showFloatingConfirm('Marcar esta cita como atendida?'))) return;
       try {
         await api.updateAppointmentStatus(id, { status: 'attended' });
         showMessage(feedback, 'Cita marcada como atendida', 'success');
@@ -279,89 +279,22 @@ async function loadClinicalRecords() {
             </div>
             ${!currentAdmin || String(currentAdmin.id) !== String(user.id) ? `<button class="btn btn-outline-danger btn-sm" type="button" data-delete-user="${escapeHtml(user.id)}">Eliminar usuario</button>` : ''}
           </div>
-          <div class="card border-0 shadow-sm mb-4 p-3 bg-light">
-            <h6 class="mb-3">Particularidades del paciente</h6>
-            <form class="row g-3" data-update-observations="${escapeHtml(user.id)}">
-              <div class="col-12">
-                <label class="form-label small">Alergias, observaciones clínicas, etc.</label>
-                <textarea class="form-control form-control-sm" name="clinical_observations" rows="3" placeholder="Ej: Alergia a penicilina, diabético, etc.">${escapeHtml(user.clinical_observations || '')}</textarea>
-              </div>
-              <div class="col-12 text-end">
-                <button class="btn btn-primary btn-sm" type="submit">Guardar particularidades</button>
-              </div>
-            </form>
-          </div>
-          <div class="card border-0 shadow-sm mb-4 p-3">
-            <h6 class="mb-3">Agregar cita al paciente</h6>
-            <form class="row g-3" data-add-user-appointment="${escapeHtml(user.id)}">
-              <div class="col-12 col-md-6">
-                <label class="form-label small">Fecha</label>
-                <input class="form-control form-control-sm" name="date" type="date" required />
-              </div>
-              <div class="col-12 col-md-6">
-                <label class="form-label small">Hora</label>
-                <input class="form-control form-control-sm" name="time" type="time" step="60" required />
-              </div>
-              <div class="col-12">
-                <label class="form-label small">Descripción</label>
-                <textarea class="form-control form-control-sm" name="description" rows="2" placeholder="Motivo de la cita"></textarea>
-              </div>
-              <div class="col-12 text-end">
-                <button class="btn btn-primary btn-sm" type="submit">Agregar cita</button>
-              </div>
-            </form>
-          </div>
           <div>
             <h6>Historial de citas</h6>
             <div class="record-appointments-list">${filtered.length ? filtered.map(a => renderAppointmentItem(a, { mode: 'records' })).join('') : '<div class="text-muted">Sin citas</div>'}</div>
           </div>
         `;
-
-        detailContainer.querySelector('[data-update-observations]').addEventListener('submit', async (ev) => {
-          ev.preventDefault();
-          const form = ev.target;
-          const observations = String(form.querySelector('[name="clinical_observations"]')?.value || '').trim();
+        
+        detailContainer.querySelector('[data-delete-user]').addEventListener('click', async () => {
+          if (!(await showFloatingConfirm('¿Eliminar este usuario y todos sus datos?'))) return;
           try {
-            await api.updateUserClinicalObservations(user.id, { clinical_observations: observations });
-            user.clinical_observations = observations;
-            usersById.set(String(user.id), user);
-            showMessage(feedback, 'Particularidades del paciente guardadas.', 'success');
+            await api.deleteUser(user.id);
+            showMessage(feedback, 'Usuario eliminado.', 'success');
+            await loadClinicalRecords();
           } catch (err) {
             showMessage(feedback, err.message);
           }
         });
-
-        detailContainer.querySelector('[data-add-user-appointment]').addEventListener('submit', async (ev) => {
-          ev.preventDefault();
-          const form = ev.target;
-          const date = String(form.querySelector('[name="date"]')?.value || '').trim();
-          const time = String(form.querySelector('[name="time"]')?.value || '').trim();
-          const description = String(form.querySelector('[name="description"]')?.value || '').trim();
-          if (!date || !time) {
-            showMessage(feedback, 'Fecha y hora son obligatorias para crear la cita.');
-            return;
-          }
-          try {
-            await api.adminCreateAppointment({ userId: user.id, date, time, description });
-            showMessage(feedback, 'Cita agregada al expediente del usuario.', 'success');
-            await showUserDetail(id);
-          } catch (err) {
-            showMessage(feedback, err.message);
-          }
-        });
-
-        if (detailContainer.querySelector('[data-delete-user]')) {
-          detailContainer.querySelector('[data-delete-user]').addEventListener('click', async () => {
-            if (!confirm('¿Eliminar este usuario y todos sus datos?')) return;
-            try {
-              await api.deleteUser(user.id);
-              showMessage(feedback, 'Usuario eliminado.', 'success');
-              await loadClinicalRecords();
-            } catch (err) {
-              showMessage(feedback, err.message);
-            }
-          });
-        }
       } catch (err) {
         showMessage(feedback, err.message);
       }
@@ -406,27 +339,3 @@ if (adminNavToggle && adminNavLinks) {
   });
 }
 
-const adminForm = document.getElementById('admin-create-form');
-if (adminForm) {
-  adminForm.addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const formData = new FormData(adminForm);
-    const phone = normalizePhone(String(formData.get('phone') || '').trim());
-    const payload = {
-      name: String(formData.get('name') || '').trim(),
-      phone: phone || null,
-      date: String(formData.get('date') || '').trim(),
-      time: String(formData.get('time') || '').trim(),
-      description: String(formData.get('description') || '').trim(),
-    };
-    const feedback = document.querySelector('[data-admin-feedback]');
-    try {
-      if (!payload.phone || !payload.date || !payload.time) return showMessage(feedback, 'Teléfono, fecha y hora son obligatorios.');
-      if (!isValidPhone(payload.phone)) return showMessage(feedback, 'Teléfono inválido.');
-      await api.adminCreateAppointment(payload);
-      adminForm.reset();
-      await loadAdminAppointments(adminPageMode);
-      showMessage(feedback, 'Cita creada correctamente', 'success');
-    } catch (err) { showMessage(feedback, err.message); }
-  });
-}

@@ -27,6 +27,67 @@ export function setLoading(button, loadingText = 'Procesando...') {
   };
 }
 
+export function showFloatingConfirm(message) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'floating-dialog-overlay';
+
+    const dialog = document.createElement('div');
+    dialog.className = 'floating-dialog';
+
+    const text = document.createElement('p');
+    text.textContent = message;
+
+    const buttonRow = document.createElement('div');
+    buttonRow.className = 'button-row';
+
+    const cancelButton = document.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.className = 'btn btn-secondary';
+    cancelButton.textContent = 'Cancelar';
+
+    const confirmButton = document.createElement('button');
+    confirmButton.type = 'button';
+    confirmButton.className = 'btn btn-primary';
+    confirmButton.textContent = 'Aceptar';
+
+    cancelButton.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+      resolve(false);
+    });
+
+    confirmButton.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+      resolve(true);
+    });
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        document.body.removeChild(overlay);
+        resolve(false);
+      }
+    });
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        document.body.removeChild(overlay);
+        document.removeEventListener('keydown', onKeyDown);
+        resolve(false);
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+
+    buttonRow.appendChild(cancelButton);
+    buttonRow.appendChild(confirmButton);
+    dialog.appendChild(text);
+    dialog.appendChild(buttonRow);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    confirmButton.focus();
+  });
+}
+
 export function escapeHtml(value) {
   return String(value ?? '')
     .replaceAll('&', '&amp;')
