@@ -1,6 +1,6 @@
 import { api } from './api-client.js';
 import { requireSession } from './auth-guard.js';
-import { clearMessage, escapeHtml, setLoading, showMessage, showFloatingConfirm } from './ui-utils.js';
+import { clearMessage, escapeHtml, initMobileNavToggle, setLoading, showMessage, showFloatingConfirm } from './ui-utils.js';
 import { normalizePhone, isValidPhone } from './app-config.js';
 
 const adminPageMode = String(document.body?.dataset?.adminPage || 'active').toLowerCase();
@@ -241,6 +241,8 @@ async function loadAdminAppointments(mode = adminPageMode) {
     showMessage(feedback, err.message);
   }
 }
+
+initMobileNavToggle();
 
 async function loadClinicalRecords() {
   const feedback = document.querySelector('[data-records-feedback]');

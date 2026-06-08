@@ -404,6 +404,18 @@ body {
     gap: 0.75rem;
   }
 
+  .site-top.site-top-inline .container {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .site-top.site-top-inline .container > .h5 {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
   .site-nav-toggle {
     display: inline-flex;
     margin-left: auto;
