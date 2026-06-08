@@ -96,7 +96,6 @@ async function loadUserAppointments() {
             <div class="card-body text-center py-5">
               <h2 class="h5 mb-2">No tienes citas pendientes</h2>
               <p class="mb-0 text-muted">Las citas atendidas o canceladas estarán en el historial.</p>
-              <a class="btn btn-primary btn-sm mt-3" href="./create-appointment.html">Agendar cita</a>
             </div>
           </div>
         </div>

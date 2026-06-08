@@ -66,6 +66,7 @@ export const api = {
   me: () => request('/auth/me'),
   logout: () => request('/auth/logout', { method: 'POST' }),
   listUsers: () => request('/usuarios'),
+  getUsuarioById: (id) => request(`/usuarios/${encodeURIComponent(id)}`),
   updateUserClinicalObservations: (id, body) => request(`/usuarios/${encodeURIComponent(id)}/observations`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteUser: (id) => request(`/usuarios/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   createAppointment: (body) => request('/appointments', { method: 'POST', body: JSON.stringify(body) }),
