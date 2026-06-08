@@ -6,14 +6,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 const COOKIE_NAME = 'sid';
 
 function getCookieOptions() {
-  const sameSite = String(process.env.COOKIE_SAMESITE || 'lax').toLowerCase();
-  const secure = process.env.COOKIE_SECURE
-    ? String(process.env.COOKIE_SECURE).toLowerCase() !== 'false'
-    : process.env.NODE_ENV === 'production';
+  const isProduction = process.env.NODE_ENV === 'production';
+  const sameSite = isProduction ? 'lax' : (process.env.COOKIE_SAMESITE || 'lax').toLowerCase();
+  const secure = isProduction || (process.env.COOKIE_SECURE && String(process.env.COOKIE_SECURE).toLowerCase() !== 'false');
 
   return {
     httpOnly: true,
-    sameSite: process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === 'production' ? 'none' : sameSite),
+    sameSite,
     secure,
   };
 }
