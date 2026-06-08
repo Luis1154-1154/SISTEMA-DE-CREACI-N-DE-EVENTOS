@@ -62,6 +62,7 @@ function renderAppointmentItem(appointment, { mode = adminPageMode } = {}) {
   const statusLabel = normalizedStatus === 'attended' ? 'Atendida'
     : normalizedStatus === 'canceled' ? 'Cancelada'
     : 'Pendiente';
+  const cancelReason = String(appointment.cancel_reason || '').trim();
 
   return `
     <div class="list-group-item d-flex justify-content-between align-items-start">
@@ -73,6 +74,7 @@ function renderAppointmentItem(appointment, { mode = adminPageMode } = {}) {
         </div>
         <div class="mt-2">${escapeHtml(appointment.description || '')}</div>
         <div class="mt-2 small">Status: <strong>${escapeHtml(statusLabel)}</strong></div>
+        ${normalizedStatus === 'canceled' && cancelReason ? `<div class="mt-2 small text-danger">Motivo: ${escapeHtml(cancelReason)}</div>` : ''}
       </div>
       <div class="text-end">
         ${showActions ? `
@@ -247,6 +249,7 @@ async function loadClinicalRecords() {
   if (!usersContainer || !detailContainer) return;
   clearMessage(feedback);
   try {
+    const currentAdmin = await api.me().catch(() => null);
     const usersPayload = await api.listUsers();
     const users = Array.isArray(usersPayload?.data) ? usersPayload.data : usersPayload;
     if (!Array.isArray(users) || !users.length) {
@@ -272,8 +275,9 @@ async function loadClinicalRecords() {
             <div>
               <h5 class="mb-1">${escapeHtml(user.name)}</h5>
               <div class="small text-muted">${escapeHtml(user.phone)}</div>
+              ${currentAdmin && String(currentAdmin.id) === String(user.id) ? '<div class="badge bg-info mt-2">Admin (Actual)</div>' : ''}
             </div>
-            <button class="btn btn-outline-danger btn-sm" type="button" data-delete-user="${escapeHtml(user.id)}">Eliminar usuario</button>
+            ${!currentAdmin || String(currentAdmin.id) !== String(user.id) ? `<button class="btn btn-outline-danger btn-sm" type="button" data-delete-user="${escapeHtml(user.id)}">Eliminar usuario</button>` : ''}
           </div>
           <div class="card border-0 shadow-sm mb-4 p-3">
             <h6 class="mb-3">Agregar cita al paciente</h6>
@@ -320,16 +324,18 @@ async function loadClinicalRecords() {
           }
         });
 
-        detailContainer.querySelector('[data-delete-user]').addEventListener('click', async () => {
-          if (!confirm('¿Eliminar este usuario y todos sus datos?')) return;
-          try {
-            await api.deleteUser(user.id);
-            showMessage(feedback, 'Usuario eliminado.', 'success');
-            await loadClinicalRecords();
-          } catch (err) {
-            showMessage(feedback, err.message);
-          }
-        });
+        if (detailContainer.querySelector('[data-delete-user]')) {
+          detailContainer.querySelector('[data-delete-user]').addEventListener('click', async () => {
+            if (!confirm('¿Eliminar este usuario y todos sus datos?')) return;
+            try {
+              await api.deleteUser(user.id);
+              showMessage(feedback, 'Usuario eliminado.', 'success');
+              await loadClinicalRecords();
+            } catch (err) {
+              showMessage(feedback, err.message);
+            }
+          });
+        }
       } catch (err) {
         showMessage(feedback, err.message);
       }
