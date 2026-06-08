@@ -360,6 +360,32 @@ body {
   transition: all 0.3s ease;
 }
 
+.site-nav-toggle .hamburger-icon {
+  position: relative;
+  display: inline-block;
+  width: 1.2rem;
+  height: 2px;
+  background: var(--clinic-text);
+}
+
+.site-nav-toggle .hamburger-icon::before,
+.site-nav-toggle .hamburger-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--clinic-text);
+}
+
+.site-nav-toggle .hamburger-icon::before {
+  top: -6px;
+}
+
+.site-nav-toggle .hamburger-icon::after {
+  top: 6px;
+}
+
 .site-nav-toggle:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: var(--clinic-accent);
