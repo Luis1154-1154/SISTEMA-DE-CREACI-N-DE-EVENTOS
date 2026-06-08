@@ -53,25 +53,26 @@ exports.register = (req, res) => {
     return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
   }
 
-  Usuario.getUsuarioByPhoneOrName(phone, name, null, (err, results) => {
+  Usuario.getUsuarioByPhone(phone, (err, phoneResults) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (results && results.length) {
-      const duplicate = results[0];
-      if (duplicate.phone === phone) {
-        return res.status(400).json({ message: 'Tu cuenta ya fue creada antes cuando pediste agendar una cita por ti, dirígete a iniciar sesión' });
-      }
-      if (duplicate.name === name) {
+    if (phoneResults && phoneResults.length) {
+      return res.status(400).json({ message: 'Este número ya está registrado. Si quieres iniciar sesión, usa el formulario de login.' });
+    }
+
+    Usuario.getUsuarioByName(name, (err2, nameResults) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      if (nameResults && nameResults.length) {
         return res.status(400).json({ message: 'Ya existe un usuario con ese nombre' });
       }
-      return res.status(400).json({ message: 'Ya existe un usuario con ese teléfono o nombre' });
-    }
-    const hashed = password ? bcrypt.hashSync(String(password).trim(), 10) : null;
-    Usuario.addUsuario({ phone, name, password: hashed, role: 'user' }, (err2, result) => {
-      if (err2) return res.status(500).json({ error: err2.message });
 
-      const payload = { id: result.insertId, phone, name, role: 'user' };
-      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
-      return res.status(201).json({ id: result.insertId, phone, name, role: 'user', token });
+      const hashed = password ? bcrypt.hashSync(String(password).trim(), 10) : null;
+      Usuario.addUsuario({ phone, name, password: hashed, role: 'user' }, (err3, result) => {
+        if (err3) return res.status(500).json({ error: err3.message });
+
+        const payload = { id: result.insertId, phone, name, role: 'user' };
+        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
+        return res.status(201).json({ id: result.insertId, phone, name, role: 'user', token });
+      });
     });
   });
 };
