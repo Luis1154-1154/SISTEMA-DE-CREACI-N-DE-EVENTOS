@@ -608,6 +608,9 @@ main .page-title + p {
 .auth-card {
   max-width: 450px;
   margin: 0 auto;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
 }
 
 .auth-card .card-body {
@@ -616,7 +619,21 @@ main .page-title + p {
 
 /* Text utilities */
 .text-muted {
-  color: var(--clinic-muted) !important;
+  color: #c2c2c2 !important;
+}
+
+.form-text {
+  color: #909090 !important;
+}
+
+.page-title,
+.auth-card h1,
+.auth-card h2,
+.auth-card h3,
+.auth-card h4,
+.auth-card h5,
+.auth-card h6 {
+  color: #ffffff !important;
 }
 
 .text-uppercase {
@@ -647,11 +664,6 @@ main .page-title + p {
 
 .d-none { display: none !important; }
 .d-flex { display: flex !important; }
-.d-md-none { display: block !important; }
-
-@media (max-width: 767.98px) {
-  .d-md-none { display: none !important; }
-}
 
 .flex-wrap { flex-wrap: wrap !important; }
 .flex-column { flex-direction: column !important; }
