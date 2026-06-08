@@ -1,19 +1,30 @@
 import { api } from './api-client.js';
 import { clearMessage, initMobileNavToggle, setLoading, showMessage } from './ui-utils.js';
+import { normalizePhone } from './app-config.js';
 
-async function loadOptionalSession() {
+let isAdminSession = false;
+
+async function configurePageForSession() {
   try {
     const payload = await api.me();
     const historyLink = document.getElementById('history-link');
+    const adminFields = document.getElementById('admin-user-fields');
+    const adminHelp = document.getElementById('admin-appointment-help');
     if (historyLink && payload?.role === 'admin') {
       historyLink.style.display = 'block';
+    }
+
+    if (payload?.role === 'admin') {
+      isAdminSession = true;
+      if (adminFields) adminFields.classList.remove('d-none');
+      if (adminHelp) adminHelp.classList.remove('d-none');
     }
   } catch {
     // No session or invalid token, ignore.
   }
 }
 
-loadOptionalSession();
+configurePageForSession();
 
 const form = document.querySelector('[data-appointment-create-form]');
 if (form) {
@@ -21,6 +32,9 @@ if (form) {
   const submitButton = form.querySelector('button[type="submit"]');
   const dateInput = form.querySelector('[name="date"]');
   const timeInput = form.querySelector('[name="time"]');
+
+  const userNameInput = document.getElementById('user-name');
+  const userPhoneInput = document.getElementById('user-phone');
 
   if (dateInput) {
     dateInput.min = new Date().toISOString().slice(0, 10);
@@ -39,10 +53,29 @@ if (form) {
       return;
     }
 
+    const body = { date, time, description };
+    let redirectTarget = './appointments.html';
+
+    if (isAdminSession) {
+      const name = String(userNameInput?.value || '').trim();
+      const phone = normalizePhone(String(userPhoneInput?.value || '').trim());
+      if (!name || !phone) {
+        showMessage(feedback, 'Nombre y teléfono del paciente son obligatorios para crear la cita.');
+        return;
+      }
+      body.name = name;
+      body.phone = phone;
+      redirectTarget = './admin-appointments.html';
+    }
+
     const restore = setLoading(submitButton, 'Agendando...');
     try {
-      await api.createAppointment({ date, time, description });
-      window.location.assign('./appointments.html');
+      if (isAdminSession) {
+        await api.adminCreateAppointment(body);
+      } else {
+        await api.createAppointment(body);
+      }
+      window.location.assign(redirectTarget);
     } catch (error) {
       showMessage(feedback, error.message);
     } finally {

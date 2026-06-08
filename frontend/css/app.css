@@ -946,6 +946,7 @@ main .page-title + p {
   border-radius: 0.75rem;
   padding: 1.5rem;
   margin-top: 1rem;
+  width: 100%;
 }
 
 .cancel-panel textarea,
@@ -953,6 +954,31 @@ main .page-title + p {
 .edit-panel input,
 .edit-panel select {
   background-color: rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 767.98px) {
+  .cancel-panel,
+  .edit-panel {
+    padding: 1rem;
+  }
+
+  .cancel-panel textarea,
+  .edit-panel textarea,
+  .edit-panel input,
+  .edit-panel select {
+    width: 100%;
+  }
+
+  .cancel-panel .d-flex,
+  .edit-panel .d-flex {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .cancel-panel .d-flex button,
+  .edit-panel .d-flex button {
+    width: 100%;
+  }
 }
 
 /* Alert boxes */
