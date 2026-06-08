@@ -270,7 +270,7 @@ async function loadClinicalRecords() {
   if (!usersContainer || !detailContainer) return;
   clearMessage(feedback);
   usersContainer.innerHTML = '<div class="text-muted p-3">Cargando usuarios...</div>';
-  detailContainer.innerHTML = '<div class="text-muted p-3">Cargando expediente...</div>';
+  detailContainer.innerHTML = '<div class="text-center text-muted py-5">Selecciona un usuario para ver su expediente.</div>';
   try {
     const currentAdmin = await api.me().catch(() => null);
     const usersPayload = await api.listUsers();
@@ -289,6 +289,7 @@ async function loadClinicalRecords() {
     const showUserDetail = async (id) => {
       const user = usersById.get(String(id));
       if (!user) return;
+      detailContainer.innerHTML = '<div class="text-center text-muted py-5">Cargando expediente...</div>';
       try {
         const userAppointments = (await api.listAppointmentsByDay()) || [];
         const appointments = Array.isArray(userAppointments?.data) ? userAppointments.data : userAppointments;
