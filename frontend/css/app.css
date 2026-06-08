@@ -413,6 +413,7 @@ body {
   .list-group-item.d-flex .action-buttons {
     text-align: left;
     width: 100%;
+    margin-top: 0.75rem;
   }
 
   .list-group-item.d-flex .action-buttons .btn {

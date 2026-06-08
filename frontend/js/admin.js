@@ -66,76 +66,84 @@ function renderAppointmentItem(appointment, { mode = adminPageMode } = {}) {
   const cancelReason = String(appointment.cancel_reason || '').trim();
 
   return `
-    <div class="list-group-item d-flex justify-content-between align-items-start">
-      <div>
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-          <div class="fw-bold">${escapeHtml(formatted.date)}</div>
-          <div class="badge bg-secondary text-white">${escapeHtml(formatted.time)}</div>
-          <div class="ms-2"><span class="small text-muted">${escapeHtml(appointment.name || '')} • ${escapeHtml(appointment.phone || '')}</span></div>
-        </div>
-        <div class="mt-2">${escapeHtml(appointment.description || '')}</div>
-        <div class="mt-2 small">Status: <strong>${escapeHtml(statusLabel)}</strong></div>
-        ${normalizedStatus === 'canceled' && cancelReason ? `<div class="mt-2 small text-danger">Motivo: ${escapeHtml(cancelReason)}</div>` : ''}
-      </div>
-      <div class="text-end action-buttons">
-        ${showDelete ? `<button class="btn btn-sm btn-outline-danger mb-2" data-delete-appointment="${id}">Eliminar</button>` : ''}
-        ${showActions ? `
-          <div class="d-flex flex-column align-items-end gap-2">
-            ${isPending ? `<button class="btn btn-sm btn-outline-success" data-activate-appointment="${id}">Marcar atendida</button>` : ''}
-            ${isPending ? `<button class="btn btn-sm btn-outline-primary" data-edit-appointment="${id}">Editar</button>` : ''}
-            ${isPending ? `<button class="btn btn-sm btn-outline-secondary" data-toggle-cancel="${id}">Cancelar</button>` : ''}
+    <div class="col-12">
+      <div class="list-group-item d-flex justify-content-between align-items-start">
+        <div>
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="fw-bold">${escapeHtml(formatted.date)}</div>
+            <div class="badge bg-secondary text-white">${escapeHtml(formatted.time)}</div>
+            <div class="ms-2"><span class="small text-muted">${escapeHtml(appointment.name || '')} • ${escapeHtml(appointment.phone || '')}</span></div>
           </div>
-
-          <form class="cancel-panel d-none mt-3" data-cancel-form="${id}">
-            <div class="alert alert-warning py-2 small mb-3">Procura cancelar con anticipación para no afectar la agenda.</div>
-            <div data-cancel-feedback class="mb-2"></div>
-            <label class="form-label" for="cancel-reason-${id}">Motivo de cancelación</label>
-            <textarea class="form-control" id="cancel-reason-${id}" name="reason" rows="3" placeholder="Escribe por qué cancelas la cita" required></textarea>
-            <div class="d-flex justify-content-end gap-2 mt-3">
-              <button class="btn btn-outline-secondary btn-sm" type="button" data-cancel-hide="${id}">Cerrar</button>
-              <button class="btn btn-danger btn-sm" type="submit">Confirmar cancelación</button>
+          <div class="mt-2">${escapeHtml(appointment.description || '')}</div>
+          <div class="mt-2 small">Status: <strong>${escapeHtml(statusLabel)}</strong></div>
+          ${normalizedStatus === 'canceled' && cancelReason ? `<div class="mt-2 small text-danger">Motivo: ${escapeHtml(cancelReason)}</div>` : ''}
+        </div>
+        <div class="text-end action-buttons">
+          ${showDelete ? `<button class="btn btn-sm btn-outline-danger mb-2" data-delete-appointment="${id}">Eliminar</button>` : ''}
+          ${showActions ? `
+            <div class="d-flex flex-column align-items-end gap-2">
+              ${isPending ? `<button class="btn btn-sm btn-outline-success" data-activate-appointment="${id}">Marcar atendida</button>` : ''}
+              ${isPending ? `<button class="btn btn-sm btn-outline-primary" data-edit-appointment="${id}">Editar</button>` : ''}
+              ${isPending ? `<button class="btn btn-sm btn-outline-secondary" data-toggle-cancel="${id}">Cancelar</button>` : ''}
             </div>
-          </form>
 
-          <form class="edit-panel d-none mt-3" data-edit-form="${id}">
-            <input type="hidden" name="name" value="${escapeHtml(appointment.name || '')}" />
-            <input type="hidden" name="phone" value="${escapeHtml(appointment.phone || '')}" />
-            <input type="hidden" name="description" value="${escapeHtml(appointment.description || '')}" />
-            <input type="hidden" name="status" value="${escapeHtml(appointment.status || 'pending')}" />
-            <input type="hidden" name="cancel_reason" value="${escapeHtml(appointment.cancel_reason || '')}" />
-            <div class="row g-2 align-items-end">
-              <div class="col-6">
-                <label class="form-label small">Fecha</label>
-                <input class="form-control form-control-sm" name="date" type="date" placeholder="Fecha de la cita" title="Fecha de la cita" aria-label="Fecha de la cita" value="${escapeHtml(normalizeDateValue(appointment.date || ''))}" required />
+            <form class="cancel-panel d-none mt-3" data-cancel-form="${id}">
+              <div class="alert alert-warning py-2 small mb-3">Procura cancelar con anticipación para no afectar la agenda.</div>
+              <div data-cancel-feedback class="mb-2"></div>
+              <label class="form-label" for="cancel-reason-${id}">Motivo de cancelación</label>
+              <textarea class="form-control" id="cancel-reason-${id}" name="reason" rows="3" placeholder="Escribe por qué cancelas la cita" required></textarea>
+              <div class="d-flex justify-content-end gap-2 mt-3">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-cancel-hide="${id}">Cerrar</button>
+                <button class="btn btn-danger btn-sm" type="submit">Confirmar cancelación</button>
               </div>
-              <div class="col-6">
-                <label class="form-label small">Hora</label>
-                <input class="form-control form-control-sm" name="time" type="time" step="60" placeholder="Hora de la cita" title="Hora de la cita" aria-label="Hora de la cita" value="${escapeHtml(normalizeTimeValue(appointment.time || ''))}" required />
+            </form>
+
+            <form class="edit-panel d-none mt-3" data-edit-form="${id}">
+              <input type="hidden" name="name" value="${escapeHtml(appointment.name || '')}" />
+              <input type="hidden" name="phone" value="${escapeHtml(appointment.phone || '')}" />
+              <input type="hidden" name="description" value="${escapeHtml(appointment.description || '')}" />
+              <input type="hidden" name="status" value="${escapeHtml(appointment.status || 'pending')}" />
+              <input type="hidden" name="cancel_reason" value="${escapeHtml(appointment.cancel_reason || '')}" />
+              <div class="row g-2 align-items-end">
+                <div class="col-6">
+                  <label class="form-label small">Fecha</label>
+                  <input class="form-control form-control-sm" name="date" type="date" placeholder="Fecha de la cita" title="Fecha de la cita" aria-label="Fecha de la cita" value="${escapeHtml(normalizeDateValue(appointment.date || ''))}" required />
+                </div>
+                <div class="col-6">
+                  <label class="form-label small">Hora</label>
+                  <input class="form-control form-control-sm" name="time" type="time" step="60" placeholder="Hora de la cita" title="Hora de la cita" aria-label="Hora de la cita" value="${escapeHtml(normalizeTimeValue(appointment.time || ''))}" required />
+                </div>
+                <div class="col-12 text-end mt-2">
+                  <button class="btn btn-sm btn-primary" type="submit">Guardar</button>
+                </div>
               </div>
-              <div class="col-12 text-end mt-2">
-                <button class="btn btn-sm btn-primary" type="submit">Guardar</button>
-              </div>
-            </div>
-          </form>
-        ` : ''}
+            </form>
+          ` : ''}
+        </div>
       </div>
     </div>
   `;
 }
 
 async function wireAppointmentInteractions(container, feedback, refresh) {
+  if (container.dataset.adminWired === 'true') return;
+  container.dataset.adminWired = 'true';
+
   container.addEventListener('click', async (ev) => {
     const deleteBtn = ev.target.closest('[data-delete-appointment]');
     if (deleteBtn) {
       const id = deleteBtn.getAttribute('data-delete-appointment');
       if (!id) return;
-      if (!(await showFloatingConfirm('Eliminar esta cita?'))) return;
+      const restore = setLoading(deleteBtn, 'Eliminando...');
       try {
+        if (!(await showFloatingConfirm('Eliminar esta cita?'))) return;
         await api.deleteAppointment(id);
         showMessage(feedback, 'Cita eliminada.', 'success');
         if (refresh) await refresh();
       } catch (err) {
         showMessage(feedback, err.message);
+      } finally {
+        restore();
       }
       return;
     }
@@ -145,19 +153,23 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
       const id = toggle.getAttribute('data-toggle-cancel');
       const panel = container.querySelector(`[data-cancel-form="${CSS.escape(id)}"]`);
       if (panel) panel.classList.toggle('d-none');
+      return;
     }
 
     const activateBtn = ev.target.closest('[data-activate-appointment]');
     if (activateBtn) {
       const id = activateBtn.getAttribute('data-activate-appointment');
       if (!id) return;
-      if (!(await showFloatingConfirm('Marcar esta cita como atendida?'))) return;
+      const restore = setLoading(activateBtn, 'Guardando...');
       try {
+        if (!(await showFloatingConfirm('Marcar esta cita como atendida?'))) return;
         await api.updateAppointmentStatus(id, { status: 'attended' });
         showMessage(feedback, 'Cita marcada como atendida', 'success');
         if (refresh) await refresh();
       } catch (err) {
         showMessage(feedback, err.message);
+      } finally {
+        restore();
       }
       return;
     }
@@ -171,9 +183,12 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
     }
   });
 
-  container.querySelectorAll('[data-cancel-form]').forEach((form) => {
-    form.addEventListener('submit', async (ev) => {
-      ev.preventDefault();
+  container.addEventListener('submit', async (ev) => {
+    const form = ev.target.closest('[data-cancel-form], [data-edit-form]');
+    if (!form) return;
+    ev.preventDefault();
+
+    if (form.hasAttribute('data-cancel-form')) {
       const id = form.getAttribute('data-cancel-form');
       const reason = String(form.querySelector('[name="reason"]')?.value || '').trim();
       const submit = form.querySelector('button[type="submit"]');
@@ -184,13 +199,13 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
         if (refresh) await refresh();
       } catch (err) {
         showMessage(form.querySelector('[data-cancel-feedback]'), err.message);
-      } finally { restore(); }
-    });
-  });
+      } finally {
+        restore();
+      }
+      return;
+    }
 
-  container.querySelectorAll('[data-edit-form]').forEach((form) => {
-    form.addEventListener('submit', async (ev) => {
-      ev.preventDefault();
+    if (form.hasAttribute('data-edit-form')) {
       const id = form.getAttribute('data-edit-form');
       const date = String(form.querySelector('[name="date"]')?.value || '').trim();
       const time = String(form.querySelector('[name="time"]')?.value || '').trim();
@@ -208,8 +223,11 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
         if (refresh) await refresh();
       } catch (err) {
         showMessage(form, err.message);
-      } finally { restore(); }
-    });
+      } finally {
+        restore();
+      }
+      return;
+    }
   });
 }
 
