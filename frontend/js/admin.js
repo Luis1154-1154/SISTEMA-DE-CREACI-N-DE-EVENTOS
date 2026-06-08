@@ -23,13 +23,48 @@ function renderAppointmentItem(appointment) {
   return `
     <div class="list-group-item d-flex justify-content-between align-items-start">
       <div>
-        <div class="fw-bold">${escapeHtml(formatted.date)} ${escapeHtml(formatted.time)}</div>
-        <div class="small text-muted">${escapeHtml(appointment.name || '')} • ${escapeHtml(appointment.phone || '')}</div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="fw-bold">${escapeHtml(formatted.date)}</div>
+          <div class="badge bg-secondary text-white">${escapeHtml(formatted.time)}</div>
+          <div class="ms-2"><span class="small text-muted">${escapeHtml(appointment.name || '')} • ${escapeHtml(appointment.phone || '')}</span></div>
+        </div>
         <div class="mt-2">${escapeHtml(appointment.description || '')}</div>
+        <div class="mt-2 small">Status: <strong>${escapeHtml(appointment.status || 'pending')}</strong></div>
       </div>
       <div class="text-end">
-        <button class="btn btn-sm btn-outline-danger" data-delete-appointment="${id}">Eliminar</button>
-        <div class="mt-2"><button class="btn btn-sm btn-outline-secondary" data-toggle-cancel="${id}">Cancelar</button></div>
+        <div class="d-flex flex-column align-items-end gap-2">
+          <button class="btn btn-sm btn-outline-danger" data-delete-appointment="${id}">Eliminar</button>
+          ${appointment.status === 'pending' ? `<button class="btn btn-sm btn-outline-success" data-activate-appointment="${id}">Activar</button>` : ''}
+          ${appointment.status === 'pending' ? `<button class="btn btn-sm btn-outline-primary" data-edit-appointment="${id}">Editar</button>` : ''}
+          <div class="mt-2"><button class="btn btn-sm btn-outline-secondary" data-toggle-cancel="${id}">Cancelar</button></div>
+        </div>
+
+        <form class="cancel-panel d-none mt-3" data-cancel-form="${id}">
+          <div class="alert alert-warning py-2 small mb-3">Procura cancelar con anticipación para no afectar la agenda.</div>
+          <div data-cancel-feedback class="mb-2"></div>
+          <label class="form-label" for="cancel-reason-${id}">Motivo de cancelación</label>
+          <textarea class="form-control" id="cancel-reason-${id}" name="reason" rows="3" placeholder="Escribe por qué cancelas la cita" required></textarea>
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-cancel-hide="${id}">Cerrar</button>
+            <button class="btn btn-danger btn-sm" type="submit">Confirmar cancelación</button>
+          </div>
+        </form>
+
+        <form class="edit-panel d-none mt-3" data-edit-form="${id}">
+          <div class="row g-2 align-items-end">
+            <div class="col-6">
+              <label class="form-label small">Fecha</label>
+              <input class="form-control form-control-sm" name="date" type="date" value="${escapeHtml(appointment.date || '')}" required />
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Hora</label>
+              <input class="form-control form-control-sm" name="time" type="time" step="60" value="${escapeHtml(appointment.time || '')}" required />
+            </div>
+            <div class="col-12 text-end mt-2">
+              <button class="btn btn-sm btn-primary" type="submit">Guardar</button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   `;
@@ -58,6 +93,29 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
       const panel = container.querySelector(`[data-cancel-form="${CSS.escape(id)}"]`);
       if (panel) panel.classList.toggle('d-none');
     }
+
+    const activateBtn = ev.target.closest('[data-activate-appointment]');
+    if (activateBtn) {
+      const id = activateBtn.getAttribute('data-activate-appointment');
+      if (!id) return;
+      if (!confirm('Marcar esta cita como atendida?')) return;
+      try {
+        await api.updateAppointmentStatus(id, { status: 'attended' });
+        showMessage(feedback, 'Cita marcada como atendida', 'success');
+        if (refresh) await refresh();
+      } catch (err) {
+        showMessage(feedback, err.message);
+      }
+      return;
+    }
+
+    const editBtn = ev.target.closest('[data-edit-appointment]');
+    if (editBtn) {
+      const id = editBtn.getAttribute('data-edit-appointment');
+      const panel = container.querySelector(`[data-edit-form="${CSS.escape(id)}"]`);
+      if (panel) panel.classList.toggle('d-none');
+      return;
+    }
   });
 
   container.querySelectorAll('[data-cancel-form]').forEach((form) => {
@@ -76,6 +134,25 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
       } finally { restore(); }
     });
   });
+
+  container.querySelectorAll('[data-edit-form]').forEach((form) => {
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const id = form.getAttribute('data-edit-form');
+      const date = String(form.querySelector('[name="date"]')?.value || '').trim();
+      const time = String(form.querySelector('[name="time"]')?.value || '').trim();
+      const submit = form.querySelector('button[type="submit"]');
+      const restore = setLoading(submit, 'Guardando...');
+      try {
+        if (!date || !time) throw new Error('Fecha y hora son obligatorias');
+        await api.updateAppointment(id, { date, time });
+        showMessage(feedback, 'Cita actualizada', 'success');
+        if (refresh) await refresh();
+      } catch (err) {
+        showMessage(form, err.message);
+      } finally { restore(); }
+    });
+  });
 }
 
 async function loadAdminAppointments(mode = adminPageMode) {
@@ -90,7 +167,10 @@ async function loadAdminAppointments(mode = adminPageMode) {
       payload = await api.listAppointmentsByDay();
       // payload may be array or {data:[]}
       const appointments = Array.isArray(payload?.data) ? payload.data : payload;
-      container.innerHTML = (appointments.length ? appointments.map(renderAppointmentItem).join('') : '<div class="text-center text-muted py-4">No hay citas.</div>');
+      const list = Array.isArray(appointments) ? appointments : [];
+      // filter by mode: 'history' shows only attended or canceled; otherwise show pending
+      const filtered = mode === 'history' ? list.filter(a => String(a.status || '').toLowerCase() !== 'pending') : list.filter(a => String(a.status || '').toLowerCase() === 'pending');
+      container.innerHTML = (filtered.length ? filtered.map(renderAppointmentItem).join('') : '<div class="text-center text-muted py-4">No hay citas.</div>');
       await wireAppointmentInteractions(container, feedback, () => loadAdminAppointments(mode));
       return;
     }
