@@ -3,9 +3,9 @@ const router = express.Router();
 const usuariosController = require('../controllers/usuariosController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-router.use(authMiddleware.requireAuth);
-
-router.use((req, res, next) => {
+// Apply auth and admin guard only to /usuarios routes, not all /api traffic.
+router.use('/usuarios', authMiddleware.requireAuth);
+router.use('/usuarios', (req, res, next) => {
 	if (!req.user || req.user.role !== 'admin') {
 		return res.status(403).json({ message: 'No autorizado' });
 	}

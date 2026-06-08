@@ -10,15 +10,13 @@ exports.createForUser = (req, res) => {
     console.error('createForUser logging failed', e && e.message);
   }
 
-  if (!user) return res.status(401).json({ message: 'No autenticado' });
-
   const { date, time, description } = req.body || {};
   if (!date || !time) return res.status(400).json({ message: 'Fecha y hora requeridas' });
 
   const appointment = {
-    user_id: user.id || null,
-    phone: user.phone || '',
-    name: user.name || '',
+    user_id: user ? user.id || null : null,
+    phone: user ? user.phone || null : null,
+    name: user ? user.name || null : null,
     date,
     time,
     description,
@@ -151,37 +149,53 @@ exports.updateAppointment = (req, res) => {
 
   const { id } = req.params;
   const { name, phone, date, time, description, status, cancel_reason: cancelReason, cancelReason: camelCancelReason } = req.body || {};
-  const normalizedStatus = String(status || 'pending').trim().toLowerCase();
-  const normalizedCancelReason = String(cancelReason || camelCancelReason || '').trim();
+  const normalizedStatus = String(status || '').trim().toLowerCase();
 
-  if (!name || !date || !time) {
-    return res.status(400).json({ message: 'Nombre, fecha y hora son requeridos' });
+  if (!date || !time) {
+    return res.status(400).json({ message: 'Fecha y hora son requeridos' });
   }
 
-  if (!['pending', 'attended', 'canceled'].includes(normalizedStatus)) {
-    return res.status(400).json({ message: 'Estado inválido' });
-  }
+  Appointments.findById(id, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!results || !results.length) return res.status(404).json({ message: 'Cita no encontrada' });
 
-  if (normalizedStatus === 'canceled' && !normalizedCancelReason) {
-    return res.status(400).json({ message: 'Debes indicar el motivo de cancelación' });
-  }
+    const existing = results[0];
+    const resolvedName = String(name || existing.name || '').trim();
+    const resolvedPhone = phone && String(phone).trim() ? String(phone).trim() : existing.phone || null;
+    const resolvedDescription = description !== undefined ? description : existing.description;
+    const resolvedStatus = normalizedStatus || String(existing.status || 'pending').trim().toLowerCase();
+    const normalizedCancelReason = String(cancelReason || camelCancelReason || '').trim();
+    const existingCancelReason = String(existing.cancel_reason || '').trim();
 
-  Appointments.updateById(
-    id,
-    {
-      name: String(name).trim(),
-      phone: phone && String(phone).trim() ? String(phone).trim() : null,
-      date,
-      time,
-      description,
-      status: normalizedStatus,
-      cancel_reason: normalizedStatus === 'canceled' ? normalizedCancelReason : null
-    },
-    (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: 'Cita actualizada' });
+    if (!resolvedName) {
+      return res.status(400).json({ message: 'Nombre requerido' });
     }
-  );
+
+    if (!['pending', 'attended', 'canceled'].includes(resolvedStatus)) {
+      return res.status(400).json({ message: 'Estado inválido' });
+    }
+
+    if (resolvedStatus === 'canceled' && !normalizedCancelReason && !existingCancelReason) {
+      return res.status(400).json({ message: 'Debes indicar el motivo de cancelación' });
+    }
+
+    Appointments.updateById(
+      id,
+      {
+        name: resolvedName,
+        phone: resolvedPhone,
+        date,
+        time,
+        description: resolvedDescription,
+        status: resolvedStatus,
+        cancel_reason: resolvedStatus === 'canceled' ? (normalizedCancelReason || existingCancelReason) : null
+      },
+      (updateErr) => {
+        if (updateErr) return res.status(500).json({ error: updateErr.message });
+        res.json({ message: 'Cita actualizada' });
+      }
+    );
+  });
 };
 
 exports.updateAppointmentStatus = (req, res) => {

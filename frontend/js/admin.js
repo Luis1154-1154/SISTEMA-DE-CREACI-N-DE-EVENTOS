@@ -5,9 +5,45 @@ import { normalizePhone, isValidPhone } from './app-config.js';
 
 const adminPageMode = String(document.body?.dataset?.adminPage || 'active').toLowerCase();
 
+function normalizeDateValue(value) {
+  if (!value) return '';
+  if (/^\d{4}-\d{2}-\d{2}T/.test(value)) return value.slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const dt = new Date(value);
+  return Number.isNaN(dt.getTime()) ? String(value) : dt.toISOString().slice(0, 10);
+}
+
+function normalizeTimeValue(value) {
+  if (!value) return '';
+  if (/^\d{2}:\d{2}:\d{2}$/.test(value)) return value.slice(0, 5);
+  if (/^\d{2}:\d{2}$/.test(value)) return value;
+  const dt = new Date(value);
+  return Number.isNaN(dt.getTime()) ? String(value) : dt.toISOString().slice(11, 16);
+}
+
+function parseAppointmentDateTime(dateStr, timeStr) {
+  if (dateStr && timeStr) {
+    const candidate = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? `${dateStr}T${normalizeTimeValue(timeStr)}` : dateStr;
+    const dt = new Date(candidate);
+    if (!Number.isNaN(dt.getTime())) return dt;
+  }
+
+  if (dateStr) {
+    const dt = new Date(dateStr);
+    if (!Number.isNaN(dt.getTime())) return dt;
+  }
+
+  if (timeStr) {
+    const dt = new Date(`1970-01-01T${normalizeTimeValue(timeStr)}`);
+    if (!Number.isNaN(dt.getTime())) return dt;
+  }
+
+  return new Date();
+}
+
 function formatDateTime(dateStr, timeStr) {
   try {
-    const dt = dateStr && timeStr ? new Date(`${dateStr}T${timeStr}`) : new Date(dateStr || timeStr || Date.now());
+    const dt = parseAppointmentDateTime(dateStr, timeStr);
     return {
       date: new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'long', day: 'numeric' }).format(dt),
       time: new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(dt)
@@ -17,9 +53,16 @@ function formatDateTime(dateStr, timeStr) {
   }
 }
 
-function renderAppointmentItem(appointment) {
+function renderAppointmentItem(appointment, { mode = adminPageMode } = {}) {
   const formatted = formatDateTime(appointment.date, appointment.time);
   const id = escapeHtml(appointment.id || '');
+  const normalizedStatus = String(appointment.status || 'pending').trim().toLowerCase();
+  const isPending = normalizedStatus === 'pending';
+  const showActions = mode !== 'history' && mode !== 'records';
+  const statusLabel = normalizedStatus === 'attended' ? 'Atendida'
+    : normalizedStatus === 'canceled' ? 'Cancelada'
+    : 'Pendiente';
+
   return `
     <div class="list-group-item d-flex justify-content-between align-items-start">
       <div>
@@ -29,14 +72,15 @@ function renderAppointmentItem(appointment) {
           <div class="ms-2"><span class="small text-muted">${escapeHtml(appointment.name || '')} • ${escapeHtml(appointment.phone || '')}</span></div>
         </div>
         <div class="mt-2">${escapeHtml(appointment.description || '')}</div>
-        <div class="mt-2 small">Status: <strong>${escapeHtml(appointment.status || 'pending')}</strong></div>
+        <div class="mt-2 small">Status: <strong>${escapeHtml(statusLabel)}</strong></div>
       </div>
       <div class="text-end">
+        ${showActions ? `
         <div class="d-flex flex-column align-items-end gap-2">
           <button class="btn btn-sm btn-outline-danger" data-delete-appointment="${id}">Eliminar</button>
-          ${appointment.status === 'pending' ? `<button class="btn btn-sm btn-outline-success" data-activate-appointment="${id}">Activar</button>` : ''}
-          ${appointment.status === 'pending' ? `<button class="btn btn-sm btn-outline-primary" data-edit-appointment="${id}">Editar</button>` : ''}
-          <div class="mt-2"><button class="btn btn-sm btn-outline-secondary" data-toggle-cancel="${id}">Cancelar</button></div>
+          ${isPending ? `<button class="btn btn-sm btn-outline-success" data-activate-appointment="${id}">Marcar atendida</button>` : ''}
+          ${isPending ? `<button class="btn btn-sm btn-outline-primary" data-edit-appointment="${id}">Editar</button>` : ''}
+          ${isPending ? `<div class="mt-2"><button class="btn btn-sm btn-outline-secondary" data-toggle-cancel="${id}">Cancelar</button></div>` : ''}
         </div>
 
         <form class="cancel-panel d-none mt-3" data-cancel-form="${id}">
@@ -51,20 +95,26 @@ function renderAppointmentItem(appointment) {
         </form>
 
         <form class="edit-panel d-none mt-3" data-edit-form="${id}">
+          <input type="hidden" name="name" value="${escapeHtml(appointment.name || '')}" />
+          <input type="hidden" name="phone" value="${escapeHtml(appointment.phone || '')}" />
+          <input type="hidden" name="description" value="${escapeHtml(appointment.description || '')}" />
+          <input type="hidden" name="status" value="${escapeHtml(appointment.status || 'pending')}" />
+          <input type="hidden" name="cancel_reason" value="${escapeHtml(appointment.cancel_reason || '')}" />
           <div class="row g-2 align-items-end">
             <div class="col-6">
               <label class="form-label small">Fecha</label>
-              <input class="form-control form-control-sm" name="date" type="date" value="${escapeHtml(appointment.date || '')}" required />
+              <input class="form-control form-control-sm" name="date" type="date" value="${escapeHtml(normalizeDateValue(appointment.date || ''))}" required />
             </div>
             <div class="col-6">
               <label class="form-label small">Hora</label>
-              <input class="form-control form-control-sm" name="time" type="time" step="60" value="${escapeHtml(appointment.time || '')}" required />
+              <input class="form-control form-control-sm" name="time" type="time" step="60" value="${escapeHtml(normalizeTimeValue(appointment.time || ''))}" required />
             </div>
             <div class="col-12 text-end mt-2">
               <button class="btn btn-sm btn-primary" type="submit">Guardar</button>
             </div>
           </div>
         </form>
+        ` : ''}
       </div>
     </div>
   `;
@@ -141,11 +191,16 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
       const id = form.getAttribute('data-edit-form');
       const date = String(form.querySelector('[name="date"]')?.value || '').trim();
       const time = String(form.querySelector('[name="time"]')?.value || '').trim();
+      const name = String(form.querySelector('[name="name"]')?.value || '').trim();
+      const phone = String(form.querySelector('[name="phone"]')?.value || '').trim();
+      const description = String(form.querySelector('[name="description"]')?.value || '').trim();
+      const status = String(form.querySelector('[name="status"]')?.value || '').trim();
+      const cancelReason = String(form.querySelector('[name="cancel_reason"]')?.value || '').trim();
       const submit = form.querySelector('button[type="submit"]');
       const restore = setLoading(submit, 'Guardando...');
       try {
         if (!date || !time) throw new Error('Fecha y hora son obligatorias');
-        await api.updateAppointment(id, { date, time });
+        await api.updateAppointment(id, { date, time, name, phone, description, status, cancel_reason: cancelReason });
         showMessage(feedback, 'Cita actualizada', 'success');
         if (refresh) await refresh();
       } catch (err) {
@@ -199,24 +254,89 @@ async function loadClinicalRecords() {
       detailContainer.innerHTML = '<div class="text-muted p-3">Selecciona un usuario para ver su expediente.</div>';
       return;
     }
-    usersContainer.innerHTML = users.map(u => `<button class="list-group-item list-group-item-action" data-select-user="${escapeHtml(u.id)}">${escapeHtml(u.name)}<div class="small text-muted">${escapeHtml(u.phone)}</div></button>`).join('');
+    const usersById = new Map();
+    usersContainer.innerHTML = users.map(u => {
+      usersById.set(String(u.id), u);
+      return `<button class="list-group-item list-group-item-action" data-select-user="${escapeHtml(u.id)}">${escapeHtml(u.name)}<div class="small text-muted">${escapeHtml(u.phone)}</div></button>`;
+    }).join('');
+
+    const showUserDetail = async (id) => {
+      const user = usersById.get(String(id));
+      if (!user) return;
+      try {
+        const userAppointments = (await api.listAppointmentsByDay()) || [];
+        const appointments = Array.isArray(userAppointments?.data) ? userAppointments.data : userAppointments;
+        const filtered = (Array.isArray(appointments) ? appointments : []).filter(a => String(a.user_id) === String(id));
+        detailContainer.innerHTML = `
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h5 class="mb-1">${escapeHtml(user.name)}</h5>
+              <div class="small text-muted">${escapeHtml(user.phone)}</div>
+            </div>
+            <button class="btn btn-outline-danger btn-sm" type="button" data-delete-user="${escapeHtml(user.id)}">Eliminar usuario</button>
+          </div>
+          <div class="card border-0 shadow-sm mb-4 p-3">
+            <h6 class="mb-3">Agregar cita al paciente</h6>
+            <form class="row g-3" data-add-user-appointment="${escapeHtml(user.id)}">
+              <div class="col-12 col-md-6">
+                <label class="form-label small">Fecha</label>
+                <input class="form-control form-control-sm" name="date" type="date" required />
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label small">Hora</label>
+                <input class="form-control form-control-sm" name="time" type="time" step="60" required />
+              </div>
+              <div class="col-12">
+                <label class="form-label small">Descripción</label>
+                <textarea class="form-control form-control-sm" name="description" rows="2" placeholder="Motivo de la cita"></textarea>
+              </div>
+              <div class="col-12 text-end">
+                <button class="btn btn-primary btn-sm" type="submit">Agregar cita</button>
+              </div>
+            </form>
+          </div>
+          <div>
+            <h6>Historial de citas</h6>
+            <div class="record-appointments-list">${filtered.length ? filtered.map(a => renderAppointmentItem(a, { mode: 'records' })).join('') : '<div class="text-muted">Sin citas</div>'}</div>
+          </div>
+        `;
+
+        detailContainer.querySelector('[data-add-user-appointment]').addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          const form = ev.target;
+          const date = String(form.querySelector('[name="date"]')?.value || '').trim();
+          const time = String(form.querySelector('[name="time"]')?.value || '').trim();
+          const description = String(form.querySelector('[name="description"]')?.value || '').trim();
+          if (!date || !time) {
+            showMessage(feedback, 'Fecha y hora son obligatorias para crear la cita.');
+            return;
+          }
+          try {
+            await api.adminCreateAppointment({ userId: user.id, date, time, description });
+            showMessage(feedback, 'Cita agregada al expediente del usuario.', 'success');
+            await showUserDetail(id);
+          } catch (err) {
+            showMessage(feedback, err.message);
+          }
+        });
+
+        detailContainer.querySelector('[data-delete-user]').addEventListener('click', async () => {
+          if (!confirm('¿Eliminar este usuario y todos sus datos?')) return;
+          try {
+            await api.deleteUser(user.id);
+            showMessage(feedback, 'Usuario eliminado.', 'success');
+            await loadClinicalRecords();
+          } catch (err) {
+            showMessage(feedback, err.message);
+          }
+        });
+      } catch (err) {
+        showMessage(feedback, err.message);
+      }
+    };
+
     usersContainer.querySelectorAll('[data-select-user]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-select-user');
-        try {
-          const user = await api.getUsuarioById(id);
-          const userAppointments = (await api.listAppointmentsByDay()) || [];
-          const appointments = Array.isArray(userAppointments?.data) ? userAppointments.data : userAppointments;
-          const filtered = (Array.isArray(appointments) ? appointments : []).filter(a => String(a.user_id) === String(id));
-          detailContainer.innerHTML = `
-            <h5>${escapeHtml(user.name)}</h5>
-            <div class="small text-muted mb-2">${escapeHtml(user.phone)}</div>
-            <div>${filtered.length ? filtered.map(renderAppointmentItem).join('') : '<div class="text-muted">Sin citas</div>'}</div>
-          `;
-        } catch (err) {
-          showMessage(feedback, err.message);
-        }
-      });
+      btn.addEventListener('click', () => showUserDetail(btn.getAttribute('data-select-user')));
     });
   } catch (err) {
     showMessage(feedback, err.message);

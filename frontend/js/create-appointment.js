@@ -1,18 +1,19 @@
 import { api } from './api-client.js';
-import { requireSession } from './auth-guard.js';
 import { clearMessage, setLoading, showMessage } from './ui-utils.js';
 
-// Ensure user is authenticated before allowing appointment creation
-const sessionPromise = requireSession();
-
-// Show history link only for admin users
-sessionPromise.then(session => {
-  if (!session) return;
-  const historyLink = document.getElementById('history-link');
-  if (historyLink && session.role === 'admin') {
-    historyLink.style.display = 'block';
+async function loadOptionalSession() {
+  try {
+    const payload = await api.me();
+    const historyLink = document.getElementById('history-link');
+    if (historyLink && payload?.role === 'admin') {
+      historyLink.style.display = 'block';
+    }
+  } catch {
+    // No session or invalid token, ignore.
   }
-});
+}
+
+loadOptionalSession();
 
 const form = document.querySelector('[data-appointment-create-form]');
 if (form) {

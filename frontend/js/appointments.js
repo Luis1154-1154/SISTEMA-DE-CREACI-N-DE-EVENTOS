@@ -2,19 +2,45 @@ import { api } from './api-client.js';
 import { requireSession } from './auth-guard.js';
 import { clearMessage, escapeHtml, setLoading, showMessage } from './ui-utils.js';
 
+function normalizeDateValue(value) {
+  if (!value) return '';
+  if (/^\d{4}-\d{2}-\d{2}T/.test(value)) return value.slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const dt = new Date(value);
+  return Number.isNaN(dt.getTime()) ? String(value) : dt.toISOString().slice(0, 10);
+}
+
+function normalizeTimeValue(value) {
+  if (!value) return '';
+  if (/^\d{2}:\d{2}:\d{2}$/.test(value)) return value.slice(0, 5);
+  if (/^\d{2}:\d{2}$/.test(value)) return value;
+  const dt = new Date(value);
+  return Number.isNaN(dt.getTime()) ? String(value) : dt.toISOString().slice(11, 16);
+}
+
+function parseAppointmentDateTime(dateStr, timeStr) {
+  if (dateStr && timeStr) {
+    const candidate = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? `${dateStr}T${normalizeTimeValue(timeStr)}` : dateStr;
+    const dt = new Date(candidate);
+    if (!Number.isNaN(dt.getTime())) return dt;
+  }
+
+  if (dateStr) {
+    const dt = new Date(dateStr);
+    if (!Number.isNaN(dt.getTime())) return dt;
+  }
+
+  if (timeStr) {
+    const dt = new Date(`1970-01-01T${normalizeTimeValue(timeStr)}`);
+    if (!Number.isNaN(dt.getTime())) return dt;
+  }
+
+  return new Date();
+}
+
 function formatDateTime(dateStr, timeStr) {
   try {
-    let dt;
-    if (dateStr && dateStr.includes('T')) {
-      dt = new Date(dateStr);
-    } else if (dateStr && timeStr) {
-      dt = new Date(`${dateStr}T${timeStr}`);
-    } else if (dateStr) {
-      dt = new Date(dateStr);
-    } else {
-      return { date: '', time: '' };
-    }
-
+    const dt = parseAppointmentDateTime(dateStr, timeStr);
     const dateFmt = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'long', day: 'numeric' }).format(dt);
     const timeFmt = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(dt);
     return { date: dateFmt, time: timeFmt };

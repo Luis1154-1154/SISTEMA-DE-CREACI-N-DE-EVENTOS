@@ -108,8 +108,10 @@ app.get('/api/appointments/history', authMiddleware.optionalAuth, appointmentsCo
 app.patch('/api/appointments/:id/cancel', authMiddleware.optionalAuth, appointmentsController.cancelMyAppointment);
 
 // Mount API routes under /api only to avoid duplicate endpoints at root
-app.use('/api', usuariosRoutes);
+// Ensure appointment routes are registered before user-admin routes so regular /api/appointments
+// traffic is not intercepted by the usuariosRoutes admin guard.
 app.use('/api', appointmentsRoutes);
+app.use('/api', usuariosRoutes);
 // Mount debug helpers only in non-production environments
 if (process.env.NODE_ENV !== 'production') {
   app.use('/api', debugRoutes);
