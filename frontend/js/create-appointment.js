@@ -3,15 +3,13 @@ import { requireSession } from './auth-guard.js';
 import { clearMessage, setLoading, showMessage } from './ui-utils.js';
 
 // Ensure user is authenticated before allowing appointment creation
-(async () => {
-  const session = await requireSession().catch(() => null);
-  if (!session) return;
-})();
+const sessionPromise = requireSession();
 
 // Show history link only for admin users
 sessionPromise.then(session => {
+  if (!session) return;
   const historyLink = document.getElementById('history-link');
-  if (historyLink && session && session.role === 'admin') {
+  if (historyLink && session.role === 'admin') {
     historyLink.style.display = 'block';
   }
 });
