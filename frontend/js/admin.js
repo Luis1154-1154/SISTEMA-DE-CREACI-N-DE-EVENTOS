@@ -325,19 +325,3 @@ if (logoutBtn) {
   });
 }
 
-const adminNavToggle = document.getElementById('admin-nav-toggle');
-const adminNavLinks = document.querySelector('.admin-nav-links');
-if (adminNavToggle && adminNavLinks) {
-  adminNavToggle.addEventListener('click', () => {
-    const isOpen = adminNavLinks.classList.toggle('open');
-    adminNavToggle.setAttribute('aria-expanded', String(isOpen));
-  });
-
-  adminNavLinks.addEventListener('click', (event) => {
-    if (event.target.closest('a') || event.target.closest('button')) {
-      adminNavLinks.classList.remove('open');
-      adminNavToggle.setAttribute('aria-expanded', 'false');
-    }
-  });
-}
-
