@@ -58,7 +58,8 @@ function renderAppointmentItem(appointment, { mode = adminPageMode } = {}) {
   const id = escapeHtml(appointment.id || '');
   const normalizedStatus = String(appointment.status || 'pending').trim().toLowerCase();
   const isPending = normalizedStatus === 'pending';
-  const showActions = mode !== 'history' && mode !== 'records';
+  const showActions = mode === 'active';
+  const showDelete = mode !== 'records';
   const statusLabel = normalizedStatus === 'attended' ? 'Atendida'
     : normalizedStatus === 'canceled' ? 'Cancelada'
     : 'Pendiente';
@@ -67,7 +68,7 @@ function renderAppointmentItem(appointment, { mode = adminPageMode } = {}) {
   return `
     <div class="list-group-item d-flex justify-content-between align-items-start">
       <div>
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
           <div class="fw-bold">${escapeHtml(formatted.date)}</div>
           <div class="badge bg-secondary text-white">${escapeHtml(formatted.time)}</div>
           <div class="ms-2"><span class="small text-muted">${escapeHtml(appointment.name || '')} • ${escapeHtml(appointment.phone || '')}</span></div>
@@ -76,46 +77,46 @@ function renderAppointmentItem(appointment, { mode = adminPageMode } = {}) {
         <div class="mt-2 small">Status: <strong>${escapeHtml(statusLabel)}</strong></div>
         ${normalizedStatus === 'canceled' && cancelReason ? `<div class="mt-2 small text-danger">Motivo: ${escapeHtml(cancelReason)}</div>` : ''}
       </div>
-      <div class="text-end">
+      <div class="text-end action-buttons">
+        ${showDelete ? `<button class="btn btn-sm btn-outline-danger mb-2" data-delete-appointment="${id}">Eliminar</button>` : ''}
         ${showActions ? `
-        <div class="d-flex flex-column align-items-end gap-2">
-          <button class="btn btn-sm btn-outline-danger" data-delete-appointment="${id}">Eliminar</button>
-          ${isPending ? `<button class="btn btn-sm btn-outline-success" data-activate-appointment="${id}">Marcar atendida</button>` : ''}
-          ${isPending ? `<button class="btn btn-sm btn-outline-primary" data-edit-appointment="${id}">Editar</button>` : ''}
-          ${isPending ? `<div class="mt-2"><button class="btn btn-sm btn-outline-secondary" data-toggle-cancel="${id}">Cancelar</button></div>` : ''}
-        </div>
-
-        <form class="cancel-panel d-none mt-3" data-cancel-form="${id}">
-          <div class="alert alert-warning py-2 small mb-3">Procura cancelar con anticipación para no afectar la agenda.</div>
-          <div data-cancel-feedback class="mb-2"></div>
-          <label class="form-label" for="cancel-reason-${id}">Motivo de cancelación</label>
-          <textarea class="form-control" id="cancel-reason-${id}" name="reason" rows="3" placeholder="Escribe por qué cancelas la cita" required></textarea>
-          <div class="d-flex justify-content-end gap-2 mt-3">
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-cancel-hide="${id}">Cerrar</button>
-            <button class="btn btn-danger btn-sm" type="submit">Confirmar cancelación</button>
+          <div class="d-flex flex-column align-items-end gap-2">
+            ${isPending ? `<button class="btn btn-sm btn-outline-success" data-activate-appointment="${id}">Marcar atendida</button>` : ''}
+            ${isPending ? `<button class="btn btn-sm btn-outline-primary" data-edit-appointment="${id}">Editar</button>` : ''}
+            ${isPending ? `<button class="btn btn-sm btn-outline-secondary" data-toggle-cancel="${id}">Cancelar</button>` : ''}
           </div>
-        </form>
 
-        <form class="edit-panel d-none mt-3" data-edit-form="${id}">
-          <input type="hidden" name="name" value="${escapeHtml(appointment.name || '')}" />
-          <input type="hidden" name="phone" value="${escapeHtml(appointment.phone || '')}" />
-          <input type="hidden" name="description" value="${escapeHtml(appointment.description || '')}" />
-          <input type="hidden" name="status" value="${escapeHtml(appointment.status || 'pending')}" />
-          <input type="hidden" name="cancel_reason" value="${escapeHtml(appointment.cancel_reason || '')}" />
-          <div class="row g-2 align-items-end">
-            <div class="col-6">
-              <label class="form-label small">Fecha</label>
-              <input class="form-control form-control-sm" name="date" type="date" placeholder="Fecha de la cita" title="Fecha de la cita" aria-label="Fecha de la cita" value="${escapeHtml(normalizeDateValue(appointment.date || ''))}" required />
+          <form class="cancel-panel d-none mt-3" data-cancel-form="${id}">
+            <div class="alert alert-warning py-2 small mb-3">Procura cancelar con anticipación para no afectar la agenda.</div>
+            <div data-cancel-feedback class="mb-2"></div>
+            <label class="form-label" for="cancel-reason-${id}">Motivo de cancelación</label>
+            <textarea class="form-control" id="cancel-reason-${id}" name="reason" rows="3" placeholder="Escribe por qué cancelas la cita" required></textarea>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-cancel-hide="${id}">Cerrar</button>
+              <button class="btn btn-danger btn-sm" type="submit">Confirmar cancelación</button>
             </div>
-            <div class="col-6">
-              <label class="form-label small">Hora</label>
-              <input class="form-control form-control-sm" name="time" type="time" step="60" placeholder="Hora de la cita" title="Hora de la cita" aria-label="Hora de la cita" value="${escapeHtml(normalizeTimeValue(appointment.time || ''))}" required />
+          </form>
+
+          <form class="edit-panel d-none mt-3" data-edit-form="${id}">
+            <input type="hidden" name="name" value="${escapeHtml(appointment.name || '')}" />
+            <input type="hidden" name="phone" value="${escapeHtml(appointment.phone || '')}" />
+            <input type="hidden" name="description" value="${escapeHtml(appointment.description || '')}" />
+            <input type="hidden" name="status" value="${escapeHtml(appointment.status || 'pending')}" />
+            <input type="hidden" name="cancel_reason" value="${escapeHtml(appointment.cancel_reason || '')}" />
+            <div class="row g-2 align-items-end">
+              <div class="col-6">
+                <label class="form-label small">Fecha</label>
+                <input class="form-control form-control-sm" name="date" type="date" placeholder="Fecha de la cita" title="Fecha de la cita" aria-label="Fecha de la cita" value="${escapeHtml(normalizeDateValue(appointment.date || ''))}" required />
+              </div>
+              <div class="col-6">
+                <label class="form-label small">Hora</label>
+                <input class="form-control form-control-sm" name="time" type="time" step="60" placeholder="Hora de la cita" title="Hora de la cita" aria-label="Hora de la cita" value="${escapeHtml(normalizeTimeValue(appointment.time || ''))}" required />
+              </div>
+              <div class="col-12 text-end mt-2">
+                <button class="btn btn-sm btn-primary" type="submit">Guardar</button>
+              </div>
             </div>
-            <div class="col-12 text-end mt-2">
-              <button class="btn btn-sm btn-primary" type="submit">Guardar</button>
-            </div>
-          </div>
-        </form>
+          </form>
         ` : ''}
       </div>
     </div>
@@ -312,7 +313,15 @@ async function loadClinicalRecords() {
 
 // Initialize
 const appointmentsContainer = document.querySelector('[data-admin-appointments-list]');
-if (appointmentsContainer) loadAdminAppointments(adminPageMode);
+if (appointmentsContainer) {
+  loadAdminAppointments(adminPageMode);
+  window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      loadAdminAppointments(adminPageMode);
+    }
+  });
+  window.addEventListener('focus', () => loadAdminAppointments(adminPageMode));
+}
 const recordsContainer = document.querySelector('[data-records-users]');
 if (recordsContainer) loadClinicalRecords();
 
