@@ -30,10 +30,36 @@ async function addColumnIfMissing(table, column, definition) {
   }
 }
 
+async function modifyColumnIfNeeded(table, column, definition) {
+  // Check if column already allows NULL
+  if (DB_CLIENT === 'postgres' || DB_CLIENT === 'pg') {
+    const rows = await query(
+      "SELECT is_nullable FROM information_schema.columns WHERE table_schema = 'public' AND table_name = ? AND column_name = ?",
+      [table, column],
+    );
+    if (Array.isArray(rows) && rows.length > 0 && rows[0].is_nullable === 'NO') {
+      try {
+        await query(`ALTER TABLE ${table} ALTER COLUMN ${column} DROP NOT NULL`);
+      } catch (e) {
+        // Already allows NULL, ignore
+      }
+    }
+  } else {
+    // MySQL: modify column to allow NULL
+    try {
+      await query(`ALTER TABLE ${table} MODIFY COLUMN ${column} ${definition}`);
+    } catch (e) {
+      // Column may already be NULL, ignore error
+    }
+  }
+}
+
 async function ensureAppointmentSchema() {
   await addColumnIfMissing('appointments', 'status', "status VARCHAR(20) NOT NULL DEFAULT 'pending'");
   await addColumnIfMissing('appointments', 'cancel_reason', 'cancel_reason TEXT NULL');
   await addColumnIfMissing('users', 'clinical_observations', 'clinical_observations TEXT NULL');
+  // Allow NULL in name column for anonymous appointments
+  await modifyColumnIfNeeded('appointments', 'name', 'VARCHAR(150) DEFAULT NULL');
 }
 
 module.exports = {
