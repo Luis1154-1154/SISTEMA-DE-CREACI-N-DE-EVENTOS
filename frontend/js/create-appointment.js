@@ -57,6 +57,7 @@ const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', async () => {
     try { await api.logout(); } catch (e) { }
+    api.clearAuthToken();
     window.location.assign('./index.html');
   });
 }

@@ -7,7 +7,7 @@ const COOKIE_NAME = 'sid';
 
 function getCookieOptions() {
   const isProduction = process.env.NODE_ENV === 'production';
-  const sameSite = isProduction ? 'lax' : (process.env.COOKIE_SAMESITE || 'lax').toLowerCase();
+  const sameSite = isProduction ? 'none' : (process.env.COOKIE_SAMESITE || 'lax').toLowerCase();
   const secure = isProduction || (process.env.COOKIE_SECURE && String(process.env.COOKIE_SECURE).toLowerCase() !== 'false');
 
   return {

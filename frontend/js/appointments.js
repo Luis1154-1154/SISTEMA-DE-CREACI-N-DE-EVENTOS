@@ -176,6 +176,7 @@ if (logoutBtn) {
     } catch {
       // ignore
     }
+    api.clearAuthToken();
     window.location.assign('./index.html');
   });
 }
