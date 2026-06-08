@@ -75,6 +75,12 @@ async function loadUserAppointments() {
   const session = await requireSession();
   if (!session) return;
 
+  // Show history link only for admin users
+  const historyLink = document.getElementById('history-link');
+  if (historyLink && session.role === 'admin') {
+    historyLink.style.display = 'block';
+  }
+
   const container = document.querySelector('[data-appointments-list]');
   const feedback = document.querySelector('[data-appointments-feedback]');
   if (!container) return;

@@ -5,6 +5,14 @@ import { clearMessage, setLoading, showMessage } from './ui-utils.js';
 // Ensure user is authenticated before allowing appointment creation
 const sessionPromise = requireSession().catch(() => null);
 
+// Show history link only for admin users
+sessionPromise.then(session => {
+  const historyLink = document.getElementById('history-link');
+  if (historyLink && session && session.role === 'admin') {
+    historyLink.style.display = 'block';
+  }
+});
+
 const form = document.querySelector('[data-appointment-create-form]');
 if (form) {
   const feedback = document.querySelector('[data-create-feedback]');
