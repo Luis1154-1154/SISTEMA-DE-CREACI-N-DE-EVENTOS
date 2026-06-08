@@ -7,6 +7,8 @@ const usuariosRoutes = require('./routes/usuariosRoutes');
 const authRoutes = require('./routes/authRoutes');
 const appointmentsRoutes = require('./routes/appointmentsRoutes');
 const debugRoutes = require('./routes/debugRoutes');
+const authMiddleware = require('./middleware/authMiddleware');
+const appointmentsController = require('./controllers/appointmentsController');
 const { ensureAppointmentSchema } = require('./config/migrations');
 
 const configuredOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_ORIGIN || '')
@@ -98,6 +100,13 @@ app.get('/debug-cors', (req, res) => {
 
 // Mount public auth routes before protected routers so register/login remain reachable.
 app.use('/api', authRoutes);
+
+app.get('/api/appointments/self', authMiddleware.optionalAuth, appointmentsController.listMyAppointments);
+app.get('/api/appointments/me', authMiddleware.optionalAuth, appointmentsController.listMyAppointments);
+app.get('/api/appointments/active', authMiddleware.optionalAuth, appointmentsController.listMyAppointments);
+app.get('/api/appointments/history', authMiddleware.optionalAuth, appointmentsController.listMyHistory);
+app.patch('/api/appointments/:id/cancel', authMiddleware.optionalAuth, appointmentsController.cancelMyAppointment);
+
 // Mount API routes under /api only to avoid duplicate endpoints at root
 app.use('/api', usuariosRoutes);
 app.use('/api', appointmentsRoutes);
