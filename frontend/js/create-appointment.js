@@ -1,6 +1,6 @@
 import { api } from './api-client.js';
 import { clearMessage, initMobileNavToggle, setLoading, showMessage } from './ui-utils.js';
-import { normalizePhone } from './app-config.js';
+import { normalizePhone, isValidPhone } from './app-config.js';
 
 let isAdminSession = false;
 
@@ -61,6 +61,10 @@ if (form) {
       const phone = normalizePhone(String(userPhoneInput?.value || '').trim());
       if (!name || !phone) {
         showMessage(feedback, 'Nombre y teléfono del paciente son obligatorios para crear la cita.');
+        return;
+      }
+      if (!isValidPhone(phone)) {
+        showMessage(feedback, 'El teléfono debe tener 10 dígitos. Ejemplo: 3123456789');
         return;
       }
       body.name = name;

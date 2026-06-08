@@ -71,6 +71,10 @@ exports.createForAdmin = (req, res) => {
 
   if (!date || !time) return res.status(400).json({ message: 'Fecha y hora son requeridos' });
 
+  const normalizePhone = (value) => String(value || '').trim().replace(/[\s()-]/g, '');
+  const normalizedPhone = normalizePhone(phone);
+  const isValidPhone = (value) => /^[0-9]{10}$/.test(normalizePhone(value));
+
   const createAppointment = (resolvedName, resolvedPhone, resolvedUserId) => {
     const appointment = {
       user_id: resolvedUserId || null,
@@ -110,7 +114,11 @@ exports.createForAdmin = (req, res) => {
     return res.status(400).json({ message: 'Nombre y teléfono requeridos para crear la cita' });
   }
 
-  resolveOrCreateUser(name, phone, (err, resolvedUser) => {
+  if (!isValidPhone(phone)) {
+    return res.status(400).json({ message: 'El teléfono debe tener 10 dígitos.' });
+  }
+
+  resolveOrCreateUser(name, normalizedPhone, (err, resolvedUser) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
