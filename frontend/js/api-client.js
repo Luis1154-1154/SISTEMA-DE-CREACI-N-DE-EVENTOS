@@ -1,12 +1,44 @@
 import { APP_CONFIG } from './app-config.js';
 
+const AUTH_TOKEN_STORAGE_KEY = 'authToken';
+let authToken = null;
+
+function loadAuthToken() {
+  try {
+    return sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setAuthToken(token) {
+  authToken = token || null;
+  try {
+    if (token) {
+      sessionStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+    } else {
+      sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    }
+  } catch {
+    // ignore sessionStorage failures
+  }
+}
+
+authToken = loadAuthToken();
+
 async function request(path, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {}),
+  };
+
+  if (authToken && !headers.Authorization && !headers.authorization) {
+    headers.Authorization = `Bearer ${authToken}`;
+  }
+
   const response = await fetch(`${APP_CONFIG.apiBaseUrl}${path}`, {
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    headers,
     ...options,
   });
 
@@ -42,6 +74,8 @@ export const api = {
   listMyAppointments: () => request('/appointments/active'),
   listMyAppointmentsSelf: () => request('/appointments/self'),
   listMyAppointmentHistory: () => request('/appointments/history'),
+  setAuthToken,
+  clearAuthToken: () => setAuthToken(null),
   listMyAppointmentHistorySelf: () => request('/appointments/self/history'),
   listAppointmentsByDay: () => request('/admin/appointments'),
   updateAppointment: (id, body) => request(`/admin/appointments/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(body) }),

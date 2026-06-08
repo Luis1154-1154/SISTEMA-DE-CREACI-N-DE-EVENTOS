@@ -60,6 +60,10 @@ if (form) {
         payload = await api.login({ phone });
       }
 
+      if (payload?.token) {
+        api.setAuthToken(payload.token);
+      }
+
       // Confirm session is active and /auth/me works before redirecting.
       try {
         await api.me();

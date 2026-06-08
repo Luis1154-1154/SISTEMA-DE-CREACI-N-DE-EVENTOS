@@ -4,7 +4,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 const COOKIE_NAME = 'sid';
 
 function readToken(req) {
-  return req.cookies && req.cookies[COOKIE_NAME] ? req.cookies[COOKIE_NAME] : null;
+  if (req.cookies && req.cookies[COOKIE_NAME]) {
+    return req.cookies[COOKIE_NAME];
+  }
+
+  const authHeader = req.headers.authorization || req.headers.Authorization || '';
+  const matches = authHeader.match(/Bearer\s+(.+)/i);
+  return matches ? matches[1] : null;
 }
 
 exports.requireAuth = (req, res, next) => {

@@ -43,10 +43,11 @@ exports.login = (req, res) => {
 
     res.cookie(COOKIE_NAME, token, {
       ...getCookieOptions(),
+      path: '/',
       maxAge: 8 * 60 * 60 * 1000
     });
 
-    return res.json({ id: user.id, phone: user.phone, name: user.name, role: user.role });
+    return res.json({ id: user.id, phone: user.phone, name: user.name, role: user.role, token });
   });
 };
 
@@ -76,8 +77,8 @@ exports.register = (req, res) => {
 
       const payload = { id: result.insertId, phone, name, role: 'user' };
       const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
-      res.cookie(COOKIE_NAME, token, { ...getCookieOptions(), maxAge: 8 * 60 * 60 * 1000 });
-      return res.status(201).json({ id: result.insertId, phone, name, role: 'user' });
+      res.cookie(COOKIE_NAME, token, { ...getCookieOptions(), path: '/', maxAge: 8 * 60 * 60 * 1000 });
+      return res.status(201).json({ id: result.insertId, phone, name, role: 'user', token });
     });
   });
 };
@@ -107,7 +108,7 @@ exports.resetPassword = (req, res) => {
 };
 
 exports.logout = (req, res) => {
-  res.clearCookie(COOKIE_NAME, getCookieOptions());
+  res.clearCookie(COOKIE_NAME, { ...getCookieOptions(), path: '/' });
   return res.json({ message: 'Sesión cerrada' });
 };
 

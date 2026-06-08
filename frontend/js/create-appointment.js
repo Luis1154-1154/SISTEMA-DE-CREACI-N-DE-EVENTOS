@@ -3,7 +3,10 @@ import { requireSession } from './auth-guard.js';
 import { clearMessage, setLoading, showMessage } from './ui-utils.js';
 
 // Ensure user is authenticated before allowing appointment creation
-const sessionPromise = requireSession().catch(() => null);
+(async () => {
+  const session = await requireSession().catch(() => null);
+  if (!session) return;
+})();
 
 // Show history link only for admin users
 sessionPromise.then(session => {
