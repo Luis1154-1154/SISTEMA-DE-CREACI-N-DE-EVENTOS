@@ -1,5 +1,9 @@
 import { api } from './api-client.js';
+import { requireSession } from './auth-guard.js';
 import { clearMessage, setLoading, showMessage } from './ui-utils.js';
+
+// Ensure user is authenticated before allowing appointment creation
+const sessionPromise = requireSession().catch(() => null);
 
 const form = document.querySelector('[data-appointment-create-form]');
 if (form) {

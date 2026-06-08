@@ -68,7 +68,7 @@ function isAuthError(error) {
 }
 
 async function loadHistory() {
-  const session = await requireSession('user');
+  const session = await requireSession();
   if (!session) return;
 
   const container = document.querySelector('[data-history-list]');

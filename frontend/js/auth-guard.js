@@ -5,9 +5,15 @@ export async function requireSession(expectedRole) {
     const payload = await api.me();
     const role = payload?.role || payload?.user?.role;
 
-    if (expectedRole && role !== expectedRole) {
-      window.location.assign('./login.html');
-      return null;
+    // If an expected role is specified AND it's 'admin', only allow exact admin match.
+    // For 'user' pages, we accept any authenticated session (user, admin, or no role).
+    if (expectedRole) {
+      if (expectedRole === 'admin' && role !== 'admin') {
+        window.location.assign('./login.html');
+        return null;
+      }
+      // For 'user' or any other non-admin expectedRole, just check authentication exists
+      // and do NOT block admin users from accessing user pages.
     }
 
     return payload;
