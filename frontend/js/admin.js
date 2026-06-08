@@ -279,6 +279,18 @@ async function loadClinicalRecords() {
             </div>
             ${!currentAdmin || String(currentAdmin.id) !== String(user.id) ? `<button class="btn btn-outline-danger btn-sm" type="button" data-delete-user="${escapeHtml(user.id)}">Eliminar usuario</button>` : ''}
           </div>
+          <div class="card border-0 shadow-sm mb-4 p-3 bg-light">
+            <h6 class="mb-3">Particularidades del paciente</h6>
+            <form class="row g-3" data-update-observations="${escapeHtml(user.id)}">
+              <div class="col-12">
+                <label class="form-label small">Alergias, observaciones clínicas, etc.</label>
+                <textarea class="form-control form-control-sm" name="clinical_observations" rows="3" placeholder="Ej: Alergia a penicilina, diabético, etc.">${escapeHtml(user.clinical_observations || '')}</textarea>
+              </div>
+              <div class="col-12 text-end">
+                <button class="btn btn-primary btn-sm" type="submit">Guardar particularidades</button>
+              </div>
+            </form>
+          </div>
           <div class="card border-0 shadow-sm mb-4 p-3">
             <h6 class="mb-3">Agregar cita al paciente</h6>
             <form class="row g-3" data-add-user-appointment="${escapeHtml(user.id)}">
@@ -304,6 +316,20 @@ async function loadClinicalRecords() {
             <div class="record-appointments-list">${filtered.length ? filtered.map(a => renderAppointmentItem(a, { mode: 'records' })).join('') : '<div class="text-muted">Sin citas</div>'}</div>
           </div>
         `;
+
+        detailContainer.querySelector('[data-update-observations]').addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          const form = ev.target;
+          const observations = String(form.querySelector('[name="clinical_observations"]')?.value || '').trim();
+          try {
+            await api.updateUserClinicalObservations(user.id, { clinical_observations: observations });
+            user.clinical_observations = observations;
+            usersById.set(String(user.id), user);
+            showMessage(feedback, 'Particularidades del paciente guardadas.', 'success');
+          } catch (err) {
+            showMessage(feedback, err.message);
+          }
+        });
 
         detailContainer.querySelector('[data-add-user-appointment]').addEventListener('submit', async (ev) => {
           ev.preventDefault();
