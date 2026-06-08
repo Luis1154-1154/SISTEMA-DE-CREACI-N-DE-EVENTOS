@@ -30,6 +30,37 @@ exports.createForUser = (req, res) => {
   });
 };
 
+function resolveOrCreateUser(name, phone, callback) {
+  if (!name || !phone) {
+    return callback(new Error('Nombre y teléfono requeridos para crear el usuario'));
+  }
+
+  const normalizedName = String(name).trim();
+  const normalizedPhone = String(phone).trim();
+
+  Usuario.getUsuarioByPhoneOrName(normalizedPhone, normalizedName, null, (lookupErr, results) => {
+    if (lookupErr) return callback(lookupErr);
+    if (results && results.length) {
+      return callback(null, results[0]);
+    }
+
+    Usuario.addUsuario({ phone: normalizedPhone, name: normalizedName, password: null, role: 'user' }, (createErr, result) => {
+      if (createErr) {
+        const duplicateCode = String(createErr.code || '').toLowerCase();
+        if (duplicateCode.includes('er_dup_entry') || duplicateCode.includes('duplicate')) {
+          return Usuario.getUsuarioByPhoneOrName(normalizedPhone, normalizedName, null, (retryErr, retryResults) => {
+            if (retryErr) return callback(retryErr);
+            if (retryResults && retryResults.length) return callback(null, retryResults[0]);
+            return callback(createErr);
+          });
+        }
+        return callback(createErr);
+      }
+      callback(null, { id: result.insertId, phone: normalizedPhone, name: normalizedName });
+    });
+  });
+}
+
 exports.createForAdmin = (req, res) => {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'No autenticado' });
@@ -75,8 +106,16 @@ exports.createForAdmin = (req, res) => {
     return;
   }
 
-  if (!name) return res.status(400).json({ message: 'Nombre requerido' });
-  createAppointment(name, phone, null);
+  if (!name || !phone) {
+    return res.status(400).json({ message: 'Nombre y teléfono requeridos para crear la cita' });
+  }
+
+  resolveOrCreateUser(name, phone, (err, resolvedUser) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    createAppointment(resolvedUser.name, resolvedUser.phone, resolvedUser.id);
+  });
 };
 
 exports.listMyAppointments = (req, res) => {

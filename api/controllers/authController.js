@@ -58,12 +58,12 @@ exports.register = (req, res) => {
     if (results && results.length) {
       const duplicate = results[0];
       if (duplicate.phone === phone) {
-        return res.status(400).json({ message: 'Ya existe un usuario con ese teléfono' });
+        return res.status(400).json({ message: 'Tu cuenta ya fue creada antes cuando pediste agendar una cita por ti, dirígete a iniciar sesión' });
       }
       if (duplicate.name === name) {
         return res.status(400).json({ message: 'Ya existe un usuario con ese nombre' });
       }
-      return res.status(400).json({ message: 'Ya existe un usuario duplicado' });
+      return res.status(400).json({ message: 'Ya existe un usuario con ese teléfono o nombre' });
     }
     const hashed = password ? bcrypt.hashSync(String(password).trim(), 10) : null;
     Usuario.addUsuario({ phone, name, password: hashed, role: 'user' }, (err2, result) => {

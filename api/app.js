@@ -1,5 +1,8 @@
 const express = require('express');
 const path = require('path');
+const http = require('http');
+const https = require('https');
+const { URL } = require('url');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const cookieParser = require('cookie-parser');
@@ -98,6 +101,63 @@ app.get('/debug-cors', (req, res) => {
   res.json({ ok: true });
 });
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+const KEEP_ALIVE_URL = process.env.KEEP_ALIVE_URL;
+const KEEP_ALIVE_INTERVAL_MS = 14 * 60 * 1000;
+
+function pingUrl(targetUrl) {
+  return new Promise((resolve, reject) => {
+    try {
+      const parsed = new URL(targetUrl);
+      const lib = parsed.protocol === 'https:' ? https : http;
+      const req = lib.request(
+        {
+          method: 'GET',
+          hostname: parsed.hostname,
+          port: parsed.port || (parsed.protocol === 'https:' ? 443 : 80),
+          path: parsed.pathname + (parsed.search || ''),
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'keep-alive-pinger',
+          },
+        },
+        (res) => {
+          res.resume();
+          resolve(res.statusCode);
+        }
+      );
+
+      req.on('error', reject);
+      req.on('timeout', () => {
+        req.destroy(new Error('keep-alive timeout'));
+      });
+      req.end();
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+function startKeepAlive() {
+  if (!KEEP_ALIVE_URL) return;
+  console.log(`Keep-alive enabled for ${KEEP_ALIVE_URL}`);
+  setInterval(async () => {
+    try {
+      const status = await pingUrl(KEEP_ALIVE_URL);
+      console.log(`Keep-alive ping to ${KEEP_ALIVE_URL} status=${status}`);
+    } catch (err) {
+      console.warn('Keep-alive ping error:', err.message || err);
+    }
+  }, KEEP_ALIVE_INTERVAL_MS);
+}
+
 // Mount public auth routes before protected routers so register/login remain reachable.
 app.use('/api', authRoutes);
 
@@ -124,6 +184,7 @@ app.use((req, res) => {
 function startServer() {
   app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    startKeepAlive();
   });
 }
 
