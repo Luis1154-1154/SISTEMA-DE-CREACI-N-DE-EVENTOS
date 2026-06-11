@@ -1,40 +1,79 @@
--- Postgres version of clinic schema for Supabase
+-- Postgres-ready schema for the clinic appointment system
 
--- Users table
+-- Users
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   phone VARCHAR(50) NOT NULL UNIQUE,
   name VARCHAR(150) NOT NULL UNIQUE,
-  password VARCHAR(255) DEFAULT NULL,
-  role VARCHAR(20) NOT NULL DEFAULT 'user',
-  clinical_observations TEXT DEFAULT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+  password VARCHAR(255),
+  role VARCHAR(10) NOT NULL DEFAULT 'user',
+  birthdate DATE,
+  sex VARCHAR(32),
+  identification VARCHAR(150),
+  occupation VARCHAR(150),
+  weight NUMERIC(6,2),
+  allergies TEXT,
+  blood_type VARCHAR(10),
+  chronic_conditions TEXT,
+  clinical_observations TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Appointments table
+-- Appointments
 CREATE TABLE IF NOT EXISTS appointments (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
-  phone VARCHAR(50) DEFAULT NULL,
-  name VARCHAR(150) DEFAULT NULL,
+  user_id INT DEFAULT NULL,
+  phone VARCHAR(50),
+  name VARCHAR(150),
   date DATE NOT NULL,
   time TIME NOT NULL,
   description TEXT,
   status VARCHAR(20) NOT NULL DEFAULT 'pending',
-  cancel_reason TEXT DEFAULT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+  cancel_reason TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Unique constraint for same user at same datetime (NULL user_id allowed)
-CREATE UNIQUE INDEX IF NOT EXISTS uq_user_datetime ON appointments (user_id, date, time);
+ALTER TABLE appointments
+  ADD CONSTRAINT IF NOT EXISTS fk_appointment_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
 
--- Index for fast date lookups
-CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (date);
+CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(date);
 
--- Prevent duplicate user names
-CREATE UNIQUE INDEX IF NOT EXISTS uq_users_name ON users (name);
+-- Clinic settings
+CREATE TABLE IF NOT EXISTS clinic_settings (
+  id SERIAL PRIMARY KEY,
+  key VARCHAR(100) NOT NULL UNIQUE,
+  value VARCHAR(255)
+);
 
--- Seed admin user if not exists (phone 3123170997)
-INSERT INTO users (phone, name, password, role)
-SELECT '3123170997', 'Administrador', '$2a$10$oUuqz0c5fnobz6c7eWP9uuDS/9GxPVl5Hk1kSg2grUWP0ZUphP.q2', 'admin'
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE phone = '3123170997');
+-- Working hours
+CREATE TABLE IF NOT EXISTS working_hours (
+  id SERIAL PRIMARY KEY,
+  day_of_week SMALLINT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  break_start TIME DEFAULT NULL,
+  break_end TIME DEFAULT NULL,
+  applies_forever BOOLEAN NOT NULL DEFAULT TRUE,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Working exceptions
+CREATE TABLE IF NOT EXISTS working_exceptions (
+  id SERIAL PRIMARY KEY,
+  exception_date DATE NOT NULL,
+  start_time TIME DEFAULT NULL,
+  end_time TIME DEFAULT NULL,
+  reason VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed default appointment interval
+INSERT INTO clinic_settings (key, value)
+SELECT 'appointment_interval_minutes','30'
+WHERE NOT EXISTS (SELECT 1 FROM clinic_settings WHERE key = 'appointment_interval_minutes');
+
+-- Partial unique index to avoid double bookings (create after table exists)
+-- CREATE UNIQUE INDEX IF NOT EXISTS uq_appointments_date_time_not_canceled
+-- ON appointments (date, time)
+-- WHERE COALESCE(status, 'pending') <> 'canceled';

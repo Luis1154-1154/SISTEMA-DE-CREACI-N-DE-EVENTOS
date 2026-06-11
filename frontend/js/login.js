@@ -9,7 +9,6 @@ if (form) {
   const phoneInput = form.querySelector('[name="phone"]');
   const passwordInput = form.querySelector('[name="password"]');
   const togglePasswordButton = form.querySelector('[data-toggle-password]');
-  const adminCheck = form.querySelector('#admin-check');
 
   if (togglePasswordButton && passwordInput) {
     togglePasswordButton.addEventListener('click', () => {
@@ -19,16 +18,7 @@ if (form) {
     });
   }
 
-  if (adminCheck && passwordInput) {
-    adminCheck.addEventListener('change', () => {
-      const panel = document.getElementById('admin-password-panel');
-      if (adminCheck.checked) {
-        panel.classList.remove('d-none');
-      } else {
-        panel.classList.add('d-none');
-      }
-    });
-  }
+  // No admin checkbox; password field always visible
 
   // do not prefill or expose admin phone in the placeholder
 
@@ -38,27 +28,20 @@ if (form) {
 
     const phone = normalizePhone(String(phoneInput?.value || '').trim());
     const password = String(passwordInput?.value || '').trim();
-    const isAdmin = adminCheck ? adminCheck.checked : false;
 
     if (!phone) {
       showMessage(feedback, 'Completa el número de teléfono.');
       return;
     }
 
-    if (isAdmin && !password) {
-      showMessage(feedback, 'Ingresa la contraseña de admin.');
+    if (!password) {
+      showMessage(feedback, 'Ingresa la contraseña.');
       return;
     }
 
     const restore = setLoading(submitButton, 'Entrando...');
     try {
-      let payload;
-      if (isAdmin) {
-        payload = await api.login({ phone, password });
-      } else {
-        // User login by phone only
-        payload = await api.login({ phone });
-      }
+      const payload = await api.login({ phone, password });
 
       if (payload?.token) {
         api.setAuthToken(payload.token);

@@ -1,23 +1,25 @@
 const db = require('../config/db');
 
+const userColumns = 'id, phone, name, password, role, birthdate, sex, identification, occupation, weight, allergies, blood_type, chronic_conditions, clinical_observations';
+
 exports.getAllUsuarios = (callback) => {
-  db.query('SELECT id, phone, name, role, clinical_observations FROM users ORDER BY name ASC', callback);
+  db.query(`SELECT ${userColumns} FROM users ORDER BY name ASC`, callback);
 };
 
 exports.getUsuarioById = (id, callback) => {
-  db.query('SELECT id, phone, name, password, role, clinical_observations FROM users WHERE id = ?', [id], callback);
+  db.query(`SELECT ${userColumns} FROM users WHERE id = ?`, [id], callback);
 };
 
 exports.getUsuarioByPhone = (phone, callback) => {
-  db.query('SELECT id, phone, name, password, role, clinical_observations FROM users WHERE phone = ?', [phone], callback);
+  db.query(`SELECT ${userColumns} FROM users WHERE phone = ?`, [phone], callback);
 };
 
 exports.getUsuarioByName = (name, callback) => {
-  db.query('SELECT id, phone, name, password, role, clinical_observations FROM users WHERE name = ?', [name], callback);
+  db.query(`SELECT ${userColumns} FROM users WHERE name = ?`, [name], callback);
 };
 
 exports.getUsuarioByPhoneOrName = (phone, name, excludeId, callback) => {
-  let sql = 'SELECT id, phone, name, password, role, clinical_observations FROM users WHERE (phone = ? OR name = ?)';
+  let sql = `SELECT ${userColumns} FROM users WHERE (phone = ? OR name = ?)`;
   const params = [phone, name];
 
   if (excludeId !== undefined && excludeId !== null) {
@@ -30,11 +32,47 @@ exports.getUsuarioByPhoneOrName = (phone, name, excludeId, callback) => {
 
 exports.addUsuario = (usuario, callback) => {
   // In production, hash passwords before storing
-  db.query('INSERT INTO users (phone, name, password, role) VALUES (?, ?, ?, ?)', [usuario.phone, usuario.name, usuario.password || null, usuario.role || 'user'], callback);
+  db.query(
+    'INSERT INTO users (phone, name, password, role, birthdate, sex, identification, occupation, weight, allergies, blood_type, chronic_conditions, clinical_observations) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [
+      usuario.phone,
+      usuario.name,
+      usuario.password || null,
+      usuario.role || 'user',
+      usuario.birthdate || null,
+      usuario.sex || null,
+      usuario.identification || null,
+      usuario.occupation || null,
+      usuario.weight || null,
+      usuario.allergies || null,
+      usuario.blood_type || null,
+      usuario.chronic_conditions || null,
+      usuario.clinical_observations || null,
+    ],
+    callback,
+  );
 };
 
 exports.updateUsuario = (id, usuario, callback) => {
-  db.query('UPDATE users SET phone = ?, name = ?, role = ? WHERE id = ?', [usuario.phone, usuario.name, usuario.role || 'user', id], callback);
+  db.query(
+    'UPDATE users SET phone = ?, name = ?, role = ?, birthdate = ?, sex = ?, identification = ?, occupation = ?, weight = ?, allergies = ?, blood_type = ?, chronic_conditions = ?, clinical_observations = ? WHERE id = ?',
+    [
+      usuario.phone,
+      usuario.name,
+      usuario.role || 'user',
+      usuario.birthdate || null,
+      usuario.sex || null,
+      usuario.identification || null,
+      usuario.occupation || null,
+      usuario.weight || null,
+      usuario.allergies || null,
+      usuario.blood_type || null,
+      usuario.chronic_conditions || null,
+      usuario.clinical_observations || null,
+      id,
+    ],
+    callback,
+  );
 };
 
 exports.updateClinicalObservations = (id, clinicalObservations, callback) => {

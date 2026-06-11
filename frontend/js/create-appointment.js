@@ -32,6 +32,7 @@ if (form) {
   const submitButton = form.querySelector('button[type="submit"]');
   const dateInput = form.querySelector('[name="date"]');
   const timeInput = form.querySelector('[name="time"]');
+  const timeSelect = timeInput && timeInput.tagName === 'SELECT' ? timeInput : null;
 
   const userNameInput = document.getElementById('user-name');
   const userPhoneInput = document.getElementById('user-phone');
@@ -39,6 +40,75 @@ if (form) {
   if (dateInput) {
     dateInput.min = new Date().toISOString().slice(0, 10);
   }
+
+  // Populate time select using appointment interval setting
+  async function populateTimeOptions() {
+    try {
+      const settings = await api.getScheduleSettings();
+      const minutes = settings && settings.appointment_interval_minutes ? Number(settings.appointment_interval_minutes) : 30;
+      if (!timeSelect || !dateInput) return;
+      const date = String(dateInput.value || '').trim();
+      // fetch working hours and exceptions
+      const whResp = await api.listWorkingHours().catch(() => []);
+      const exceptions = await api.listScheduleExceptions().catch(() => []);
+      const apps = await api.getAppointmentsByDate(date).catch(() => []);
+      const rules = Array.isArray(whResp) ? whResp : (whResp && whResp.data) || [];
+      const exList = Array.isArray(exceptions) ? exceptions : (exceptions && exceptions.data) || [];
+      const taken = Array.isArray(apps) ? apps.map(a => String(a.time).slice(0,5)) : [];
+
+      timeSelect.innerHTML = '';
+      // determine weekday
+      const targetDay = date ? new Date(date).getDay() : null;
+      for (const r of rules.filter(rr => rr.active == 1 && (rr.day_of_week === null || rr.day_of_week === undefined || Number(rr.day_of_week) === targetDay))) {
+        const start = r.start_time;
+        const end = r.end_time;
+        const breakStart = r.break_start;
+        const breakEnd = r.break_end;
+        if (!start || !end) continue;
+        // iterate in minutes
+        let [sh, sm] = start.split(':').map(Number);
+        let [eh, em] = end.split(':').map(Number);
+        let current = new Date(1970,0,1, sh, sm, 0);
+        const endDt = new Date(1970,0,1, eh, em, 0);
+        while (current < endDt) {
+          const hh = String(current.getHours()).padStart(2,'0');
+          const mm = String(current.getMinutes()).padStart(2,'0');
+          const value = `${hh}:${mm}`;
+          // skip break
+          if (breakStart && breakEnd) {
+            const bStart = new Date(1970,0,1, ...breakStart.split(':').map(Number));
+            const bEnd = new Date(1970,0,1, ...breakEnd.split(':').map(Number));
+            if (current >= bStart && current < bEnd) {
+              current = new Date(current.getTime() + minutes * 60000);
+              continue;
+            }
+          }
+          // check exceptions that block this slot
+          const blocked = exList.find(ex => String(ex.exception_date).slice(0,10) === String(date).slice(0,10) && (!ex.start_time && !ex.end_time || (ex.start_time && ex.end_time && value >= ex.start_time && value < ex.end_time)));
+          if (!blocked && !taken.includes(value)) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            timeSelect.appendChild(option);
+          }
+          current = new Date(current.getTime() + minutes * 60000);
+        }
+      }
+    } catch (e) {
+      // fallback: basic options
+      const settings = await api.getScheduleSettings().catch(() => null);
+      const minutes = settings && settings.appointment_interval_minutes ? Number(settings.appointment_interval_minutes) : 30;
+      const start = 8; const end = 18;
+      timeSelect.innerHTML = '';
+      for (let h = start; h < end; h++) for (let m = 0; m < 60; m += minutes) {
+        const hh = String(h).padStart(2, '0');
+        const mm = String(m).padStart(2, '0');
+        const option = document.createElement('option'); option.value = `${hh}:${mm}`; option.textContent = `${hh}:${mm}`; timeSelect.appendChild(option);
+      }
+    }
+  }
+
+  populateTimeOptions();
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();

@@ -236,6 +236,113 @@ async function loadAdminAppointments(mode = adminPageMode) {
   const container = document.querySelector('[data-admin-appointments-list]');
   if (!container) return;
   clearMessage(feedback);
+  // Load schedule settings (appointment interval)
+  try {
+    const settings = await api.getScheduleSettings();
+    const minutes = settings && settings.appointment_interval_minutes ? Number(settings.appointment_interval_minutes) : null;
+    const intervalInput = document.getElementById('appointment-interval');
+    const saveBtn = document.getElementById('save-appointment-interval');
+    if (intervalInput && minutes) intervalInput.value = minutes;
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async (ev) => {
+        ev.preventDefault();
+        const v = Number((document.getElementById('appointment-interval') || {}).value || 0);
+        if (!v || v < 5) return showMessage(feedback, 'Ingresa un valor válido (>=5)');
+        try {
+          await api.updateScheduleSettings({ appointment_interval_minutes: v });
+          showMessage(feedback, 'Intervalo guardado.', 'success');
+        } catch (err) {
+          showMessage(feedback, err.message);
+        }
+      });
+    }
+  } catch (err) {
+    // ignore schedule settings load errors for now
+  }
+  // Load working hours and exceptions and wire add/delete
+  try {
+    const wh = await api.listWorkingHours();
+    const list = Array.isArray(wh) ? wh : (wh && wh.data) || [];
+    const container = document.getElementById('working-hours-list');
+    if (container) {
+      container.innerHTML = list.length ? list.map(w => {
+        return `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${w.day_of_week === null ? 'Todos los días' : 'Día ' + w.day_of_week} ${w.start_time}-${w.end_time}${w.break_start ? ' (descanso ' + w.break_start + '-' + (w.break_end||'') + ')' : ''}</div><button class="btn btn-sm btn-outline-danger" data-delete-wh="${w.id}">Eliminar</button></div>`;
+      }).join('') : '<div class="text-muted small">No hay reglas de horario.</div>';
+
+      container.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('[data-delete-wh]');
+        if (!btn) return;
+        const id = btn.getAttribute('data-delete-wh');
+        try {
+          await api.deleteWorkingHour(id);
+          showMessage(feedback, 'Regla eliminada', 'success');
+          loadAdminAppointments(mode);
+        } catch (err) {
+          showMessage(feedback, err.message);
+        }
+      });
+    }
+
+    const exceptions = await api.listScheduleExceptions();
+    const exList = Array.isArray(exceptions) ? exceptions : (exceptions && exceptions.data) || [];
+    const exContainer = document.getElementById('exceptions-list');
+    if (exContainer) {
+      exContainer.innerHTML = exList.length ? exList.map(e => `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${e.exception_date} ${e.start_time||''}-${e.end_time||''} ${e.reason||''}</div><button class="btn btn-sm btn-outline-danger" data-delete-ex="${e.id}">Eliminar</button></div>`).join('') : '<div class="text-muted small">No hay excepciones.</div>';
+      exContainer.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('[data-delete-ex]');
+        if (!btn) return;
+        const id = btn.getAttribute('data-delete-ex');
+        try {
+          await api.deleteScheduleException(id);
+          showMessage(feedback, 'Excepción eliminada', 'success');
+          loadAdminAppointments(mode);
+        } catch (err) {
+          showMessage(feedback, err.message);
+        }
+      });
+    }
+
+    // wire add forms
+    const whForm = document.getElementById('working-hour-form');
+    if (whForm) {
+      whForm.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const day = String(document.getElementById('wh-day')?.value || '').trim();
+        const start = String(document.getElementById('wh-start')?.value || '').trim();
+        const end = String(document.getElementById('wh-end')?.value || '').trim();
+        const breakStart = String(document.getElementById('wh-break-start')?.value || '').trim();
+        const breakEnd = String(document.getElementById('wh-break-end')?.value || '').trim();
+        if (!start || !end) return showMessage(feedback, 'Inicio y fin son obligatorios');
+        try {
+          await api.createWorkingHour({ day_of_week: day === '' ? null : Number(day), start_time: start, end_time: end, break_start: breakStart || null, break_end: breakEnd || null, applies_forever: true, active: true });
+          showMessage(feedback, 'Regla guardada', 'success');
+          loadAdminAppointments(mode);
+        } catch (err) {
+          showMessage(feedback, err.message);
+        }
+      });
+    }
+
+    const exForm = document.getElementById('exception-form');
+    if (exForm) {
+      exForm.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const date = String(document.getElementById('ex-date')?.value || '').trim();
+        const s = String(document.getElementById('ex-start')?.value || '').trim();
+        const e = String(document.getElementById('ex-end')?.value || '').trim();
+        if (!date) return showMessage(feedback, 'Fecha requerida');
+        try {
+          await api.createScheduleException({ exception_date: date, start_time: s || null, end_time: e || null, reason: null });
+          showMessage(feedback, 'Excepción guardada', 'success');
+          loadAdminAppointments(mode);
+        } catch (err) {
+          showMessage(feedback, err.message);
+        }
+      });
+    }
+  } catch (err) {
+    // ignore
+  }
   try {
     const me = await api.me();
     let payload;
@@ -269,15 +376,15 @@ async function loadClinicalRecords() {
   const detailContainer = document.querySelector('[data-records-detail]');
   if (!usersContainer || !detailContainer) return;
   clearMessage(feedback);
-  usersContainer.innerHTML = '<div class="text-muted p-3">Cargando usuarios...</div>';
-  detailContainer.innerHTML = '<div class="text-center text-muted py-5">Selecciona un usuario para ver su expediente.</div>';
+  usersContainer.innerHTML = '<div class="text-muted p-3">Cargando usuari@s...</div>';
+  detailContainer.innerHTML = '<div class="text-center text-muted py-5">Selecciona un@ usuari@ para ver su expediente.</div>';
   try {
     const currentAdmin = await api.me().catch(() => null);
     const usersPayload = await api.listUsers();
     const users = Array.isArray(usersPayload?.data) ? usersPayload.data : usersPayload;
     if (!Array.isArray(users) || !users.length) {
-      usersContainer.innerHTML = '<div class="text-muted p-3">No hay usuarios.</div>';
-      detailContainer.innerHTML = '<div class="text-muted p-3">Selecciona un usuario para ver su expediente.</div>';
+      usersContainer.innerHTML = '<div class="text-muted p-3">No hay usuari@s.</div>';
+      detailContainer.innerHTML = '<div class="text-muted p-3">Selecciona un@ usuari@ para ver su expediente.</div>';
       return;
     }
     const usersById = new Map();
@@ -294,40 +401,59 @@ async function loadClinicalRecords() {
         const userAppointments = (await api.listAppointmentsByDay()) || [];
         const appointments = Array.isArray(userAppointments?.data) ? userAppointments.data : userAppointments;
         const filtered = (Array.isArray(appointments) ? appointments : []).filter(a => String(a.user_id) === String(id));
-        detailContainer.innerHTML = `
+          detailContainer.innerHTML = `
           <div class="d-flex justify-content-between align-items-start mb-3">
             <div>
               <h5 class="mb-1">${escapeHtml(user.name)}</h5>
               <div class="small text-muted">${escapeHtml(user.phone)}</div>
+              <div class="small text-muted mt-1">${user.sex ? 'Sexo: ' + escapeHtml(user.sex) : ''} ${user.birthdate ? ' • Nac.: ' + escapeHtml(user.birthdate) : ''} ${user.weight ? ' • Peso: ' + escapeHtml(user.weight) + 'kg' : ''}</div>
+              <div class="small text-muted mt-1">${user.identification ? 'ID: ' + escapeHtml(user.identification) : ''} ${user.occupation ? ' • Ocupación: ' + escapeHtml(user.occupation) : ''}</div>
               ${currentAdmin && String(currentAdmin.id) === String(user.id) ? '<div class="badge bg-info mt-2">Admin (Actual)</div>' : ''}
             </div>
-            ${!currentAdmin || String(currentAdmin.id) !== String(user.id) ? `<button class="btn btn-outline-danger btn-sm" type="button" data-delete-user="${escapeHtml(user.id)}">Eliminar usuario</button>` : ''}
+                ${!currentAdmin || String(currentAdmin.id) !== String(user.id) ? `<button class="btn btn-outline-danger btn-sm" type="button" data-delete-user="${escapeHtml(user.id)}">Eliminar usuari@</button>` : ''}
           </div>
-          <div>
-            <h6>Historial de citas</h6>
-            <div class="record-appointments-list">${filtered.length ? filtered.map(a => renderAppointmentItem(a, { mode: 'records' })).join('') : '<div class="text-muted">Sin citas</div>'}</div>
-          </div>
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Historial de citas</h6>
+                  <button class="btn btn-sm btn-primary" id="create-for-user-btn">Crear cita para este usuari@</button>
+                </div>
+                <div class="record-appointments-list">${filtered.length ? filtered.map(a => renderAppointmentItem(a, { mode: 'records' })).join('') : '<div class="text-muted">Sin citas</div>'}</div>
+                <div class="mt-3 small"><strong>Particularidades / Observaciones:</strong><div class="text-muted">${escapeHtml(user.clinical_observations || '')}</div></div>
+                <div id="create-for-user-form" class="mt-3 d-none">
+                  <form class="row g-2" id="create-admin-appointment-form">
+                    <div class="col-6"><label class="form-label small">Fecha</label><input class="form-control form-control-sm" name="date" type="date" required /></div>
+                    <div class="col-6"><label class="form-label small">Hora</label><input class="form-control form-control-sm" name="time" type="time" step="60" required /></div>
+                    <div class="col-12"><label class="form-label small">Descripción</label><textarea class="form-control form-control-sm" name="description" rows="2"></textarea></div>
+                    <div class="col-12 text-end"><button class="btn btn-sm btn-success" type="submit">Crear cita</button></div>
+                  </form>
+                </div>
+              </div>
         `;
         
-        detailContainer.querySelector('[data-delete-user]').addEventListener('click', async (ev) => {
+        const delBtnEl = detailContainer.querySelector('[data-delete-user]');
+        if (delBtnEl) {
+          delBtnEl.addEventListener('click', async (ev) => {
           const deleteBtn = ev.currentTarget;
           const restore = setLoading(deleteBtn, 'Eliminando...');
-          if (!(await showFloatingConfirm('¿Eliminar este usuario y todos sus datos?'))) {
+          if (!(await showFloatingConfirm('¿Eliminar este usuari@ y todos sus datos?'))) {
             restore();
             return;
           }
-          detailContainer.innerHTML = '<div class="text-muted p-3">Eliminando usuario...</div>';
+          detailContainer.innerHTML = '<div class="text-muted p-3">Eliminando usuari@...</div>';
           usersContainer.innerHTML = '<div class="text-muted p-3">Actualizando lista...</div>';
           try {
             await api.deleteUser(user.id);
-            showMessage(feedback, 'Usuario eliminado.', 'success');
+            showMessage(feedback, 'Usuari@ eliminado.', 'success');
             await loadClinicalRecords();
           } catch (err) {
             showMessage(feedback, err.message);
           } finally {
             restore();
           }
-        });
+          });
+        }
+        // wire create-for-user form
+        wireCreateForUser(detailContainer, user).catch(() => {});
       } catch (err) {
         showMessage(feedback, err.message);
       }
@@ -339,6 +465,32 @@ async function loadClinicalRecords() {
   } catch (err) {
     showMessage(feedback, err.message);
   }
+}
+
+// Wire creation form when user detail is shown
+async function wireCreateForUser(detailContainer, user) {
+  const createBtn = detailContainer.querySelector('#create-for-user-btn');
+  const formWrap = detailContainer.querySelector('#create-for-user-form');
+  const form = detailContainer.querySelector('#create-admin-appointment-form');
+  if (!createBtn || !form) return;
+  createBtn.addEventListener('click', () => {
+    formWrap.classList.toggle('d-none');
+  });
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const date = String(form.querySelector('[name="date"]').value || '').trim();
+    const time = String(form.querySelector('[name="time"]').value || '').trim();
+    const description = String(form.querySelector('[name="description"]').value || '').trim();
+    if (!date || !time) return showMessage(detailContainer, 'Fecha y hora requeridas');
+    try {
+      await api.adminCreateAppointment({ userId: user.id, date, time, description });
+      showMessage(detailContainer, 'Cita creada.', 'success');
+      // refresh lists
+      await loadClinicalRecords();
+    } catch (err) {
+      showMessage(detailContainer, err.message);
+    }
+  });
 }
 
 // Initialize

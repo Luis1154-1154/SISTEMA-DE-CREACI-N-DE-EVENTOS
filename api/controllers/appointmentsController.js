@@ -1,5 +1,6 @@
 const Appointments = require('../models/Appointments');
 const Usuario = require('../models/Usuarios');
+const Schedule = require('../models/Schedule');
 
 exports.createForUser = (req, res) => {
   const user = req.user;
@@ -21,12 +22,19 @@ exports.createForUser = (req, res) => {
     time,
     description,
     status: 'pending',
-    cancel_reason: null
+    cancel_reason: null,
+    admin_observations: null,
   };
 
-  Appointments.create(appointment, (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.status(201).json({ id: result.insertId, message: 'Cita creada' });
+  // Validate availability before creating
+  checkAvailability(appointment.date, appointment.time, (availErr, available, reason) => {
+    if (availErr) return res.status(500).json({ error: availErr.message });
+    if (!available) return res.status(400).json({ message: reason || 'Horario no disponible' });
+
+    Appointments.create(appointment, (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ id: result.insertId, message: 'Cita creada' });
+    });
   });
 };
 
@@ -66,7 +74,7 @@ exports.createForAdmin = (req, res) => {
   if (!user) return res.status(401).json({ message: 'No autenticado' });
   if (user.role !== 'admin') return res.status(403).json({ message: 'No autorizado' });
 
-  const { userId, user_id: legacyUserId, name, phone, date, time, description } = req.body || {};
+  const { userId, user_id: legacyUserId, name, phone, date, time, description, admin_observations } = req.body || {};
   const selectedUserId = userId || legacyUserId || null;
 
   if (!date || !time) return res.status(400).json({ message: 'Fecha y hora son requeridos' });
@@ -84,16 +92,23 @@ exports.createForAdmin = (req, res) => {
       time,
       description,
       status: 'pending',
-      cancel_reason: null
+      cancel_reason: null,
+      admin_observations: admin_observations || null,
     };
 
     if (!appointment.name) {
       return res.status(400).json({ message: 'Nombre requerido' });
     }
 
-    Appointments.create(appointment, (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id: result.insertId, message: 'Cita creada por admin' });
+    // Validate availability before creating admin-created appointment
+    checkAvailability(appointment.date, appointment.time, (availErr, available, reason) => {
+      if (availErr) return res.status(500).json({ error: availErr.message });
+      if (!available) return res.status(400).json({ message: reason || 'Horario no disponible' });
+
+      Appointments.create(appointment, (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({ id: result.insertId, message: 'Cita creada por admin' });
+      });
     });
   };
 
@@ -280,3 +295,74 @@ exports.deleteAppointment = (req, res) => {
     res.json({ message: 'Cita eliminada' });
   });
 };
+
+exports.findByDatePublic = (req, res) => {
+  const date = req.query.date || req.params.date;
+  if (!date) return res.status(400).json({ message: 'Fecha requerida' });
+  Appointments.findByDate(date, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results || []);
+  });
+};
+
+// Helper: check availability for a given date and time
+function checkAvailability(date, time, callback) {
+  // 1) check exceptions for the date
+  Schedule.listExceptions((err, exceptions) => {
+    if (err) return callback(err);
+    const exForDate = (exceptions || []).filter(e => String(e.exception_date).slice(0,10) === String(date).slice(0,10));
+    for (const ex of exForDate) {
+      if (!ex.start_time && !ex.end_time) {
+        return callback(null, false, 'Este día no está disponible');
+      }
+      if (ex.start_time && ex.end_time) {
+        if (time >= ex.start_time && time < ex.end_time) {
+          return callback(null, false, 'Esta hora no está disponible');
+        }
+      }
+    }
+
+    // 2) check working hours rules for the weekday
+    const targetDay = new Date(date).getDay(); // 0-6
+    Schedule.listWorkingHours((whErr, rules) => {
+      if (whErr) return callback(whErr);
+      const candidates = (rules || []).filter(r => r.active == 1 && (r.day_of_week === null || r.day_of_week === undefined || Number(r.day_of_week) === targetDay || r.day_of_week === 0 && targetDay === 0 || r.day_of_week === '0' && targetDay === 0));
+      let allowedByRule = false;
+      for (const r of candidates) {
+        const start = r.start_time;
+        const end = r.end_time;
+        if (!(start && end)) continue;
+        if (time >= start && time < end) {
+          // check break
+          if (r.break_start && r.break_end) {
+            if (time >= r.break_start && time < r.break_end) {
+              continue; // falls in break
+            }
+          }
+          allowedByRule = true;
+          break;
+        }
+      }
+
+      if (!allowedByRule) {
+        return callback(null, false, 'Este día o hora no está disponible');
+      }
+
+      // 3) check existing appointments for same date/time (not canceled)
+      Appointments.findByDate(date, (appErr, rows) => {
+        if (appErr) return callback(appErr);
+        const conflict = (rows || []).find(r => String(r.time).indexOf(String(time).slice(0,5)) === 0 || String(r.time) === String(time));
+        // more robust compare: normalize HH:MM:SS
+        if (conflict) {
+          // consider canceled as free
+          if (conflict.status && String(conflict.status).toLowerCase() === 'canceled') {
+            return callback(null, true);
+          }
+          return callback(null, false, 'Otrop@ ya reservó esa hora');
+        }
+
+        return callback(null, true);
+      });
+    });
+  });
+}

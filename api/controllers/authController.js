@@ -20,6 +20,7 @@ function getCookieOptions() {
 exports.login = (req, res) => {
   const { phone, password } = req.body || {};
   if (!phone) return res.status(400).json({ message: 'Teléfono requerido' });
+  if (!password) return res.status(400).json({ message: 'Contraseña requerida' });
 
   Usuario.getUsuarioByPhone(phone, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -27,15 +28,9 @@ exports.login = (req, res) => {
 
     const user = results[0];
 
-    // If password provided, validate it. If not, allow phone-only login for non-admin users.
-    if (password) {
-      if (!user.password || !bcrypt.compareSync(password, user.password)) {
-        return res.status(401).json({ message: 'Credenciales inválidas' });
-      }
-    } else {
-      if (String(user.role || '').toLowerCase() === 'admin') {
-        return res.status(401).json({ message: 'Credenciales inválidas' });
-      }
+    // Require password for all users
+    if (!user.password || !bcrypt.compareSync(password, user.password)) {
+      return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
     const payload = { id: user.id, phone: user.phone, name: user.name, role: user.role };
@@ -46,11 +41,28 @@ exports.login = (req, res) => {
 };
 
 exports.register = (req, res) => {
-  const { phone, name, password } = req.body || {};
-  if (!phone || !name) return res.status(400).json({ message: 'Teléfono y nombre requeridos' });
+  const {
+    phone,
+    name,
+    password,
+    birthdate,
+    sex,
+    identification,
+    occupation,
+    weight,
+    allergies,
+    blood_type,
+    chronic_conditions,
+    clinical_observations,
+  } = req.body || {};
 
-  if (password && String(password).trim().length < 6) {
+  if (!phone || !name) return res.status(400).json({ message: 'Teléfono y nombre requeridos' });
+  // require password, birthdate, sex and weight at registration
+  if (!password || String(password).trim().length < 6) {
     return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
+  }
+  if (!birthdate || !sex || !weight) {
+    return res.status(400).json({ message: 'Fecha de nacimiento, sexo y peso son obligatorios' });
   }
 
   Usuario.getUsuarioByPhone(phone, (err, phoneResults) => {
@@ -65,14 +77,31 @@ exports.register = (req, res) => {
         return res.status(400).json({ message: 'Ya existe un usuario con ese nombre' });
       }
 
-      const hashed = password ? bcrypt.hashSync(String(password).trim(), 10) : null;
-      Usuario.addUsuario({ phone, name, password: hashed, role: 'user' }, (err3, result) => {
-        if (err3) return res.status(500).json({ error: err3.message });
+      const hashed = bcrypt.hashSync(String(password).trim(), 10);
+      Usuario.addUsuario(
+        {
+          phone,
+          name,
+          password: hashed,
+          role: 'user',
+          birthdate,
+          sex,
+          identification,
+          occupation,
+          weight,
+          allergies,
+          blood_type,
+          chronic_conditions,
+          clinical_observations
+        },
+        (err3, result) => {
+          if (err3) return res.status(500).json({ error: err3.message });
 
-        const payload = { id: result.insertId, phone, name, role: 'user' };
-        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
-        return res.status(201).json({ id: result.insertId, phone, name, role: 'user', token });
-      });
+          const payload = { id: result.insertId, phone, name, role: 'user' };
+          const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
+          return res.status(201).json({ id: result.insertId, phone, name, role: 'user', token });
+        },
+      );
     });
   });
 };

@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const usuariosRoutes = require('./routes/usuariosRoutes');
 const authRoutes = require('./routes/authRoutes');
 const appointmentsRoutes = require('./routes/appointmentsRoutes');
+const scheduleRoutes = require('./routes/scheduleRoutes');
 const debugRoutes = require('./routes/debugRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 const appointmentsController = require('./controllers/appointmentsController');
@@ -171,6 +172,7 @@ app.patch('/api/appointments/:id/cancel', authMiddleware.optionalAuth, appointme
 // Ensure appointment routes are registered before user-admin routes so regular /api/appointments
 // traffic is not intercepted by the usuariosRoutes admin guard.
 app.use('/api', appointmentsRoutes);
+app.use('/api', scheduleRoutes);
 app.use('/api', usuariosRoutes);
 // Mount debug helpers only in non-production environments
 if (process.env.NODE_ENV !== 'production') {

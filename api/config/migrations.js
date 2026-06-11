@@ -58,6 +58,14 @@ async function ensureAppointmentSchema() {
   await addColumnIfMissing('appointments', 'status', "status VARCHAR(20) NOT NULL DEFAULT 'pending'");
   await addColumnIfMissing('appointments', 'cancel_reason', 'cancel_reason TEXT NULL');
   await addColumnIfMissing('users', 'clinical_observations', 'clinical_observations TEXT NULL');
+  await addColumnIfMissing('users', 'birthdate', 'birthdate DATE NULL');
+  await addColumnIfMissing('users', 'sex', "sex VARCHAR(32) NULL");
+  await addColumnIfMissing('users', 'identification', "identification VARCHAR(150) NULL");
+  await addColumnIfMissing('users', 'occupation', "occupation VARCHAR(150) NULL");
+  await addColumnIfMissing('users', 'weight', 'weight DECIMAL(6,2) NULL');
+  await addColumnIfMissing('users', 'allergies', 'allergies TEXT NULL');
+  await addColumnIfMissing('users', 'blood_type', "blood_type VARCHAR(10) NULL");
+  await addColumnIfMissing('users', 'chronic_conditions', 'chronic_conditions TEXT NULL');
   // Allow NULL in name column for anonymous appointments
   await modifyColumnIfNeeded('appointments', 'name', 'VARCHAR(150) DEFAULT NULL');
 }

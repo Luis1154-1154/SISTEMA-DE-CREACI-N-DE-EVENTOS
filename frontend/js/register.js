@@ -14,6 +14,11 @@ if (form) {
 
     const phone = normalizePhone(form.querySelector('[name="phone"]')?.value || '');
     const name = String(form.querySelector('[name="name"]')?.value || '').trim();
+    const password = String(form.querySelector('[name="password"]')?.value || '').trim();
+    const birthdate = String(form.querySelector('[name="birthdate"]')?.value || '').trim();
+    const sex = String(form.querySelector('[name="sex"]')?.value || '').trim();
+    const weight = form.querySelector('[name="weight"]')?.value;
+    const clinical_observations = String(form.querySelector('[name="clinical_observations"]')?.value || '').trim();
 
     if (!phone || !name) {
       showMessage(feedback, 'Completa número y nombre.');
@@ -25,9 +30,19 @@ if (form) {
       return;
     }
 
+    if (!password || password.length < 6) {
+      showMessage(feedback, 'La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    if (!birthdate || !sex || !weight) {
+      showMessage(feedback, 'Fecha de nacimiento, sexo y peso son obligatorios');
+      return;
+    }
+
     const restore = setLoading(submitButton, 'Creando cuenta...');
     try {
-      await api.register({ phone, name });
+      await api.register({ phone, name, password, birthdate, sex, weight, clinical_observations });
       window.location.assign('./login.html');
     } catch (error) {
       showMessage(feedback, error.message);

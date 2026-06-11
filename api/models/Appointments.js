@@ -1,7 +1,9 @@
 const db = require('../config/db');
 
+const appointmentColumns = 'id, user_id, phone, name, date, time, description, status, cancel_reason, admin_observations, created_at';
+
 exports.create = (appointment, callback) => {
-  const sql = 'INSERT INTO appointments (user_id, phone, name, date, time, description, status, cancel_reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+  const sql = 'INSERT INTO appointments (user_id, phone, name, date, time, description, status, cancel_reason, admin_observations) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
   db.query(
     sql,
     [
@@ -12,7 +14,8 @@ exports.create = (appointment, callback) => {
       appointment.time,
       appointment.description || null,
       appointment.status || 'pending',
-      appointment.cancel_reason || null
+      appointment.cancel_reason || null,
+      appointment.admin_observations || null,
     ],
     callback,
   );
@@ -20,7 +23,7 @@ exports.create = (appointment, callback) => {
 
 exports.findByUser = (userId, callback) => {
   db.query(
-    "SELECT id, user_id, phone, name, date, time, description, status, cancel_reason, created_at FROM appointments WHERE user_id = ? AND status = 'pending' ORDER BY date, time",
+    `SELECT ${appointmentColumns} FROM appointments WHERE user_id = ? AND status = 'pending' ORDER BY date, time`,
     [userId],
     callback,
   );
@@ -30,18 +33,18 @@ exports.findActiveByUser = exports.findByUser;
 
 exports.findHistoryByUser = (userId, callback) => {
   db.query(
-    'SELECT id, user_id, phone, name, date, time, description, status, cancel_reason, created_at FROM appointments WHERE user_id = ? ORDER BY date DESC, time DESC, created_at DESC',
+    `SELECT ${appointmentColumns} FROM appointments WHERE user_id = ? ORDER BY date DESC, time DESC, created_at DESC`,
     [userId],
     callback,
   );
 };
 
 exports.findAll = (callback) => {
-  db.query('SELECT id, user_id, phone, name, date, time, description, status, cancel_reason, created_at FROM appointments ORDER BY date, time, created_at', callback);
+  db.query(`SELECT ${appointmentColumns} FROM appointments ORDER BY date, time, created_at`, callback);
 };
 
 exports.findById = (id, callback) => {
-  db.query('SELECT id, user_id, phone, name, date, time, description, status, cancel_reason, created_at FROM appointments WHERE id = ?', [id], callback);
+  db.query(`SELECT ${appointmentColumns} FROM appointments WHERE id = ?`, [id], callback);
 };
 
 exports.updateStatusById = (id, status, cancelReason, callback) => {
@@ -50,7 +53,7 @@ exports.updateStatusById = (id, status, cancelReason, callback) => {
 
 exports.updateById = (id, appointment, callback) => {
   db.query(
-    'UPDATE appointments SET phone = ?, name = ?, date = ?, time = ?, description = ?, status = ?, cancel_reason = ? WHERE id = ?',
+    'UPDATE appointments SET phone = ?, name = ?, date = ?, time = ?, description = ?, status = ?, cancel_reason = ?, admin_observations = ? WHERE id = ?',
     [
       appointment.phone || null,
       appointment.name,
@@ -59,7 +62,8 @@ exports.updateById = (id, appointment, callback) => {
       appointment.description || null,
       appointment.status || 'pending',
       appointment.cancel_reason || null,
-      id
+      appointment.admin_observations || null,
+      id,
     ],
     callback,
   );
@@ -70,5 +74,5 @@ exports.deleteById = (id, callback) => {
 };
 
 exports.findByDate = (date, callback) => {
-  db.query('SELECT id, user_id, phone, name, date, time, description, status, cancel_reason, created_at FROM appointments WHERE date = ? ORDER BY time', [date], callback);
+  db.query(`SELECT ${appointmentColumns} FROM appointments WHERE date = ? ORDER BY time`, [date], callback);
 };

@@ -29,7 +29,20 @@ exports.updateClinicalObservations = (req, res) => {
 };
 
 exports.addUsuario = (req, res) => {
-  const { name, phone, password, role } = req.body;
+  const {
+    name,
+    phone,
+    password,
+    role,
+    birthdate,
+    sex,
+    identification,
+    occupation,
+    allergies,
+    blood_type,
+    chronic_conditions,
+    clinical_observations,
+  } = req.body;
   if (!name || !phone) return res.status(400).json({ message: 'Nombre y teléfono son obligatorios' });
   Usuario.getUsuarioByPhoneOrName(phone, name, null, (checkErr, duplicates) => {
     if (checkErr) return res.status(500).json({ error: checkErr.message });
@@ -41,16 +54,43 @@ exports.addUsuario = (req, res) => {
     }
 
     const hashed = password ? bcrypt.hashSync(password, 10) : null;
-    Usuario.addUsuario({ name, phone, password: hashed, role }, (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ message: 'Usuario creado', id: result.insertId });
-    });
+    Usuario.addUsuario(
+      {
+        name,
+        phone,
+        password: hashed,
+        role,
+        birthdate,
+        sex,
+        identification,
+        occupation,
+        allergies,
+        blood_type,
+        chronic_conditions,
+        clinical_observations,
+      },
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({ message: 'Usuario creado', id: result.insertId });
+      },
+    );
   });
 };
 
 exports.updateUsuario = (req, res) => {
   const { id } = req.params;
-  const { name, phone } = req.body || {};
+  const {
+    name,
+    phone,
+    birthdate,
+    sex,
+    identification,
+    occupation,
+    allergies,
+    blood_type,
+    chronic_conditions,
+    clinical_observations,
+  } = req.body || {};
 
   if (!name || !phone) {
     return res.status(400).json({ message: 'Nombre y teléfono son obligatorios' });
@@ -65,10 +105,25 @@ exports.updateUsuario = (req, res) => {
       return res.status(400).json({ message: 'Ya existe un usuario duplicado' });
     }
 
-    Usuario.updateUsuario(id, req.body, (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(200).json({ message: 'Usuario actualizado' });
-    });
+    Usuario.updateUsuario(
+      id,
+      {
+        name,
+        phone,
+        birthdate,
+        sex,
+        identification,
+        occupation,
+        allergies,
+        blood_type,
+        chronic_conditions,
+        clinical_observations,
+      },
+      (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(200).json({ message: 'Usuario actualizado' });
+      },
+    );
   });
 };
 
