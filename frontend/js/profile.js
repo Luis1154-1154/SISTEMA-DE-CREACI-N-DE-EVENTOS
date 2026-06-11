@@ -1,8 +1,14 @@
 import { api, authGuard } from './api-client.js';
+import { populateCountryCodeSelect } from './app-config.js';
 
 const profileForm = document.querySelector('[data-profile-form]');
 const feedbackEl = document.querySelector('[data-profile-feedback]');
 const logoutBtn = document.getElementById('logout-btn');
+const countryCodeSelect = document.getElementById('profile-country-code');
+
+if (countryCodeSelect) {
+  populateCountryCodeSelect(countryCodeSelect, '+52');
+}
 
 const fields = {
   name: document.getElementById('profile-name'),
@@ -29,6 +35,9 @@ async function loadProfile() {
     Object.entries(fields).forEach(([key, element]) => {
       if (element) element.value = profile[key] || '';
     });
+    if (countryCodeSelect) {
+      countryCodeSelect.value = profile.country_code || '+52';
+    }
   } catch (error) {
     showMessage('No se pudo cargar el perfil. Inicia sesión de nuevo.', 'danger');
   }

@@ -49,7 +49,7 @@ if (form) {
     }
 
     if (!isValidPhone(phone)) {
-      showMessage(feedback, 'El número debe ser válido e incluir lada si corresponde. Ejemplo: +52 3123456789');
+      showMessage(feedback, 'El número debe ser válido y escribirse sin lada. Ejemplo: 3123456789');
       return;
     }
 

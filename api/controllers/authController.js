@@ -7,13 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 const COOKIE_NAME = 'sid';
 
 function normalizePhone(value) {
-  const raw = String(value || '').trim();
-  const withPlus = raw.startsWith('+');
-  const normalized = raw.replace(/[\s()\-]/g, '');
-  if (withPlus) {
-    return normalized.replace(/^(\++)/, '+');
-  }
-  return normalized.replace(/\D+/g, '');
+  return String(value || '').replace(/\D+/g, '');
 }
 
 function isValidPhone(value) {
@@ -131,6 +125,7 @@ exports.login = (req, res) => {
 exports.register = (req, res) => {
   let {
     phone,
+    country_code,
     name,
     password,
     birthdate,
@@ -172,6 +167,7 @@ exports.register = (req, res) => {
       Usuario.addUsuario(
         {
           phone,
+          country_code: country_code || '+52',
           name,
           password: hashed,
           role: 'user',
@@ -204,6 +200,7 @@ exports.updateMe = (req, res) => {
 
   const {
     phone,
+    country_code,
     name,
     birthdate,
     sex,
@@ -223,6 +220,7 @@ exports.updateMe = (req, res) => {
 
   Usuario.updateUsuario(req.user.id, {
     phone: normalizedPhone || req.user.phone,
+    country_code: country_code || req.user.country_code || '+52',
     name: String(name || req.user.name).trim(),
     role: req.user.role,
     birthdate: birthdate || null,

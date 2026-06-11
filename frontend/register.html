@@ -30,10 +30,16 @@
                 </div>
                 <div data-register-feedback class="mb-3"></div>
                 <form data-register-form class="d-grid gap-3" novalidate autocomplete="on">
-                  <div>
-                    <label class="form-label" for="reg-phone">Número de teléfono</label>
-                    <input class="form-control" id="reg-phone" name="phone" type="tel" inputmode="tel" autocomplete="username" placeholder="ej. +52 3123456789" />
-                    <div class="form-text">Incluye lada si corresponde. Ejemplo: +52 3123456789</div>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                      <label class="form-label" for="reg-country-code">Lada</label>
+                      <select class="form-select" id="reg-country-code" name="country_code" aria-label="Lada de país"></select>
+                    </div>
+                    <div class="col-12 col-md-8">
+                      <label class="form-label" for="reg-phone">Número local</label>
+                      <input class="form-control" id="reg-phone" name="phone" type="tel" inputmode="tel" autocomplete="username" placeholder="3123456789" />
+                      <div class="form-text">Selecciona tu lada y escribe solo el número local sin lada.</div>
+                    </div>
                   </div>
                   <div>
                     <label class="form-label" for="reg-name">Nombre</label>

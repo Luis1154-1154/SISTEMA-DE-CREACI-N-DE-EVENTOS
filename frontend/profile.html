@@ -36,10 +36,14 @@
             <label class="form-label" for="profile-name">Nombre completo</label>
             <input class="form-control" id="profile-name" name="name" type="text" placeholder="Tu nombre" required />
           </div>
-          <div class="col-12 col-md-6">
-            <label class="form-label" for="profile-phone">Teléfono</label>
-            <input class="form-control" id="profile-phone" name="phone" type="tel" placeholder="ej. +52 3123456789" required />
-            <div class="form-text">Incluye lada si corresponde.</div>
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="profile-country-code">Lada</label>
+            <select class="form-select" id="profile-country-code" name="country_code" aria-label="Lada de país"></select>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="profile-phone">Número local</label>
+            <input class="form-control" id="profile-phone" name="phone" type="tel" placeholder="3123456789" required />
+            <div class="form-text">Solo el número sin lada.</div>
           </div>
           <div class="col-12 col-md-4">
             <label class="form-label" for="profile-birthdate">Fecha de nacimiento</label>

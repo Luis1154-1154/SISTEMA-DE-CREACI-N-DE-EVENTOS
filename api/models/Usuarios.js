@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-const userColumns = 'id, phone, name, password, role, birthdate, sex, identification, occupation, weight, allergies, blood_type, chronic_conditions, clinical_observations, password_reset_token, password_reset_expires';
+const userColumns = 'id, phone, country_code, name, password, role, birthdate, sex, identification, occupation, weight, allergies, blood_type, chronic_conditions, clinical_observations, password_reset_token, password_reset_expires';
 
 exports.getAllUsuarios = (callback) => {
   db.query(`SELECT ${userColumns} FROM users ORDER BY name ASC`, callback);
@@ -33,9 +33,10 @@ exports.getUsuarioByPhoneOrName = (phone, name, excludeId, callback) => {
 exports.addUsuario = (usuario, callback) => {
   // In production, hash passwords before storing
   db.query(
-    'INSERT INTO users (phone, name, password, role, birthdate, sex, identification, occupation, weight, allergies, blood_type, chronic_conditions, clinical_observations) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO users (phone, country_code, name, password, role, birthdate, sex, identification, occupation, weight, allergies, blood_type, chronic_conditions, clinical_observations) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       usuario.phone,
+      usuario.country_code || '+52',
       usuario.name,
       usuario.password || null,
       usuario.role || 'user',
@@ -55,9 +56,10 @@ exports.addUsuario = (usuario, callback) => {
 
 exports.updateUsuario = (id, usuario, callback) => {
   db.query(
-    'UPDATE users SET phone = ?, name = ?, role = ?, birthdate = ?, sex = ?, identification = ?, occupation = ?, weight = ?, allergies = ?, blood_type = ?, chronic_conditions = ?, clinical_observations = ? WHERE id = ?',
+    'UPDATE users SET phone = ?, country_code = ?, name = ?, role = ?, birthdate = ?, sex = ?, identification = ?, occupation = ?, weight = ?, allergies = ?, blood_type = ?, chronic_conditions = ?, clinical_observations = ? WHERE id = ?',
     [
       usuario.phone,
+      usuario.country_code || '+52',
       usuario.name,
       usuario.role || 'user',
       usuario.birthdate || null,
@@ -97,10 +99,6 @@ exports.updatePasswordByPhone = (phone, hashedPassword, callback) => {
 
 exports.updateClinicalObservations = (id, clinicalObservations, callback) => {
   db.query('UPDATE users SET clinical_observations = ? WHERE id = ?', [clinicalObservations || null, id], callback);
-};
-
-exports.updatePasswordByPhone = (phone, hashedPassword, callback) => {
-  db.query('UPDATE users SET password = ? WHERE phone = ?', [hashedPassword, phone], callback);
 };
 
 exports.deleteUsuario = (id, callback) => {

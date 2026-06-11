@@ -1,5 +1,5 @@
 import { api } from './api-client.js';
-import { APP_CONFIG, isAdminCredentials, normalizePhone, isValidPhone } from './app-config.js';
+import { normalizePhone, isValidPhone } from './app-config.js';
 import { clearMessage, setLoading, showMessage } from './ui-utils.js';
 
 const form = document.querySelector('[data-login-form]');
@@ -35,7 +35,7 @@ if (form) {
     }
 
     if (!isValidPhone(phone)) {
-      showMessage(feedback, 'El número debe ser válido e incluir lada si corresponde. Ejemplo: +52 3123456789');
+      showMessage(feedback, 'El número debe ser válido y escribirse sin lada. Ejemplo: 3123456789');
       return;
     }
 
