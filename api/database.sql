@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
   blood_type VARCHAR(10) DEFAULT NULL,
   chronic_conditions TEXT DEFAULT NULL,
   clinical_observations TEXT DEFAULT NULL,
+  password_reset_token VARCHAR(50) DEFAULT NULL,
+  password_reset_expires DATETIME DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -32,6 +34,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   description TEXT,
   status VARCHAR(20) NOT NULL DEFAULT 'pending',
   cancel_reason TEXT DEFAULT NULL,
+  admin_observations TEXT DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_appointment_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT uq_user_datetime UNIQUE (user_id, date, time)
@@ -39,6 +42,7 @@ CREATE TABLE IF NOT EXISTS appointments (
 
 -- Faster lookups by date
 CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(date);
+CREATE UNIQUE INDEX uq_appointments_date_time ON appointments(date, time);
 
 -- Seed admin account (phone and password as requested). Replace password hashing in production.
 INSERT INTO users (phone, name, password, role)

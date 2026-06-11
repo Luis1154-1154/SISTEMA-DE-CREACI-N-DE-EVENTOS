@@ -1,9 +1,25 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const Usuario = require('../models/Usuarios');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 const COOKIE_NAME = 'sid';
+
+function normalizePhone(value) {
+  const raw = String(value || '').trim();
+  const withPlus = raw.startsWith('+');
+  const normalized = raw.replace(/[\s()\-]/g, '');
+  if (withPlus) {
+    return normalized.replace(/^(\++)/, '+');
+  }
+  return normalized.replace(/\D+/g, '');
+}
+
+function isValidPhone(value) {
+  const phone = normalizePhone(value || '');
+  return /^\+?[0-9]{7,15}$/.test(phone);
+}
 
 function getCookieOptions() {
   const isProduction = process.env.NODE_ENV === 'production';
@@ -17,8 +33,80 @@ function getCookieOptions() {
   };
 }
 
+function generateResetCode() {
+  return crypto.randomInt(100000, 999999).toString();
+}
+
+function sendSms(phone, message) {
+  // TODO: Replace this with a real SMS provider, e.g. Twilio or Nexmo.
+  console.log(`SMS para ${phone}: ${message}`);
+}
+
+exports.requestPasswordReset = (req, res) => {
+  let { phone } = req.body || {};
+  phone = normalizePhone(phone);
+
+  if (!phone) return res.status(400).json({ message: 'Teléfono requerido' });
+  if (!isValidPhone(phone)) return res.status(400).json({ message: 'Número de teléfono inválido' });
+
+  Usuario.getUsuarioByPhone(phone, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!results || !results.length) {
+      return res.json({ message: 'Si el número existe en el sistema, recibirás un código SMS para recuperar tu contraseña.' });
+    }
+
+    const code = generateResetCode();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    Usuario.setPasswordResetToken(phone, code, expiresAt, (err2) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      sendSms(phone, `Tu código de recuperación es: ${code}. No lo compartas con nadie.`);
+      return res.json({ message: 'Envía tu código SMS en el siguiente paso para restablecer tu contraseña.' });
+    });
+  });
+};
+
+exports.resetPassword = (req, res) => {
+  let { phone, code, newPassword } = req.body || {};
+  phone = normalizePhone(phone);
+
+  if (!phone || !code || !newPassword) {
+    return res.status(400).json({ message: 'Teléfono, código y nueva contraseña requeridos' });
+  }
+
+  if (!isValidPhone(phone)) {
+    return res.status(400).json({ message: 'Número de teléfono inválido' });
+  }
+
+  if (String(newPassword).trim().length < 6) {
+    return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 6 caracteres' });
+  }
+
+  Usuario.getUsuarioByPhone(phone, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!results || !results.length) {
+      return res.status(404).json({ message: 'No existe usuario con ese teléfono' });
+    }
+
+    const user = results[0];
+    const storedCode = String(user.password_reset_token || '');
+    const expiresAt = user.password_reset_expires ? new Date(user.password_reset_expires) : null;
+
+    if (!storedCode || storedCode !== String(code).trim() || !expiresAt || expiresAt < new Date()) {
+      return res.status(400).json({ message: 'Código de recuperación inválido o expirado' });
+    }
+
+    const hashed = bcrypt.hashSync(String(newPassword).trim(), 10);
+    Usuario.updatePasswordByPhone(phone, hashed, (err2) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      return res.json({ message: 'Contraseña restablecida correctamente' });
+    });
+  });
+};
+
 exports.login = (req, res) => {
-  const { phone, password } = req.body || {};
+  let { phone, password } = req.body || {};
+  phone = normalizePhone(phone);
   if (!phone) return res.status(400).json({ message: 'Teléfono requerido' });
   if (!password) return res.status(400).json({ message: 'Contraseña requerida' });
 
@@ -41,7 +129,7 @@ exports.login = (req, res) => {
 };
 
 exports.register = (req, res) => {
-  const {
+  let {
     phone,
     name,
     password,
@@ -56,6 +144,7 @@ exports.register = (req, res) => {
     clinical_observations,
   } = req.body || {};
 
+  phone = normalizePhone(phone);
   if (!phone || !name) return res.status(400).json({ message: 'Teléfono y nombre requeridos' });
   // require password, birthdate, sex and weight at registration
   if (!password || String(password).trim().length < 6) {
@@ -64,6 +153,8 @@ exports.register = (req, res) => {
   if (!birthdate || !sex || !weight) {
     return res.status(400).json({ message: 'Fecha de nacimiento, sexo y peso son obligatorios' });
   }
+
+  if (!isValidPhone(phone)) return res.status(400).json({ message: 'Número de teléfono inválido' });
 
   Usuario.getUsuarioByPhone(phone, (err, phoneResults) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -106,27 +197,46 @@ exports.register = (req, res) => {
   });
 };
 
-exports.resetPassword = (req, res) => {
-  const { phone, newPassword } = req.body || {};
-  if (!phone || !newPassword) {
-    return res.status(400).json({ message: 'Teléfono y nueva contraseña requeridos' });
+exports.updateMe = (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'No autenticado' });
   }
 
-  if (String(newPassword).trim().length < 6) {
-    return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 6 caracteres' });
+  const {
+    phone,
+    name,
+    birthdate,
+    sex,
+    identification,
+    occupation,
+    weight,
+    allergies,
+    blood_type,
+    chronic_conditions,
+    clinical_observations,
+  } = req.body || {};
+
+  const normalizedPhone = normalizePhone(phone);
+  if (phone && !isValidPhone(normalizedPhone)) {
+    return res.status(400).json({ message: 'Número de teléfono inválido' });
   }
 
-  Usuario.getUsuarioByPhone(phone, (err, results) => {
+  Usuario.updateUsuario(req.user.id, {
+    phone: normalizedPhone || req.user.phone,
+    name: String(name || req.user.name).trim(),
+    role: req.user.role,
+    birthdate: birthdate || null,
+    sex: sex || null,
+    identification: identification || null,
+    occupation: occupation || null,
+    weight: weight || null,
+    allergies: allergies || null,
+    blood_type: blood_type || null,
+    chronic_conditions: chronic_conditions || null,
+    clinical_observations: clinical_observations || null,
+  }, (err) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (!results || !results.length) {
-      return res.status(404).json({ message: 'No existe usuario con ese teléfono' });
-    }
-
-    const hashed = bcrypt.hashSync(String(newPassword).trim(), 10);
-    Usuario.updatePasswordByPhone(phone, hashed, (err2) => {
-      if (err2) return res.status(500).json({ error: err2.message });
-      return res.json({ message: 'Contraseña restablecida correctamente' });
-    });
+    return exports.me(req, res);
   });
 };
 
@@ -140,10 +250,12 @@ exports.me = (req, res) => {
     return res.status(401).json({ message: 'No autenticado' });
   }
 
-  return res.json({
-    id: req.user.id,
-    phone: req.user.phone,
-    name: req.user.name,
-    role: req.user.role
+  Usuario.getUsuarioById(req.user.id, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!results || !results.length) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+    const user = results[0];
+    delete user.password;
+    return res.json(user);
   });
 };

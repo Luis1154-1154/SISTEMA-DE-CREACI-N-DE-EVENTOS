@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS users (
   blood_type VARCHAR(10),
   chronic_conditions TEXT,
   clinical_observations TEXT,
+  password_reset_token VARCHAR(50),
+  password_reset_expires TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

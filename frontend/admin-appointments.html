@@ -42,8 +42,17 @@
                                         <h6 class="mb-2">Horario laboral</h6>
                                         <form id="working-hour-form" class="row g-2 align-items-end">
                                             <div class="col-4">
-                                                <label class="form-label small">Día (0=Dom 6=Sáb o vacío)</label>
-                                                <input class="form-control form-control-sm" id="wh-day" placeholder="Ej. 1" />
+                                                <label class="form-label small">Día</label>
+                                                <select class="form-select form-select-sm" id="wh-day">
+                                                  <option value="">Todos los días</option>
+                                                  <option value="0">Domingo</option>
+                                                  <option value="1">Lunes</option>
+                                                  <option value="2">Martes</option>
+                                                  <option value="3">Miércoles</option>
+                                                  <option value="4">Jueves</option>
+                                                  <option value="5">Viernes</option>
+                                                  <option value="6">Sábado</option>
+                                                </select>
                                             </div>
                                             <div class="col-4">
                                                 <label class="form-label small">Inicio</label>

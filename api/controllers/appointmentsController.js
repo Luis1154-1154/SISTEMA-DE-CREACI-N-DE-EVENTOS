@@ -79,9 +79,20 @@ exports.createForAdmin = (req, res) => {
 
   if (!date || !time) return res.status(400).json({ message: 'Fecha y hora son requeridos' });
 
-  const normalizePhone = (value) => String(value || '').trim().replace(/[\s()-]/g, '');
+  const normalizePhone = (value) => {
+    const raw = String(value || '').trim();
+    const withPlus = raw.startsWith('+');
+    const normalized = raw.replace(/[\s()\-]/g, '');
+    if (withPlus) {
+      return normalized.replace(/^(\++)/, '+');
+    }
+    return normalized.replace(/\D+/g, '');
+  };
   const normalizedPhone = normalizePhone(phone);
-  const isValidPhone = (value) => /^[0-9]{10}$/.test(normalizePhone(value));
+  const isValidPhone = (value) => {
+    const p = normalizePhone(value);
+    return /^\+?[0-9]{7,15}$/.test(p);
+  };
 
   const createAppointment = (resolvedName, resolvedPhone, resolvedUserId) => {
     const appointment = {

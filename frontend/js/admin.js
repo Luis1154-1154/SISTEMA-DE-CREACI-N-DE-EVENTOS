@@ -237,6 +237,21 @@ async function loadAdminAppointments(mode = adminPageMode) {
   if (!container) return;
   clearMessage(feedback);
   // Load schedule settings (appointment interval)
+  function formatDayLabel(day) {
+    const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    if (day === null || day === undefined || day === '') return 'Todos los días';
+    const n = Number(day);
+    return Number.isNaN(n) ? `Día ${day}` : dayNames[n] || `Día ${day}`;
+  }
+
+  function formatTimeDisplay(value) {
+    if (!value) return '';
+    const [hh, mm] = value.split(':').map(Number);
+    if (Number.isNaN(hh) || Number.isNaN(mm)) return value;
+    const date = new Date(1970, 0, 1, hh, mm);
+    return new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }).format(date);
+  }
+
   try {
     const settings = await api.getScheduleSettings();
     const minutes = settings && settings.appointment_interval_minutes ? Number(settings.appointment_interval_minutes) : null;
@@ -266,7 +281,7 @@ async function loadAdminAppointments(mode = adminPageMode) {
     const container = document.getElementById('working-hours-list');
     if (container) {
       container.innerHTML = list.length ? list.map(w => {
-        return `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${w.day_of_week === null ? 'Todos los días' : 'Día ' + w.day_of_week} ${w.start_time}-${w.end_time}${w.break_start ? ' (descanso ' + w.break_start + '-' + (w.break_end||'') + ')' : ''}</div><button class="btn btn-sm btn-outline-danger" data-delete-wh="${w.id}">Eliminar</button></div>`;
+        return `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${formatDayLabel(w.day_of_week)} ${formatTimeDisplay(w.start_time)} - ${formatTimeDisplay(w.end_time)}${w.break_start ? ' (descanso ' + formatTimeDisplay(w.break_start) + ' - ' + formatTimeDisplay(w.break_end || '') + ')' : ''}</div><button class="btn btn-sm btn-outline-danger" data-delete-wh="${w.id}">Eliminar</button></div>`;
       }).join('') : '<div class="text-muted small">No hay reglas de horario.</div>';
 
       container.addEventListener('click', async (ev) => {

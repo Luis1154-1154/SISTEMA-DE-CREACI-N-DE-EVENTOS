@@ -37,6 +37,14 @@ if (form) {
   const userNameInput = document.getElementById('user-name');
   const userPhoneInput = document.getElementById('user-phone');
 
+  function formatTimeDisplay(value) {
+    if (!value) return '';
+    const [hh, mm] = value.split(':').map(Number);
+    if (Number.isNaN(hh) || Number.isNaN(mm)) return value;
+    const date = new Date(1970, 0, 1, hh, mm);
+    return new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }).format(date);
+  }
+
   if (dateInput) {
     dateInput.min = new Date().toISOString().slice(0, 10);
   }
@@ -88,7 +96,7 @@ if (form) {
           if (!blocked && !taken.includes(value)) {
             const option = document.createElement('option');
             option.value = value;
-            option.textContent = value;
+            option.textContent = formatTimeDisplay(value);
             timeSelect.appendChild(option);
           }
           current = new Date(current.getTime() + minutes * 60000);

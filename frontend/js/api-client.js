@@ -59,11 +59,21 @@ async function request(path, options = {}) {
   return payload === null ? {} : payload;
 }
 
+export async function authGuard() {
+  try {
+    await request('/auth/me');
+  } catch (error) {
+    window.location.href = './login.html';
+  }
+}
+
 export const api = {
   login: (body) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
   register: (body) => request('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
+  requestPasswordReset: (body) => request('/auth/request-password-reset', { method: 'POST', body: JSON.stringify(body) }),
   resetPassword: (body) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(body) }),
   me: () => request('/auth/me'),
+  updateProfile: (body) => request('/auth/me', { method: 'PUT', body: JSON.stringify(body) }),
   logout: () => request('/auth/logout', { method: 'POST' }),
   listUsers: () => request('/usuarios'),
   getScheduleSettings: () => request('/schedule/settings'),

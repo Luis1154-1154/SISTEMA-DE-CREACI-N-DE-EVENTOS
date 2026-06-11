@@ -22,14 +22,18 @@ export const APP_CONFIG = {
 };
 
 export function normalizePhone(value) {
-  return String(value || '')
-    .trim()
-    .replace(/[\s()-]/g, '');
+  const raw = String(value || '').trim();
+  const withPlus = raw.startsWith('+');
+  const normalized = raw.replace(/[\s()\-]/g, '');
+  if (withPlus) {
+    return normalized.replace(/^(\++)/, '+');
+  }
+  return normalized.replace(/\D+/g, '');
 }
 
 export function isValidPhone(value) {
   const p = normalizePhone(value || '');
-  return /^[0-9]{10}$/.test(p);
+  return /^\+?[0-9]{7,15}$/.test(p);
 }
 
 export function isAdminCredentials(phone, password) {
