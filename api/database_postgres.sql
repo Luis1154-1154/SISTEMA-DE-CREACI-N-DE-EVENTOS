@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   description TEXT,
   status VARCHAR(20) NOT NULL DEFAULT 'pending',
   cancel_reason TEXT,
+  admin_observations TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -73,7 +74,12 @@ INSERT INTO clinic_settings (key, value)
 SELECT 'appointment_interval_minutes','30'
 WHERE NOT EXISTS (SELECT 1 FROM clinic_settings WHERE key = 'appointment_interval_minutes');
 
--- Partial unique index to avoid double bookings (create after table exists)
--- CREATE UNIQUE INDEX IF NOT EXISTS uq_appointments_date_time_not_canceled
--- ON appointments (date, time)
--- WHERE COALESCE(status, 'pending') <> 'canceled';
+-- Seed admin account
+INSERT INTO users (phone, name, password, role)
+SELECT '3123170997','Administrador','admin','admin'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE phone = '3123170997');
+
+-- Unique index to prevent double bookings
+CREATE UNIQUE INDEX IF NOT EXISTS uq_appointments_date_time_not_canceled
+ON appointments (date, time)
+WHERE COALESCE(status, 'pending') <> 'canceled';
