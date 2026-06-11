@@ -61,10 +61,13 @@ export const COUNTRY_CODES = [
 
 export function populateCountryCodeSelect(selectElement, defaultValue = '+52') {
   if (!selectElement) return;
-  selectElement.innerHTML = COUNTRY_CODES.map((code) => `
-    <option value="${code.value}">${code.label}</option>
-  `).join('');
-  selectElement.value = defaultValue;
+  selectElement.innerHTML = `
+    <option value="" disabled ${!defaultValue ? 'selected' : ''}>Selecciona lada</option>
+    ${COUNTRY_CODES.map((code) => `<option value="${code.value}">${code.label}</option>`).join('')}
+  `;
+  if (defaultValue) {
+    selectElement.value = defaultValue;
+  }
 }
 
 export function normalizePhone(value) {

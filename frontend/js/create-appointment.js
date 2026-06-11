@@ -47,16 +47,26 @@ if (form) {
 
   if (dateInput) {
     dateInput.min = new Date().toISOString().slice(0, 10);
+    dateInput.addEventListener('change', populateTimeOptions);
+  }
+
+  function setTimePlaceholder() {
+    if (!timeSelect) return;
+    timeSelect.innerHTML = '<option value="" disabled selected>Selecciona fecha</option>';
   }
 
   // Populate time select using appointment interval setting
   async function populateTimeOptions() {
+    if (!timeSelect || !dateInput) return;
+    const date = String(dateInput.value || '').trim();
+    if (!date) {
+      setTimePlaceholder();
+      return;
+    }
+
     try {
       const settings = await api.getScheduleSettings();
       const minutes = settings && settings.appointment_interval_minutes ? Number(settings.appointment_interval_minutes) : 30;
-      if (!timeSelect || !dateInput) return;
-      const date = String(dateInput.value || '').trim();
-      // fetch working hours and exceptions
       const whResp = await api.listWorkingHours().catch(() => []);
       const exceptions = await api.listScheduleExceptions().catch(() => []);
       const apps = await api.getAppointmentsByDate(date).catch(() => []);
