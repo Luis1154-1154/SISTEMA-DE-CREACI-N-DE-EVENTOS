@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 exports.getSetting = (key, callback) => {
-  db.query('SELECT `value` FROM clinic_settings WHERE `key` = ?', [key], (err, rows) => {
+  db.query('SELECT value FROM clinic_settings WHERE key = ?', [key], (err, rows) => {
     if (err) return callback(err);
     if (!rows || rows.length === 0) return callback(null, null);
     return callback(null, rows[0].value);
@@ -9,7 +9,7 @@ exports.getSetting = (key, callback) => {
 };
 
 exports.setSetting = (key, value, callback) => {
-  db.query('INSERT INTO clinic_settings (`key`,`value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)', [key, value], callback);
+  db.query('INSERT INTO clinic_settings (key, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)', [key, value], callback);
 };
 
 // Working hours CRUD
