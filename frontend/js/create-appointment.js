@@ -26,6 +26,45 @@ async function configurePageForSession() {
 
 configurePageForSession();
 
+// Load and display schedule info
+async function loadScheduleInfo() {
+  const scheduleEl = document.getElementById('schedule-info');
+  if (!scheduleEl) return;
+  try {
+    const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const whResp = await api.listWorkingHours().catch(() => []);
+    const exceptions = await api.listScheduleExceptions().catch(() => []);
+    const rules = Array.isArray(whResp) ? whResp : (whResp && whResp.data) || [];
+    const exList = Array.isArray(exceptions) ? exceptions : (exceptions && exceptions.data) || [];
+
+    if (!rules.length) { scheduleEl.classList.add('d-none'); return; }
+
+    const formatTime = (v) => {
+      if (!v) return '';
+      const [hh, mm] = v.split(':').map(Number);
+      if (isNaN(hh) || isNaN(mm)) return v;
+      const dt = new Date(1970,0,1,hh,mm);
+      return new Intl.DateTimeFormat('es-MX', { hour:'2-digit', minute:'2-digit', hour12:true }).format(dt);
+    };
+
+    let html = '<div class="fw-semibold mb-1">Horario de atención:</div>';
+    html += rules.map(r => {
+      const day = r.day_of_week !== null && r.day_of_week !== undefined ? dayNames[Number(r.day_of_week)] : 'Todos los días';
+      const breakStr = r.break_start ? ` (descanso ${formatTime(r.break_start)}-${formatTime(r.break_end || '')})` : '';
+      return `<div class="mb-1">${day}: ${formatTime(r.start_time)} - ${formatTime(r.end_time)}${breakStr}</div>`;
+    }).join('');
+
+    if (exList.length) {
+      html += '<div class="fw-semibold mt-2 mb-1">Excepciones próximas:</div>';
+      html += exList.map(e => `<div class="mb-1">${String(e.exception_date).slice(0,10)}${e.start_time ? ' ' + formatTime(e.start_time) + '-' + formatTime(e.end_time) : ' (cerrado)'}</div>`).join('');
+    }
+
+    scheduleEl.innerHTML = html;
+    scheduleEl.classList.remove('d-none');
+  } catch { scheduleEl.classList.add('d-none'); }
+}
+loadScheduleInfo();
+
 const form = document.querySelector('[data-appointment-create-form]');
 if (form) {
   const feedback = document.querySelector('[data-create-feedback]');

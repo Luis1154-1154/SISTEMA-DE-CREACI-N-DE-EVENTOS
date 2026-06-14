@@ -288,6 +288,20 @@ async function loadAdminAppointments(mode = adminPageMode) {
     const wh = await api.listWorkingHours();
     const list = Array.isArray(wh) ? wh : (wh && wh.data) || [];
     const container = document.getElementById('working-hours-list');
+    // Build schedule summary string
+    const summaryEl = document.getElementById('schedule-summary');
+    if (summaryEl) {
+      if (list.length) {
+        const lines = list.map(w => `${formatDayLabel(w.day_of_week)}: ${formatTimeDisplay(w.start_time)} - ${formatTimeDisplay(w.end_time)}${w.break_start ? ' (descanso ' + formatTimeDisplay(w.break_start) + ' - ' + formatTimeDisplay(w.break_end || '') + ')' : ''}`);
+        const exceptions = await api.listScheduleExceptions().catch(() => []);
+        const exList2 = Array.isArray(exceptions) ? exceptions : (exceptions && exceptions.data) || [];
+        const exLines = exList2.map(e => `${e.exception_date}${e.start_time ? ' ' + e.start_time.slice(0,5) + '-' + (e.end_time||'').slice(0,5) : ' (cerrado)'}`);
+        const allLines = [...lines, ...(exLines.length ? ['', 'Excepciones:', ...exLines] : [])];
+        summaryEl.innerHTML = allLines.map(l => `<div class="mb-1">${l}</div>`).join('');
+      } else {
+        summaryEl.innerHTML = '<div class="text-muted">No hay horario configurado.</div>';
+      }
+    }
     if (container) {
       container.innerHTML = list.length ? list.map(w => {
         return `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${formatDayLabel(w.day_of_week)} ${formatTimeDisplay(w.start_time)} - ${formatTimeDisplay(w.end_time)}${w.break_start ? ' (descanso ' + formatTimeDisplay(w.break_start) + ' - ' + formatTimeDisplay(w.break_end || '') + ')' : ''}</div><button class="btn btn-sm btn-outline-danger" data-delete-wh="${w.id}">Eliminar</button></div>`;
