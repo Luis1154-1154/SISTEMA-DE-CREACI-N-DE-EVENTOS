@@ -1,6 +1,5 @@
-import { api, authGuard } from './api-client.js';
+import { api } from './api-client.js';
 import { clearMessage, escapeHtml, setLoading, showMessage } from './ui-utils.js';
-import { populateCountryCodeSelect } from './app-config.js';
 import { requireSession } from './auth-guard.js';
 
 const usersContainer = document.querySelector('[data-agenda-users]');
@@ -10,6 +9,25 @@ const logoutBtn = document.getElementById('logout-btn');
 
 let allUsers = [];
 let allAppointments = [];
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const dt = new Date(dateStr + 'T12:00:00');
+    if (isNaN(dt.getTime())) return dateStr;
+    return new Intl.DateTimeFormat('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }).format(dt);
+  } catch { return dateStr; }
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  try {
+    const [hh, mm] = timeStr.split(':').map(Number);
+    if (isNaN(hh) || isNaN(mm)) return timeStr;
+    const dt = new Date(1970, 0, 1, hh, mm);
+    return new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }).format(dt);
+  } catch { return timeStr.slice(0, 5); }
+}
 
 async function loadAgendaData() {
   if (!usersContainer || !detailContainer) return;
@@ -33,8 +51,6 @@ async function loadAgendaData() {
     }
 
     renderUserList();
-
-    // Select first user by default
     showUserDetail(allUsers[0].id);
   } catch (err) {
     showMessage(feedbackEl, err.message, 'danger');
@@ -43,7 +59,7 @@ async function loadAgendaData() {
 
 function renderUserList() {
   usersContainer.innerHTML = allUsers.map(u => `
-    <button class="list-group-item list-group-item-action agenda-user-item" data-user-id="${escapeHtml(u.id)}">
+    <button class="list-group-item list-group-item-action agenda-user-item py-2" data-user-id="${escapeHtml(u.id)}">
       <div class="fw-semibold">${escapeHtml(u.name)}</div>
       <div class="small text-muted">${escapeHtml(u.phone)}</div>
     </button>
@@ -67,53 +83,47 @@ function showUserDetail(userId) {
   const pastAppointments = userAppointments.filter(a => String(a.status || '').toLowerCase() !== 'pending');
 
   detailContainer.innerHTML = `
-    <div class="d-flex justify-content-between align-items-start mb-3">
-      <div>
-        <h5 class="mb-1">${escapeHtml(user.name)}</h5>
-        <div class="small text-muted">${escapeHtml(user.phone)}</div>
-        <div class="small text-muted mt-1">${user.birthdate ? 'Nac.: ' + escapeHtml(user.birthdate) : ''} ${user.sex ? '• Sexo: ' + escapeHtml(user.sex) : ''}</div>
-      </div>
+    <div class="mb-3 border-bottom pb-3">
+      <div class="h5 mb-1">${escapeHtml(user.name)}</div>
+      <div class="small text-muted">${escapeHtml(user.phone)}</div>
     </div>
 
-    <div class="mb-4">
+    <div class="mb-3">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <h6 class="mb-0">Crear nueva cita</h6>
-        <button class="btn btn-sm btn-primary" id="agenda-create-toggle">Agregar cita</button>
+        <span class="fw-semibold fs-6">Nueva cita</span>
+        <button class="btn btn-sm btn-primary" id="agenda-create-toggle">+ Agregar</button>
       </div>
-      <form id="agenda-create-form" class="row g-2 d-none">
+      <form id="agenda-create-form" class="row g-2 d-none border rounded p-2 bg-light">
         <div class="col-5">
-          <label class="form-label small">Fecha</label>
+          <label class="form-label small mb-0">Fecha</label>
           <input class="form-control form-control-sm" name="date" type="date" required />
         </div>
         <div class="col-4">
-          <label class="form-label small">Hora</label>
+          <label class="form-label small mb-0">Hora</label>
           <input class="form-control form-control-sm" name="time" type="time" step="60" required />
         </div>
         <div class="col-3 d-flex align-items-end">
           <button class="btn btn-sm btn-success w-100" type="submit">Crear</button>
         </div>
         <div class="col-12">
-          <label class="form-label small">Descripción</label>
+          <label class="form-label small mb-0">Descripción</label>
           <input class="form-control form-control-sm" name="description" placeholder="Opcional" />
         </div>
         <div data-agenda-create-feedback class="col-12"></div>
       </form>
     </div>
 
-    <h6 class="mb-3">Citas activas (${activeAppointments.length})</h6>
+    <div class="fw-semibold fs-6 mb-2">Citas activas (${activeAppointments.length})</div>
     ${activeAppointments.length
       ? activeAppointments.map(a => renderAppointmentCard(a, true)).join('')
-      : '<div class="text-muted small mb-3">No tiene citas pendientes.</div>'
+      : '<div class="text-muted small mb-3">Sin citas pendientes.</div>'
     }
 
-    ${pastAppointments.length
-      ? `
-        <hr />
-        <h6 class="mb-3">Historial (${pastAppointments.length})</h6>
-        ${pastAppointments.map(a => renderAppointmentCard(a, false)).join('')}
-      `
-      : ''
-    }
+    ${pastAppointments.length ? `
+      <hr class="my-2" />
+      <div class="fw-semibold fs-6 mb-2">Historial (${pastAppointments.length})</div>
+      ${pastAppointments.map(a => renderAppointmentCard(a, false)).join('')}
+    ` : ''}
   `;
 
   wireCreateForm(user);
@@ -128,33 +138,31 @@ function renderAppointmentCard(appointment, showActions) {
   const cancelReason = String(appointment.cancel_reason || '').trim();
 
   return `
-    <div class="card border-0 shadow-sm mb-2 admin-page-card agenda-appointment-item" data-appointment-id="${id}">
-      <div class="card-body py-3">
+    <div class="card border-0 shadow-sm mb-2 agenda-appointment-item">
+      <div class="card-body py-2 px-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
-            <div class="fw-semibold">${escapeHtml(appointment.date)} <span class="badge bg-secondary">${escapeHtml(appointment.time?.slice(0, 5))}</span></div>
-            <div class="small text-muted">${escapeHtml(appointment.description || 'Sin descripción')}</div>
-            <div><span class="badge ${statusClass}">${statusLabel}</span></div>
+            <div class="fw-semibold">${escapeHtml(formatDate(appointment.date))} <span class="badge bg-secondary">${escapeHtml(formatTime(appointment.time))}</span></div>
+            <div class="small text-muted mt-1">${escapeHtml(appointment.description || 'Sin descripción')}</div>
+            <div class="mt-1"><span class="badge ${statusClass}">${statusLabel}</span></div>
             ${status === 'canceled' && cancelReason ? `<div class="small text-danger mt-1">Motivo: ${escapeHtml(cancelReason)}</div>` : ''}
           </div>
           ${showActions && status === 'pending' ? `
-            <div>
-              <button class="btn btn-sm btn-outline-primary" data-reschedule="${id}">Reagendar</button>
-            </div>
+            <button class="btn btn-sm btn-outline-primary" data-reschedule="${id}">Reagendar</button>
           ` : ''}
         </div>
         ${showActions && status === 'pending' ? `
-          <form class="reschedule-panel d-none mt-2" data-reschedule-form="${id}">
+          <form class="reschedule-panel d-none mt-2 border rounded p-2 bg-light" data-reschedule-form="${id}">
             <div class="row g-2 align-items-end">
               <div class="col-5">
-                <label class="form-label small">Nueva fecha</label>
+                <label class="form-label small mb-0">Nueva fecha</label>
                 <input class="form-control form-control-sm" name="date" type="date" value="${escapeHtml(appointment.date)}" required />
               </div>
               <div class="col-4">
-                <label class="form-label small">Nueva hora</label>
+                <label class="form-label small mb-0">Nueva hora</label>
                 <input class="form-control form-control-sm" name="time" type="time" step="60" value="${escapeHtml(appointment.time?.slice(0, 5))}" required />
               </div>
-              <div class="col-3">
+              <div class="col-3 d-flex align-items-end">
                 <button class="btn btn-sm btn-primary w-100" type="submit">Guardar</button>
               </div>
               <div data-reschedule-feedback class="col-12"></div>
@@ -186,7 +194,7 @@ function wireCreateForm(user) {
     try {
       if (!date || !time) throw new Error('Fecha y hora son obligatorias');
       await api.adminCreateAppointment({ userId: user.id, date, time, description });
-      showMessage(feedbackEl, 'Cita creada correctamente.', 'success');
+      showMessage(feedbackEl, 'Cita creada.', 'success');
       await loadAgendaData();
     } catch (err) {
       showMessage(feedback, err.message, 'danger');
@@ -217,21 +225,15 @@ function wireRescheduleForms() {
       clearMessage(feedback);
 
       try {
-        if (!date || !time) throw new Error('Fecha y hora son obligatorias');
-        // Get the appointment data to preserve other fields
-        const allAppts = Array.isArray(allAppointments) ? allAppointments : [];
-        const appt = allAppts.find(a => String(a.id) === String(id));
+        if (!date || !time) throw new Error('Fecha y hora obligatorias');
+        const appt = allAppointments.find(a => String(a.id) === String(id));
         if (!appt) throw new Error('Cita no encontrada');
-
         await api.updateAppointment(id, {
-          name: appt.name || '',
-          phone: appt.phone || '',
-          date,
-          time,
-          description: appt.description || '',
+          name: appt.name || '', phone: appt.phone || '',
+          date, time, description: appt.description || '',
           status: 'pending',
         });
-        showMessage(feedbackEl, 'Cita reagendada correctamente.', 'success');
+        showMessage(feedbackEl, 'Cita reagendada.', 'success');
         await loadAgendaData();
       } catch (err) {
         showMessage(feedback, err.message, 'danger');
@@ -247,5 +249,4 @@ logoutBtn?.addEventListener('click', async () => {
   window.location.href = './login.html';
 });
 
-// Init: ensure session then load
 requireSession().then(() => loadAgendaData());

@@ -58,12 +58,14 @@ function renderAppointmentItem(appointment, { mode = adminPageMode } = {}) {
   const id = escapeHtml(appointment.id || '');
   const normalizedStatus = String(appointment.status || 'pending').trim().toLowerCase();
   const isPending = normalizedStatus === 'pending';
+  const isAttended = normalizedStatus === 'attended';
   const showActions = mode === 'active';
   const showDelete = mode !== 'records';
-  const statusLabel = normalizedStatus === 'attended' ? 'Atendida'
+  const statusLabel = isAttended ? 'Atendida'
     : normalizedStatus === 'canceled' ? 'Cancelada'
     : 'Pendiente';
   const cancelReason = String(appointment.cancel_reason || '').trim();
+  const adminObs = String(appointment.admin_observations || '').trim();
 
   return `
     <div class="col-12">
@@ -117,6 +119,13 @@ function renderAppointmentItem(appointment, { mode = adminPageMode } = {}) {
                   <button class="btn btn-sm btn-primary" type="submit">Guardar</button>
                 </div>
               </div>
+            </form>
+          ` : ''}
+          ${mode === 'records' && isAttended ? `
+            <form class="mt-2 border rounded p-2 bg-light" data-record-observations-form="${id}">
+              <div class="small fw-semibold mb-1">Observación de la cita</div>
+              <textarea class="form-control form-control-sm" name="admin_observations" rows="2" placeholder="Notas sobre esta atención...">${escapeHtml(adminObs)}</textarea>
+              <button class="btn btn-sm btn-primary mt-1" type="submit">Guardar</button>
             </form>
           ` : ''}
         </div>
@@ -385,6 +394,15 @@ async function loadAdminAppointments(mode = adminPageMode) {
 
 initMobileNavToggle();
 
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const dt = new Date(dateStr + 'T12:00:00');
+    if (isNaN(dt.getTime())) return dateStr;
+    return new Intl.DateTimeFormat('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }).format(dt);
+  } catch { return dateStr; }
+}
+
 async function loadClinicalRecords() {
   const feedback = document.querySelector('[data-records-feedback]');
   const usersContainer = document.querySelector('[data-records-users]');
@@ -405,7 +423,10 @@ async function loadClinicalRecords() {
     const usersById = new Map();
     usersContainer.innerHTML = users.map(u => {
       usersById.set(String(u.id), u);
-      return `<button class="list-group-item list-group-item-action" data-select-user="${escapeHtml(u.id)}">${escapeHtml(u.name)}<div class="small text-muted">${escapeHtml(u.phone)}</div></button>`;
+      return `<button class="list-group-item list-group-item-action py-2" data-select-user="${escapeHtml(u.id)}">
+        <div class="fw-semibold">${escapeHtml(u.name)}</div>
+        <div class="small text-muted">${escapeHtml(u.phone)}</div>
+      </button>`;
     }).join('');
 
     const showUserDetail = async (id) => {
@@ -416,59 +437,85 @@ async function loadClinicalRecords() {
         const userAppointments = (await api.listAppointmentsByDay()) || [];
         const appointments = Array.isArray(userAppointments?.data) ? userAppointments.data : userAppointments;
         const filtered = (Array.isArray(appointments) ? appointments : []).filter(a => String(a.user_id) === String(id));
-          detailContainer.innerHTML = `
+
+        const allergies = String(user.allergies || '').trim();
+        const bloodType = String(user.blood_type || '').trim();
+        const chronicConditions = String(user.chronic_conditions || '').trim();
+        const clinicalObs = String(user.clinical_observations || '').trim();
+        const identification = String(user.identification || '').trim();
+        const occupation = String(user.occupation || '').trim();
+        const sex = String(user.sex || '').trim();
+        const weight = String(user.weight || '').trim();
+        const birthdate = formatDateDisplay(user.birthdate);
+
+        detailContainer.innerHTML = `
           <div class="d-flex justify-content-between align-items-start mb-3">
             <div>
-              <h5 class="mb-1">${escapeHtml(user.name)}</h5>
-              <div class="small text-muted">${escapeHtml(user.phone)}</div>
-              <div class="small text-muted mt-1">${user.sex ? 'Sexo: ' + escapeHtml(user.sex) : ''} ${user.birthdate ? ' • Nac.: ' + escapeHtml(user.birthdate) : ''} ${user.weight ? ' • Peso: ' + escapeHtml(user.weight) + 'kg' : ''}</div>
-              <div class="small text-muted mt-1">${user.identification ? 'ID: ' + escapeHtml(user.identification) : ''} ${user.occupation ? ' • Ocupación: ' + escapeHtml(user.occupation) : ''}</div>
-              ${currentAdmin && String(currentAdmin.id) === String(user.id) ? '<div class="badge bg-info mt-2">Admin (Actual)</div>' : ''}
+              <div class="h5 mb-1">${escapeHtml(user.name)}</div>
+              <div class="text-muted">${escapeHtml(user.phone)}</div>
+              ${currentAdmin && String(currentAdmin.id) === String(user.id) ? '<span class="badge bg-info mt-1">Admin (Actual)</span>' : ''}
             </div>
-                ${!currentAdmin || String(currentAdmin.id) !== String(user.id) ? `<button class="btn btn-outline-danger btn-sm" type="button" data-delete-user="${escapeHtml(user.id)}">Eliminar usuari@</button>` : ''}
+            ${!currentAdmin || String(currentAdmin.id) !== String(user.id) ? `<button class="btn btn-outline-danger btn-sm" type="button" data-delete-user="${escapeHtml(user.id)}">Eliminar</button>` : ''}
           </div>
-              <div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h6 class="mb-0">Historial de citas</h6>
-                  <button class="btn btn-sm btn-primary" id="create-for-user-btn">Crear cita para este usuari@</button>
-                </div>
-                <div class="record-appointments-list">${filtered.length ? filtered.map(a => renderAppointmentItem(a, { mode: 'records' })).join('') : '<div class="text-muted">Sin citas</div>'}</div>
-                <div class="mt-3 small"><strong>Particularidades / Observaciones:</strong><div class="text-muted">${escapeHtml(user.clinical_observations || '')}</div></div>
-                <div id="create-for-user-form" class="mt-3 d-none">
-                  <form class="row g-2" id="create-admin-appointment-form">
-                    <div class="col-6"><label class="form-label small">Fecha</label><input class="form-control form-control-sm" name="date" type="date" required /></div>
-                    <div class="col-6"><label class="form-label small">Hora</label><input class="form-control form-control-sm" name="time" type="time" step="60" required /></div>
-                    <div class="col-12"><label class="form-label small">Descripción</label><textarea class="form-control form-control-sm" name="description" rows="2"></textarea></div>
-                    <div class="col-12 text-end"><button class="btn btn-sm btn-success" type="submit">Crear cita</button></div>
-                  </form>
-                </div>
-              </div>
+
+          <div class="row g-2 mb-3 border-bottom pb-3">
+            ${birthdate ? `<div class="col-6 col-md-4"><div class="small text-muted">Fecha de nacimiento</div><div class="fw-semibold">${escapeHtml(birthdate)}</div></div>` : ''}
+            ${sex ? `<div class="col-6 col-md-4"><div class="small text-muted">Sexo</div><div class="fw-semibold">${escapeHtml(sex)}</div></div>` : ''}
+            ${weight ? `<div class="col-6 col-md-4"><div class="small text-muted">Peso</div><div class="fw-semibold">${escapeHtml(weight)} kg</div></div>` : ''}
+            ${occupation ? `<div class="col-6 col-md-4"><div class="small text-muted">Ocupación</div><div class="fw-semibold">${escapeHtml(occupation)}</div></div>` : ''}
+            ${identification ? `<div class="col-6 col-md-4"><div class="small text-muted">Identificación</div><div class="fw-semibold">${escapeHtml(identification)}</div></div>` : ''}
+            ${allergies ? `<div class="col-6 col-md-4"><div class="small text-muted">Alergias</div><div class="fw-semibold">${escapeHtml(allergies)}</div></div>` : ''}
+            ${bloodType ? `<div class="col-6 col-md-4"><div class="small text-muted">Tipo de sangre</div><div class="fw-semibold">${escapeHtml(bloodType)}</div></div>` : ''}
+            ${chronicConditions ? `<div class="col-12"><div class="small text-muted">Condiciones crónicas</div><div class="fw-semibold">${escapeHtml(chronicConditions)}</div></div>` : ''}
+            ${clinicalObs ? `<div class="col-12"><div class="small text-muted">Observaciones clínicas</div><div class="fw-semibold">${escapeHtml(clinicalObs)}</div></div>` : ''}
+          </div>
+
+          <div class="fw-semibold fs-6 mb-2">Historial de citas (${filtered.length})</div>
+          <div class="record-appointments-list">
+            ${filtered.length
+              ? filtered.map(a => renderAppointmentItem(a, { mode: 'records' })).join('')
+              : '<div class="text-muted">Sin citas registradas.</div>'
+            }
+          </div>
         `;
-        
+
+        // Wire attended appointments with observations form
+        detailContainer.querySelectorAll('[data-record-observations-form]').forEach(form => {
+          form.addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            const appointmentId = form.getAttribute('data-record-observations-form');
+            const obs = String(form.querySelector('[name="admin_observations"]')?.value || '').trim();
+            const btn = form.querySelector('button[type="submit"]');
+            const restore = setLoading(btn, 'Guardando...');
+            try {
+              await api.updateAppointment(appointmentId, { admin_observations: obs });
+              showMessage(feedback, 'Observación guardada.', 'success');
+            } catch (err) {
+              showMessage(feedback, err.message, 'danger');
+            } finally { restore(); }
+          });
+        });
+
         const delBtnEl = detailContainer.querySelector('[data-delete-user]');
         if (delBtnEl) {
           delBtnEl.addEventListener('click', async (ev) => {
-          const deleteBtn = ev.currentTarget;
-          const restore = setLoading(deleteBtn, 'Eliminando...');
-          if (!(await showFloatingConfirm('¿Eliminar este usuari@ y todos sus datos?'))) {
-            restore();
-            return;
-          }
-          detailContainer.innerHTML = '<div class="text-muted p-3">Eliminando usuari@...</div>';
-          usersContainer.innerHTML = '<div class="text-muted p-3">Actualizando lista...</div>';
-          try {
-            await api.deleteUser(user.id);
-            showMessage(feedback, 'Usuari@ eliminado.', 'success');
-            await loadClinicalRecords();
-          } catch (err) {
-            showMessage(feedback, err.message);
-          } finally {
-            restore();
-          }
+            const deleteBtn = ev.currentTarget;
+            const restore = setLoading(deleteBtn, 'Eliminando...');
+            if (!(await showFloatingConfirm('¿Eliminar este usuari@ y todos sus datos?'))) {
+              restore();
+              return;
+            }
+            detailContainer.innerHTML = '<div class="text-muted p-3">Eliminando usuari@...</div>';
+            usersContainer.innerHTML = '<div class="text-muted p-3">Actualizando lista...</div>';
+            try {
+              await api.deleteUser(user.id);
+              showMessage(feedback, 'Usuari@ eliminado.', 'success');
+              await loadClinicalRecords();
+            } catch (err) {
+              showMessage(feedback, err.message);
+            } finally { restore(); }
           });
         }
-        // wire create-for-user form
-        wireCreateForUser(detailContainer, user).catch(() => {});
       } catch (err) {
         showMessage(feedback, err.message);
       }
@@ -480,32 +527,6 @@ async function loadClinicalRecords() {
   } catch (err) {
     showMessage(feedback, err.message);
   }
-}
-
-// Wire creation form when user detail is shown
-async function wireCreateForUser(detailContainer, user) {
-  const createBtn = detailContainer.querySelector('#create-for-user-btn');
-  const formWrap = detailContainer.querySelector('#create-for-user-form');
-  const form = detailContainer.querySelector('#create-admin-appointment-form');
-  if (!createBtn || !form) return;
-  createBtn.addEventListener('click', () => {
-    formWrap.classList.toggle('d-none');
-  });
-  form.addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const date = String(form.querySelector('[name="date"]').value || '').trim();
-    const time = String(form.querySelector('[name="time"]').value || '').trim();
-    const description = String(form.querySelector('[name="description"]').value || '').trim();
-    if (!date || !time) return showMessage(detailContainer, 'Fecha y hora requeridas');
-    try {
-      await api.adminCreateAppointment({ userId: user.id, date, time, description });
-      showMessage(detailContainer, 'Cita creada.', 'success');
-      // refresh lists
-      await loadClinicalRecords();
-    } catch (err) {
-      showMessage(detailContainer, err.message);
-    }
-  });
 }
 
 // Initialize
