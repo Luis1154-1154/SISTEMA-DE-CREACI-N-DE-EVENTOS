@@ -32,43 +32,52 @@
             <div data-admin-feedback class="mb-3"></div>
 
             <div class="row g-4">
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-7">
+                    <section class="card border-0 shadow-sm h-100 admin-page-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Calendario laboral</h5>
+                            <p class="text-muted small">Define los horarios y excepciones. Se mostrarán a los usuarios.</p>
+                            <div id="schedule-summary" class="small text-muted mb-3 border rounded p-2 bg-light">Cargando horario...</div>
+                        </div>
+                    </section>
+                </div>
+                <div class="col-12 col-md-5">
                     <section class="card border-0 shadow-sm h-100 admin-page-card">
                         <div class="card-body">
                             <h5 class="card-title">Horario laboral</h5>
                             <p class="text-muted small">Define los días y horas de atención.</p>
-                            <form id="working-hour-form" class="row g-2 align-items-end">
-                                <div class="col-6">
-                                    <label class="form-label small">Día</label>
-                                    <select class="form-select form-select-sm" id="wh-day">
-                                        <option value="">Todos los días</option>
-                                        <option value="0">Domingo</option>
-                                        <option value="1">Lunes</option>
-                                        <option value="2">Martes</option>
-                                        <option value="3">Miércoles</option>
-                                        <option value="4">Jueves</option>
-                                        <option value="5">Viernes</option>
-                                        <option value="6">Sábado</option>
-                                    </select>
+                            <form id="working-hour-form" class="row g-2">
+                                <div class="col-12">
+                                    <label class="form-label small">Días de trabajo</label>
+                                    <div class="d-flex flex-wrap gap-3">
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" id="wh-day-all" value="" /> <label class="form-check-label small" for="wh-day-all">Todos</label></div>
+                                        <div class="form-check"><input class="form-check-input wh-day-cb" type="checkbox" value="0" /> <label class="form-check-label small">Dom</label></div>
+                                        <div class="form-check"><input class="form-check-input wh-day-cb" type="checkbox" value="1" /> <label class="form-check-label small">Lun</label></div>
+                                        <div class="form-check"><input class="form-check-input wh-day-cb" type="checkbox" value="2" /> <label class="form-check-label small">Mar</label></div>
+                                        <div class="form-check"><input class="form-check-input wh-day-cb" type="checkbox" value="3" /> <label class="form-check-label small">Mié</label></div>
+                                        <div class="form-check"><input class="form-check-input wh-day-cb" type="checkbox" value="4" /> <label class="form-check-label small">Jue</label></div>
+                                        <div class="form-check"><input class="form-check-input wh-day-cb" type="checkbox" value="5" /> <label class="form-check-label small">Vie</label></div>
+                                        <div class="form-check"><input class="form-check-input wh-day-cb" type="checkbox" value="6" /> <label class="form-check-label small">Sáb</label></div>
+                                    </div>
                                 </div>
-                                <div class="col-3">
+                                <div class="col-4">
                                     <label class="form-label small">Inicio</label>
                                     <input class="form-control form-control-sm" id="wh-start" type="time" />
                                 </div>
-                                <div class="col-3">
+                                <div class="col-4">
                                     <label class="form-label small">Fin</label>
                                     <input class="form-control form-control-sm" id="wh-end" type="time" />
                                 </div>
-                                <div class="col-3">
+                                <div class="col-4 d-flex align-items-end">
+                                    <button class="btn btn-sm btn-primary w-100">Agregar horario</button>
+                                </div>
+                                <div class="col-4">
                                     <label class="form-label small">Descanso inicio</label>
                                     <input class="form-control form-control-sm" id="wh-break-start" type="time" />
                                 </div>
-                                <div class="col-3">
+                                <div class="col-4">
                                     <label class="form-label small">Descanso fin</label>
                                     <input class="form-control form-control-sm" id="wh-break-end" type="time" />
-                                </div>
-                                <div class="col-6">
-                                    <button class="btn btn-sm btn-primary">Agregar</button>
                                 </div>
                             </form>
                             <hr />

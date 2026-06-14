@@ -10,6 +10,17 @@ if (countryCodeSelect) {
   populateCountryCodeSelect(countryCodeSelect, '+52');
 }
 
+function normalizeDateForInput(value) {
+  if (!value) return '';
+  // Already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  try {
+    const dt = new Date(value);
+    if (isNaN(dt.getTime())) return '';
+    return dt.toISOString().slice(0, 10);
+  } catch { return ''; }
+}
+
 const fields = {
   name: document.getElementById('profile-name'),
   phone: document.getElementById('profile-phone'),
@@ -20,7 +31,6 @@ const fields = {
   allergies: document.getElementById('profile-allergies'),
   blood_type: document.getElementById('profile-blood_type'),
   chronic_conditions: document.getElementById('profile-chronic_conditions'),
-  clinical_observations: document.getElementById('profile-clinical_observations'),
 };
 
 function showMessage(message, type = 'success') {
@@ -32,7 +42,13 @@ async function loadProfile() {
     const profile = await api.me();
     if (!profile) return;
     Object.entries(fields).forEach(([key, element]) => {
-      if (element) element.value = profile[key] || '';
+      if (element) {
+        if (key === 'birthdate') {
+          element.value = normalizeDateForInput(profile[key]);
+        } else {
+          element.value = profile[key] || '';
+        }
+      }
     });
     if (countryCodeSelect) {
       countryCodeSelect.value = profile.country_code || '+52';

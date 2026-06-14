@@ -327,19 +327,41 @@ async function loadAdminAppointments(mode = adminPageMode) {
     }
 
     // wire add forms
+    // "Todos" checkbox toggle for working hour days
+    const allCheck = document.getElementById('wh-day-all');
+    if (allCheck) {
+      allCheck.addEventListener('change', () => {
+        document.querySelectorAll('.wh-day-cb').forEach(cb => cb.checked = allCheck.checked);
+      });
+      document.querySelectorAll('.wh-day-cb').forEach(cb => {
+        cb.addEventListener('change', () => {
+          if (!cb.checked) allCheck.checked = false;
+        });
+      });
+    }
+
     const whForm = document.getElementById('working-hour-form');
     if (whForm) {
       whForm.addEventListener('submit', async (ev) => {
         ev.preventDefault();
-        const day = String(document.getElementById('wh-day')?.value || '').trim();
+        const checkedDays = Array.from(document.querySelectorAll('.wh-day-cb:checked')).map(cb => cb.value);
         const start = String(document.getElementById('wh-start')?.value || '').trim();
         const end = String(document.getElementById('wh-end')?.value || '').trim();
         const breakStart = String(document.getElementById('wh-break-start')?.value || '').trim();
         const breakEnd = String(document.getElementById('wh-break-end')?.value || '').trim();
         if (!start || !end) return showMessage(feedback, 'Inicio y fin son obligatorios');
+        
+        // If "Todos" is checked or all days are checked, send one rule with day_of_week=null
+        const allChecked = allCheck && allCheck.checked || checkedDays.length >= 7;
+        const days = allChecked ? [null] : checkedDays.map(Number);
+        
+        if (!allChecked && checkedDays.length === 0) return showMessage(feedback, 'Selecciona al menos un día');
+        
         try {
-          await api.createWorkingHour({ day_of_week: day === '' ? null : Number(day), start_time: start, end_time: end, break_start: breakStart || null, break_end: breakEnd || null, applies_forever: true, active: true });
-          showMessage(feedback, 'Regla guardada', 'success');
+          for (const day of days) {
+            await api.createWorkingHour({ day_of_week: day, start_time: start, end_time: end, break_start: breakStart || null, break_end: breakEnd || null, applies_forever: true, active: true });
+          }
+          showMessage(feedback, 'Regla(s) guardada(s)', 'success');
           loadAdminAppointments(mode);
         } catch (err) {
           showMessage(feedback, err.message);
@@ -395,11 +417,13 @@ async function loadAdminAppointments(mode = adminPageMode) {
 initMobileNavToggle();
 
 function formatDateDisplay(dateStr) {
-  if (!dateStr) return '';
+  if (!dateStr) return dateStr;
+  // Already in YYYY-MM-DD format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
   try {
     const dt = new Date(dateStr + 'T12:00:00');
     if (isNaN(dt.getTime())) return dateStr;
-    return new Intl.DateTimeFormat('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }).format(dt);
+    return dt.toISOString().slice(0, 10);
   } catch { return dateStr; }
 }
 
