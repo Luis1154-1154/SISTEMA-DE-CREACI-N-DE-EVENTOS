@@ -57,6 +57,7 @@ async function modifyColumnIfNeeded(table, column, definition) {
 async function ensureAppointmentSchema() {
   await addColumnIfMissing('appointments', 'status', "status VARCHAR(20) NOT NULL DEFAULT 'pending'");
   await addColumnIfMissing('appointments', 'cancel_reason', 'cancel_reason TEXT NULL');
+  await addColumnIfMissing('appointments', 'admin_observations', 'admin_observations TEXT NULL');
   await addColumnIfMissing('users', 'country_code', "country_code VARCHAR(10) NULL");
   await addColumnIfMissing('users', 'password_reset_token', 'password_reset_token VARCHAR(50) NULL');
   await addColumnIfMissing('users', 'password_reset_expires', DB_CLIENT === 'postgres' || DB_CLIENT === 'pg' ? 'password_reset_expires TIMESTAMP NULL' : 'password_reset_expires DATETIME NULL');

@@ -15,7 +15,6 @@ const fields = {
   phone: document.getElementById('profile-phone'),
   birthdate: document.getElementById('profile-birthdate'),
   sex: document.getElementById('profile-sex'),
-  identification: document.getElementById('profile-identification'),
   occupation: document.getElementById('profile-occupation'),
   weight: document.getElementById('profile-weight'),
   allergies: document.getElementById('profile-allergies'),
