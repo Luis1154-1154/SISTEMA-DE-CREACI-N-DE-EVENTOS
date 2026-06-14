@@ -21,62 +21,15 @@
                     <div class="admin-nav-links" data-site-nav-links>
                         <a class="admin-nav-link active" href="./admin-appointments.html">Citas activas</a>
                         <a class="admin-nav-link" href="./admin-history.html">Historial</a>
+                        <a class="admin-nav-link" href="./admin-agenda.html">Agenda</a>
                         <a class="admin-nav-link" href="./admin-records.html">Expediente clínico</a>
-                        <a class="admin-nav-link" href="./admin-schedule.html">Agenda</a>
+                        <a class="admin-nav-link" href="./admin-schedule.html">Calendario</a>
                         <button id="logout-btn" class="btn btn-light btn-sm text-dark rounded-pill px-3">Cerrar sesión</button>
                     </div>
                 </div>
             </header>
             <div class="admin-page-intro p-4 mb-4 mt-4">
                 <h1 class="h3 page-title mb-2">Citas activas</h1>
-                                <div class="row g-3 mt-3">
-                                    <div class="col-12 col-md-6">
-                                        <label class="form-label">Intervalo entre citas (minutos)</label>
-                                        <div class="input-group">
-                                            <input id="appointment-interval" type="number" min="5" step="5" class="form-control form-control-sm" />
-                                            <button id="save-appointment-interval" class="btn btn-sm btn-primary">Guardar</button>
-                                        </div>
-                                        <div class="form-text small">Define cuántos minutos hay entre cada cita. El valor se usará para construir los horarios en el selector de hora.</div>
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        <h6 class="mb-2">Horario laboral</h6>
-                                        <form id="working-hour-form" class="row g-2 align-items-end">
-                                            <div class="col-4">
-                                                <label class="form-label small">Día</label>
-                                                <select class="form-select form-select-sm" id="wh-day">
-                                                  <option value="">Todos los días</option>
-                                                  <option value="0">Domingo</option>
-                                                  <option value="1">Lunes</option>
-                                                  <option value="2">Martes</option>
-                                                  <option value="3">Miércoles</option>
-                                                  <option value="4">Jueves</option>
-                                                  <option value="5">Viernes</option>
-                                                  <option value="6">Sábado</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-4">
-                                                <label class="form-label small">Inicio</label>
-                                                <input class="form-control form-control-sm" id="wh-start" type="time" />
-                                            </div>
-                                            <div class="col-4">
-                                                <label class="form-label small">Fin</label>
-                                                <input class="form-control form-control-sm" id="wh-end" type="time" />
-                                            </div>
-                                            <div class="col-4">
-                                                <label class="form-label small">Descanso inicio</label>
-                                                <input class="form-control form-control-sm" id="wh-break-start" type="time" />
-                                            </div>
-                                            <div class="col-4">
-                                                <label class="form-label small">Descanso fin</label>
-                                                <input class="form-control form-control-sm" id="wh-break-end" type="time" />
-                                            </div>
-                                            <div class="col-4">
-                                                <button id="add-working-hour" class="btn btn-sm btn-outline-primary">Agregar</button>
-                                            </div>
-                                        </form>
-                                        <div id="working-hours-list" class="mt-3"></div>
-                                    </div>
-                                </div>
             </div>
             <div data-admin-feedback class="mb-3"></div>
             <div class="row g-3" data-admin-appointments-list></div>
