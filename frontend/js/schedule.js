@@ -2,66 +2,120 @@ import { api } from './api-client.js';
 import { authGuard } from './api-client.js';
 
 const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_NAMES_SHORT = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
+function formatTime(timeStr) {
+  if (!timeStr) return null;
+  return timeStr.slice(0, 5);
+}
+
+function buildScheduleText(workingHours) {
+  if (!workingHours || workingHours.length === 0) return null;
+
+  // Sort by day of week
+  const sorted = [...workingHours].sort((a, b) => a.day_of_week - b.day_of_week);
+
+  // Group by start_time, end_time, break_start, break_end (same schedule pattern)
+  const groups = [];
+  let currentGroup = null;
+
+  for (const wh of sorted) {
+    const key = `${wh.start_time}|${wh.end_time}|${wh.break_start || ''}|${wh.break_end || ''}`;
+    if (!currentGroup || currentGroup.key !== key) {
+      currentGroup = { key, days: [], start: wh.start_time, end: wh.end_time, breakStart: wh.break_start, breakEnd: wh.break_end };
+      groups.push(currentGroup);
+    }
+    currentGroup.days.push(wh.day_of_week);
+  }
+
+  return groups.map((g) => {
+    const start = formatTime(g.start);
+    const end = formatTime(g.end);
+
+    // Format days list
+    let daysStr;
+    if (g.days.length === 1) {
+      daysStr = DAY_NAMES_SHORT[g.days[0]];
+    } else {
+      // Check if consecutive
+      const isConsecutive = g.days.every((d, i) => i === 0 || d === g.days[i - 1] + 1);
+      if (isConsecutive && g.days.length > 1) {
+        daysStr = `${DAY_NAMES_SHORT[g.days[0]]} a ${DAY_NAMES_SHORT[g.days[g.days.length - 1]]}`;
+      } else {
+        daysStr = g.days.map((d) => DAY_NAMES_SHORT[d]).join(', ');
+      }
+    }
+
+    // Capitalize first letter
+    daysStr = daysStr.charAt(0).toUpperCase() + daysStr.slice(1);
+
+    let text = `Abrimos ${daysStr} de ${start} a ${end}`;
+
+    if (g.breakStart && g.breakEnd) {
+      const breakStart = formatTime(g.breakStart);
+      const breakEnd = formatTime(g.breakEnd);
+      text += ` con descanso de ${breakStart} a ${breakEnd}`;
+    }
+
+    return text + '.';
+  }).join(' ');
+}
+
+function buildExceptionsText(exceptions) {
+  if (!exceptions || exceptions.length === 0) return null;
+
+  const lines = exceptions
+    .sort((a, b) => a.exception_date.localeCompare(b.exception_date))
+    .map((ex) => {
+      const date = new Date(ex.exception_date + 'T00:00:00');
+      const dateStr = date.toLocaleDateString('es-MX', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      const start = ex.start_time ? formatTime(ex.start_time) : null;
+      const end = ex.end_time ? formatTime(ex.end_time) : null;
+
+      if (start && end) {
+        return `${dateStr}: atenderemos de ${start} a ${end}.`;
+      }
+      return `${dateStr}: no habrá atención.`;
+    });
+
+  return 'Excepciones: ' + lines.join(' ');
+}
 
 async function loadSchedule() {
   const feedbackEl = document.querySelector('[data-schedule-feedback]');
-  const tbody = document.getElementById('working-hours-body');
-  const exceptionsList = document.getElementById('exceptions-list');
-  const exceptionsEmpty = document.getElementById('exceptions-empty');
+  const scheduleDisplay = document.getElementById('schedule-display');
+  const scheduleText = document.getElementById('schedule-text');
+  const exceptionsText = document.getElementById('exceptions-text');
+  const noSchedule = document.getElementById('no-schedule');
 
   try {
-    // Fetch working hours and exceptions in parallel
     const [workingHours, exceptions] = await Promise.all([
       api.listWorkingHours(),
       api.listScheduleExceptions(),
     ]);
 
-    // Render working hours
-    if (workingHours && workingHours.length > 0) {
-      tbody.innerHTML = workingHours
-        .sort((a, b) => a.day_of_week - b.day_of_week)
-        .map((wh) => {
-          const dayName = DAY_NAMES[wh.day_of_week] || `Día ${wh.day_of_week}`;
-          const start = wh.start_time ? wh.start_time.slice(0, 5) : '-';
-          const end = wh.end_time ? wh.end_time.slice(0, 5) : '-';
-          const breakTime =
-            wh.break_start && wh.break_end
-              ? `${wh.break_start.slice(0, 5)} - ${wh.break_end.slice(0, 5)}`
-              : 'Sin descanso';
-          return `<tr><td>${dayName}</td><td>${start}</td><td>${end}</td><td>${breakTime}</td></tr>`;
-        })
-        .join('');
-    } else {
-      tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No hay horarios configurados.</td></tr>';
-    }
+    const text = buildScheduleText(workingHours);
+    const excText = buildExceptionsText(exceptions);
 
-    // Render exceptions
-    if (exceptions && exceptions.length > 0) {
-      exceptionsEmpty.classList.add('d-none');
-      exceptionsList.innerHTML = exceptions
-        .sort((a, b) => a.exception_date.localeCompare(b.exception_date))
-        .map((ex) => {
-          const date = new Date(ex.exception_date + 'T00:00:00');
-          const dateStr = date.toLocaleDateString('es-MX', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          });
-          const start = ex.start_time ? ex.start_time.slice(0, 5) : 'Cerrado';
-          const end = ex.end_time ? ex.end_time.slice(0, 5) : '';
-          const hours = start && end ? `${start} - ${end}` : 'Día sin atención';
-          return `<div class="border-bottom py-2"><strong>${dateStr}</strong><br /><span class="text-muted">${hours}</span></div>`;
-        })
-        .join('');
+    if (text) {
+      scheduleDisplay.style.display = '';
+      noSchedule.style.display = 'none';
+      scheduleText.textContent = text;
+      exceptionsText.textContent = excText || '';
     } else {
-      exceptionsEmpty.classList.remove('d-none');
-      exceptionsList.innerHTML = '';
+      scheduleDisplay.style.display = 'none';
+      noSchedule.style.display = '';
     }
   } catch (err) {
     console.error('Error al cargar horario:', err);
+    scheduleDisplay.style.display = 'none';
+    noSchedule.style.display = 'none';
     feedbackEl.innerHTML = `<div class="alert alert-danger mb-0">Error al cargar el horario: ${err.message}</div>`;
-    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">Error al cargar datos.</td></tr>';
   }
 }
 
