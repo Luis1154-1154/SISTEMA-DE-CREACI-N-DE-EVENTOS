@@ -3,21 +3,42 @@ const router = express.Router();
 const scheduleModel = require('../models/Schedule');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Protect schedule management for admins only
-router.use('/schedule', authMiddleware.requireAuth);
-router.use('/schedule', (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'No autorizado' });
-  }
-  return next();
-});
-
-// Settings
+// Public read-only endpoints (no auth required)
 router.get('/schedule/settings', (req, res) => {
   scheduleModel.getSetting('appointment_interval_minutes', (err, value) => {
     if (err) return res.status(500).json({ message: 'Error interno' });
     res.json({ appointment_interval_minutes: value ? parseInt(value, 10) : 30 });
   });
+});
+
+router.get('/schedule/working_hours', (req, res) => {
+  scheduleModel.listWorkingHours((err, rows) => {
+    if (err) return res.status(500).json({ message: 'Error interno' });
+    res.json(rows);
+  });
+});
+
+router.get('/schedule/exceptions', (req, res) => {
+  scheduleModel.listExceptions((err, rows) => {
+    if (err) return res.status(500).json({ message: 'Error interno' });
+    res.json(rows);
+  });
+});
+
+// Protect write operations for admins only
+router.use('/schedule/settings', authMiddleware.requireAuth, (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') return res.status(403).json({ message: 'No autorizado' });
+  next();
+});
+router.use('/schedule/working_hours', authMiddleware.requireAuth, (req, res, next) => {
+  if (req.method === 'GET') return next(); // GET already handled above
+  if (!req.user || req.user.role !== 'admin') return res.status(403).json({ message: 'No autorizado' });
+  next();
+});
+router.use('/schedule/exceptions', authMiddleware.requireAuth, (req, res, next) => {
+  if (req.method === 'GET') return next(); // GET already handled above
+  if (!req.user || req.user.role !== 'admin') return res.status(403).json({ message: 'No autorizado' });
+  next();
 });
 
 router.put('/schedule/settings', (req, res) => {
@@ -26,14 +47,6 @@ router.put('/schedule/settings', (req, res) => {
   scheduleModel.setSetting('appointment_interval_minutes', String(appointment_interval_minutes), (err) => {
     if (err) return res.status(500).json({ message: 'Error guardando setting' });
     res.json({ ok: true });
-  });
-});
-
-// Working hours
-router.get('/schedule/working_hours', (req, res) => {
-  scheduleModel.listWorkingHours((err, rows) => {
-    if (err) return res.status(500).json({ message: 'Error interno' });
-    res.json(rows);
   });
 });
 
@@ -55,14 +68,6 @@ router.delete('/schedule/working_hours/:id', (req, res) => {
   scheduleModel.deleteWorkingHour(req.params.id, (err) => {
     if (err) return res.status(500).json({ message: 'Error eliminando regla' });
     res.json({ ok: true });
-  });
-});
-
-// Exceptions
-router.get('/schedule/exceptions', (req, res) => {
-  scheduleModel.listExceptions((err, rows) => {
-    if (err) return res.status(500).json({ message: 'Error interno' });
-    res.json(rows);
   });
 });
 
