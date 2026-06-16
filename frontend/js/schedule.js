@@ -1,7 +1,6 @@
 import { api } from './api-client.js';
 import { authGuard } from './api-client.js';
 
-const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const DAY_NAMES_SHORT = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
 function formatTime(timeStr) {
@@ -12,10 +11,14 @@ function formatTime(timeStr) {
 function buildScheduleText(workingHours) {
   if (!workingHours || workingHours.length === 0) return null;
 
-  // Sort by day of week
-  const sorted = [...workingHours].sort((a, b) => a.day_of_week - b.day_of_week);
+  // Sort by day_of_week with nulls (all days) first
+  const sorted = [...workingHours].sort((a, b) => {
+    if (a.day_of_week === null || a.day_of_week === undefined) return -1;
+    if (b.day_of_week === null || b.day_of_week === undefined) return 1;
+    return a.day_of_week - b.day_of_week;
+  });
 
-  // Group by start_time, end_time, break_start, break_end (same schedule pattern)
+  // Group by same time pattern
   const groups = [];
   let currentGroup = null;
 
@@ -25,7 +28,7 @@ function buildScheduleText(workingHours) {
       currentGroup = { key, days: [], start: wh.start_time, end: wh.end_time, breakStart: wh.break_start, breakEnd: wh.break_end };
       groups.push(currentGroup);
     }
-    currentGroup.days.push(wh.day_of_week);
+    currentGroup.days.push(wh.day_of_week !== null && wh.day_of_week !== undefined ? wh.day_of_week : null);
   }
 
   return groups.map((g) => {
@@ -34,15 +37,28 @@ function buildScheduleText(workingHours) {
 
     // Format days list
     let daysStr;
-    if (g.days.length === 1) {
-      daysStr = DAY_NAMES_SHORT[g.days[0]];
+
+    // Check if any day is null (all days / todos)
+    const hasNullDay = g.days.some((d) => d === null);
+
+    if (hasNullDay) {
+      daysStr = 'todos los días';
     } else {
-      // Check if consecutive
-      const isConsecutive = g.days.every((d, i) => i === 0 || d === g.days[i - 1] + 1);
-      if (isConsecutive && g.days.length > 1) {
-        daysStr = `${DAY_NAMES_SHORT[g.days[0]]} a ${DAY_NAMES_SHORT[g.days[g.days.length - 1]]}`;
+      // Remove duplicates and sort
+      const uniqueDays = [...new Set(g.days)].sort((a, b) => a - b);
+
+      if (uniqueDays.length === 1) {
+        daysStr = DAY_NAMES_SHORT[uniqueDays[0]];
+      } else if (uniqueDays.length === 7) {
+        daysStr = 'todos los días';
       } else {
-        daysStr = g.days.map((d) => DAY_NAMES_SHORT[d]).join(', ');
+        // Check if consecutive
+        const isConsecutive = uniqueDays.every((d, i) => i === 0 || d === uniqueDays[i - 1] + 1);
+        if (isConsecutive && uniqueDays.length > 1) {
+          daysStr = `${DAY_NAMES_SHORT[uniqueDays[0]]} a ${DAY_NAMES_SHORT[uniqueDays[uniqueDays.length - 1]]}`;
+        } else {
+          daysStr = uniqueDays.map((d) => DAY_NAMES_SHORT[d]).join(', ');
+        }
       }
     }
 
