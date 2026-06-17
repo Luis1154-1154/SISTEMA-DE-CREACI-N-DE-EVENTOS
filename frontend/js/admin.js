@@ -240,12 +240,9 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
   });
 }
 
-async function loadAdminAppointments(mode = adminPageMode) {
+async function loadScheduleAdmin() {
   const feedback = document.querySelector('[data-admin-feedback]');
-  const container = document.querySelector('[data-admin-appointments-list]');
-  if (!container) return;
-  clearMessage(feedback);
-  // Load schedule settings (appointment interval)
+  if (!feedback) return;
   function formatDayLabel(day) {
     const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
     if (day === null || day === undefined || day === '') return 'Todos los días';
@@ -261,6 +258,7 @@ async function loadAdminAppointments(mode = adminPageMode) {
     return new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }).format(date);
   }
 
+  // Load schedule settings (appointment interval)
   try {
     const settings = await api.getScheduleSettings();
     const minutes = settings && settings.appointment_interval_minutes ? Number(settings.appointment_interval_minutes) : null;
@@ -283,6 +281,7 @@ async function loadAdminAppointments(mode = adminPageMode) {
   } catch (err) {
     // ignore schedule settings load errors for now
   }
+
   // Load working hours and exceptions and wire add/delete
   try {
     const wh = await api.listWorkingHours();
@@ -314,7 +313,7 @@ async function loadAdminAppointments(mode = adminPageMode) {
         try {
           await api.deleteWorkingHour(id);
           showMessage(feedback, 'Regla eliminada', 'success');
-          loadAdminAppointments(mode);
+          loadScheduleAdmin();
         } catch (err) {
           showMessage(feedback, err.message);
         }
@@ -333,7 +332,7 @@ async function loadAdminAppointments(mode = adminPageMode) {
         try {
           await api.deleteScheduleException(id);
           showMessage(feedback, 'Excepción eliminada', 'success');
-          loadAdminAppointments(mode);
+          loadScheduleAdmin();
         } catch (err) {
           showMessage(feedback, err.message);
         }
@@ -376,7 +375,7 @@ async function loadAdminAppointments(mode = adminPageMode) {
             await api.createWorkingHour({ day_of_week: day, start_time: start, end_time: end, break_start: breakStart || null, break_end: breakEnd || null, applies_forever: true, active: true });
           }
           showMessage(feedback, 'Regla(s) guardada(s)', 'success');
-          loadAdminAppointments(mode);
+          loadScheduleAdmin();
         } catch (err) {
           showMessage(feedback, err.message);
         }
@@ -394,7 +393,7 @@ async function loadAdminAppointments(mode = adminPageMode) {
         try {
           await api.createScheduleException({ exception_date: date, start_time: s || null, end_time: e || null, reason: null });
           showMessage(feedback, 'Excepción guardada', 'success');
-          loadAdminAppointments(mode);
+          loadScheduleAdmin();
         } catch (err) {
           showMessage(feedback, err.message);
         }
@@ -403,6 +402,15 @@ async function loadAdminAppointments(mode = adminPageMode) {
   } catch (err) {
     // ignore
   }
+}
+
+async function loadAdminAppointments(mode = adminPageMode) {
+  const feedback = document.querySelector('[data-admin-feedback]');
+  const container = document.querySelector('[data-admin-appointments-list]');
+  if (!container) return;
+  clearMessage(feedback);
+  await loadScheduleAdmin();
+
   try {
     const me = await api.me();
     let payload;
@@ -578,6 +586,8 @@ if (appointmentsContainer) {
   });
   window.addEventListener('focus', () => loadAdminAppointments(adminPageMode));
 }
+// On admin-schedule.html: load schedule admin (working hours, exceptions, settings)
+loadScheduleAdmin();
 const recordsContainer = document.querySelector('[data-records-users]');
 if (recordsContainer) loadClinicalRecords();
 
