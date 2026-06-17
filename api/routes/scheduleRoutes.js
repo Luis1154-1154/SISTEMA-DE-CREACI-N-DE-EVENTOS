@@ -13,15 +13,15 @@ router.get('/schedule/settings', (req, res) => {
 
 router.get('/schedule/working_hours', (req, res) => {
   scheduleModel.listWorkingHours((err, rows) => {
-    if (err) return res.status(500).json({ message: 'Error interno' });
-    res.json(rows);
+    if (err) return res.json([]);
+    res.json(rows || []);
   });
 });
 
 router.get('/schedule/exceptions', (req, res) => {
   scheduleModel.listExceptions((err, rows) => {
-    if (err) return res.status(500).json({ message: 'Error interno' });
-    res.json(rows);
+    if (err) return res.json([]);
+    res.json(rows || []);
   });
 });
 
