@@ -303,15 +303,26 @@ async function loadScheduleAdmin() {
       }
     }
 
+    // Update the working hours list
+    if (container) {
+      container.innerHTML = list.length ? list.map(w => {
+        return `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${formatDayLabel(w.day_of_week)} ${formatTimeDisplay(w.start_time)} - ${formatTimeDisplay(w.end_time)}${w.break_start ? ' (descanso ' + formatTimeDisplay(w.break_start) + ' - ' + formatTimeDisplay(w.break_end || '') + ')' : ''}</div><button class="btn btn-sm btn-outline-danger" data-delete-wh="${w.id}">Eliminar</button></div>`;
+      }).join('') : '<div class="text-muted small">No hay reglas de horario.</div>';
+    }
+
+    // Update the exceptions list
+    const exceptions = await api.listScheduleExceptions();
+    const exList = Array.isArray(exceptions) ? exceptions : (exceptions && exceptions.data) || [];
+    const exContainer = document.getElementById('exceptions-list');
+    if (exContainer) {
+      exContainer.innerHTML = exList.length ? exList.map(e => `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${e.exception_date} ${e.start_time||''}-${e.end_time||''} ${e.reason||''}</div><button class="btn btn-sm btn-outline-danger" data-delete-ex="${e.id}">Eliminar</button></div>`).join('') : '<div class="text-muted small">No hay excepciones.</div>';
+    }
+
     // Prevent duplicate wiring — use a flag
     if (document.body.dataset.scheduleWired !== 'true') {
       document.body.dataset.scheduleWired = 'true';
 
       if (container) {
-        container.innerHTML = list.length ? list.map(w => {
-          return `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${formatDayLabel(w.day_of_week)} ${formatTimeDisplay(w.start_time)} - ${formatTimeDisplay(w.end_time)}${w.break_start ? ' (descanso ' + formatTimeDisplay(w.break_start) + ' - ' + formatTimeDisplay(w.break_end || '') + ')' : ''}</div><button class="btn btn-sm btn-outline-danger" data-delete-wh="${w.id}">Eliminar</button></div>`;
-        }).join('') : '<div class="text-muted small">No hay reglas de horario.</div>';
-
         container.addEventListener('click', async (ev) => {
           const btn = ev.target.closest('[data-delete-wh]');
           if (!btn) return;
@@ -326,11 +337,7 @@ async function loadScheduleAdmin() {
         });
       }
 
-      const exceptions = await api.listScheduleExceptions();
-      const exList = Array.isArray(exceptions) ? exceptions : (exceptions && exceptions.data) || [];
-      const exContainer = document.getElementById('exceptions-list');
       if (exContainer) {
-        exContainer.innerHTML = exList.length ? exList.map(e => `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${e.exception_date} ${e.start_time||''}-${e.end_time||''} ${e.reason||''}</div><button class="btn btn-sm btn-outline-danger" data-delete-ex="${e.id}">Eliminar</button></div>`).join('') : '<div class="text-muted small">No hay excepciones.</div>';
         exContainer.addEventListener('click', async (ev) => {
           const btn = ev.target.closest('[data-delete-ex]');
           if (!btn) return;
