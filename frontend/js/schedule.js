@@ -1,5 +1,4 @@
 import { api } from './api-client.js';
-import { authGuard } from './api-client.js';
 
 const DAY_NAMES_SHORT = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
@@ -126,6 +125,8 @@ async function loadSchedule() {
     } else {
       scheduleDisplay.style.display = 'none';
       noSchedule.style.display = '';
+      // Show a friendlier message
+      document.querySelector('[data-schedule-feedback]').innerHTML = '<div class="text-center text-muted py-3">Cargando horario...</div>';
     }
   } catch (err) {
     console.error('Error al cargar horario:', err);
@@ -135,9 +136,5 @@ async function loadSchedule() {
   }
 }
 
-// Wait for auth guard then load
-authGuard()
-  .then(() => loadSchedule())
-  .catch(() => {
-    // authGuard will redirect to login if not authenticated
-  });
+// Load the schedule directly — GET endpoints are public
+loadSchedule();
