@@ -241,6 +241,10 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
 }
 
 async function loadScheduleAdmin() {
+  // Prevent duplicate wiring — check flag FIRST, before any async ops
+  if (document.body.dataset.scheduleWired === 'true') return;
+  document.body.dataset.scheduleWired = 'true';
+
   const feedback = document.querySelector('[data-admin-feedback]');
   if (!feedback) return;
   function formatDayLabel(day) {
@@ -318,10 +322,7 @@ async function loadScheduleAdmin() {
       exContainer.innerHTML = exList.length ? exList.map(e => `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${e.exception_date} ${e.start_time||''}-${e.end_time||''} ${e.reason||''}</div><button class="btn btn-sm btn-outline-danger" data-delete-ex="${e.id}">Eliminar</button></div>`).join('') : '<div class="text-muted small">No hay excepciones.</div>';
     }
 
-    // Prevent duplicate wiring — use a flag
-    if (document.body.dataset.scheduleWired !== 'true') {
-      document.body.dataset.scheduleWired = 'true';
-
+  // Wire event handlers (only runs once due to the flag check above)
       if (container) {
         container.addEventListener('click', async (ev) => {
           const btn = ev.target.closest('[data-delete-wh]');
@@ -412,7 +413,6 @@ async function loadScheduleAdmin() {
           }
         });
       }
-    }
   } catch (err) {
     // ignore
   }
