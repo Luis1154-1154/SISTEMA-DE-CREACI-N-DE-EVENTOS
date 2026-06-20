@@ -109,23 +109,25 @@ async function loadSchedule() {
   const noSchedule = document.getElementById('no-schedule');
 
   try {
-    const [workingHours, exceptions] = await Promise.all([
+    const [workingHours, exceptions, settings] = await Promise.all([
       api.listWorkingHours(),
       api.listScheduleExceptions(),
+      api.getScheduleSettings().catch(() => null),
     ]);
 
     const text = buildScheduleText(workingHours);
     const excText = buildExceptionsText(exceptions);
 
     if (text) {
+      const interval = settings && settings.appointment_interval_minutes ? Number(settings.appointment_interval_minutes) : 30;
+      const intervalText = `Las citas se agendan cada ${interval} minutos.`;
       scheduleDisplay.style.display = '';
       noSchedule.style.display = 'none';
-      scheduleText.textContent = text;
+      scheduleText.innerHTML = text + '<br /><span class="text-muted" style="font-size: 0.9rem;">' + intervalText + '</span>';
       exceptionsText.textContent = excText || '';
     } else {
       scheduleDisplay.style.display = 'none';
       noSchedule.style.display = '';
-      // Show a friendlier message
       document.querySelector('[data-schedule-feedback]').innerHTML = '<div class="text-center text-muted py-3">Cargando horario...</div>';
     }
   } catch (err) {
