@@ -241,10 +241,6 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
 }
 
 async function loadScheduleAdmin() {
-  // Prevent duplicate wiring — check flag FIRST, before any async ops
-  if (document.body.dataset.scheduleWired === 'true') return;
-  document.body.dataset.scheduleWired = 'true';
-
   const feedback = document.querySelector('[data-admin-feedback]');
   if (!feedback) return;
   function formatDayLabel(day) {
@@ -287,7 +283,7 @@ async function loadScheduleAdmin() {
     // ignore schedule settings load errors for now
   }
 
-  // Load working hours and exceptions and wire add/delete
+  // Load working hours and exceptions
   try {
     const wh = await api.listWorkingHours();
     const list = Array.isArray(wh) ? wh : (wh && wh.data) || [];
@@ -307,14 +303,14 @@ async function loadScheduleAdmin() {
       }
     }
 
-    // Update the working hours list
+    // Update the working hours list (always refreshes the HTML)
     if (container) {
       container.innerHTML = list.length ? list.map(w => {
         return `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${formatDayLabel(w.day_of_week)} ${formatTimeDisplay(w.start_time)} - ${formatTimeDisplay(w.end_time)}${w.break_start ? ' (descanso ' + formatTimeDisplay(w.break_start) + ' - ' + formatTimeDisplay(w.break_end || '') + ')' : ''}</div><button class="btn btn-sm btn-outline-danger" data-delete-wh="${w.id}">Eliminar</button></div>`;
       }).join('') : '<div class="text-muted small">No hay reglas de horario.</div>';
     }
 
-    // Update the exceptions list
+    // Update the exceptions list (always refreshes the HTML)
     const exceptions = await api.listScheduleExceptions();
     const exList = Array.isArray(exceptions) ? exceptions : (exceptions && exceptions.data) || [];
     const exContainer = document.getElementById('exceptions-list');
@@ -322,7 +318,10 @@ async function loadScheduleAdmin() {
       exContainer.innerHTML = exList.length ? exList.map(e => `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${e.exception_date} ${e.start_time||''}-${e.end_time||''} ${e.reason||''}</div><button class="btn btn-sm btn-outline-danger" data-delete-ex="${e.id}">Eliminar</button></div>`).join('') : '<div class="text-muted small">No hay excepciones.</div>';
     }
 
-  // Wire event handlers (only runs once due to the flag check above)
+    // Wire event handlers — only run once on page load
+    if (document.body.dataset.scheduleWired !== 'true') {
+      document.body.dataset.scheduleWired = 'true';
+
       if (container) {
         container.addEventListener('click', async (ev) => {
           const btn = ev.target.closest('[data-delete-wh]');
@@ -354,7 +353,6 @@ async function loadScheduleAdmin() {
       }
 
       // wire add forms
-      // "Todos" checkbox toggle for working hour days
       const allCheck = document.getElementById('wh-day-all');
       if (allCheck) {
         allCheck.addEventListener('change', () => {
@@ -378,7 +376,6 @@ async function loadScheduleAdmin() {
           const breakEnd = String(document.getElementById('wh-break-end')?.value || '').trim();
           if (!start || !end) return showMessage(feedback, 'Inicio y fin son obligatorios');
           
-          // If "Todos" is checked or all days are checked, send one rule with day_of_week=null
           const allChecked = allCheck && allCheck.checked || checkedDays.length >= 7;
           const days = allChecked ? [null] : checkedDays.map(Number);
           
@@ -413,6 +410,7 @@ async function loadScheduleAdmin() {
           }
         });
       }
+    }
   } catch (err) {
     // ignore
   }
