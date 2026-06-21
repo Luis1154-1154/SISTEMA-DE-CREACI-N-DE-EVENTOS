@@ -17,59 +17,26 @@ function buildScheduleText(workingHours) {
     return a.day_of_week - b.day_of_week;
   });
 
-  // Group by same time pattern
-  const groups = [];
-  let currentGroup = null;
+  // Show each rule individually without grouping
+  return sorted.map((wh) => {
+    const start = formatTime(wh.start_time);
+    const end = formatTime(wh.end_time);
 
-  for (const wh of sorted) {
-    const key = `${wh.start_time}|${wh.end_time}|${wh.break_start || ''}|${wh.break_end || ''}`;
-    if (!currentGroup || currentGroup.key !== key) {
-      currentGroup = { key, days: [], start: wh.start_time, end: wh.end_time, breakStart: wh.break_start, breakEnd: wh.break_end };
-      groups.push(currentGroup);
-    }
-    currentGroup.days.push(wh.day_of_week !== null && wh.day_of_week !== undefined ? wh.day_of_week : null);
-  }
-
-  return groups.map((g) => {
-    const start = formatTime(g.start);
-    const end = formatTime(g.end);
-
-    // Format days list
     let daysStr;
-
-    // Check if any day is null (all days / todos)
-    const hasNullDay = g.days.some((d) => d === null);
-
-    if (hasNullDay) {
+    if (wh.day_of_week === null || wh.day_of_week === undefined) {
       daysStr = 'todos los días';
     } else {
-      // Remove duplicates and sort
-      const uniqueDays = [...new Set(g.days)].sort((a, b) => a - b);
-
-      if (uniqueDays.length === 1) {
-        daysStr = DAY_NAMES_SHORT[uniqueDays[0]];
-      } else if (uniqueDays.length === 7) {
-        daysStr = 'todos los días';
-      } else {
-        // Check if consecutive
-        const isConsecutive = uniqueDays.every((d, i) => i === 0 || d === uniqueDays[i - 1] + 1);
-        if (isConsecutive && uniqueDays.length > 1) {
-          daysStr = `${DAY_NAMES_SHORT[uniqueDays[0]]} a ${DAY_NAMES_SHORT[uniqueDays[uniqueDays.length - 1]]}`;
-        } else {
-          daysStr = uniqueDays.map((d) => DAY_NAMES_SHORT[d]).join(', ');
-        }
-      }
+      daysStr = DAY_NAMES_SHORT[wh.day_of_week];
     }
 
-    // Capitalize first letter
     daysStr = daysStr.charAt(0).toUpperCase() + daysStr.slice(1);
 
-    let text = `Abrimos ${daysStr} de ${start} a ${end}`;
+    let text = `${daysStr}: ${start} a ${end}`;
 
-    if (g.breakStart && g.breakEnd) {
-      const breakStart = formatTime(g.breakStart);
-      const breakEnd = formatTime(g.breakEnd);
-      text += ` con descanso de ${breakStart} a ${breakEnd}`;
+    if (wh.break_start && wh.break_end) {
+      const breakStart = formatTime(wh.break_start);
+      const breakEnd = formatTime(wh.break_end);
+      text += ` (descanso ${breakStart} a ${breakEnd})`;
     }
 
     return text + '.';
