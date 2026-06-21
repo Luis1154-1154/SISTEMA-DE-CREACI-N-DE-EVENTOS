@@ -382,6 +382,11 @@ async function loadScheduleAdmin() {
           if (!allChecked && checkedDays.length === 0) return showMessage(feedback, 'Selecciona al menos un día');
           
           try {
+            // Also save appointment interval if changed
+            const intervalVal = Number(document.getElementById('appointment-interval')?.value || 0);
+            if (intervalVal >= 5) {
+              await api.updateScheduleSettings({ appointment_interval_minutes: intervalVal });
+            }
             for (const day of days) {
               await api.createWorkingHour({ day_of_week: day, start_time: start, end_time: end, break_start: breakStart || null, break_end: breakEnd || null, applies_forever: true, active: true });
             }

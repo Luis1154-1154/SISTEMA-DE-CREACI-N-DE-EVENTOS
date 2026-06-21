@@ -79,18 +79,16 @@
                                     <label class="form-label small">Descanso fin</label>
                                     <input class="form-control form-control-sm" id="wh-break-end" type="time" />
                                 </div>
+                                <div class="col-12 mt-2">
+                                    <label class="form-label small">Espaciado entre citas (minutos)</label>
+                                    <div class="input-group input-group-sm">
+                                        <input class="form-control form-control-sm" id="appointment-interval" type="number" min="5" max="120" value="30" style="max-width: 100px;" />
+                                    </div>
+                                    <div class="text-muted small mt-1">Se refleja en el selector de hora del usuario.</div>
+                                </div>
                             </form>
                             <hr />
                             <div id="working-hours-list" class="mt-2 small"></div>
-
-                            <div class="mt-3 pt-3 border-top" style="border-color: var(--clinic-border) !important;">
-                                <label class="form-label small">Espaciado entre citas (minutos)</label>
-                                <div class="input-group input-group-sm">
-                                    <input class="form-control form-control-sm" id="appointment-interval" type="number" min="5" max="120" value="30" style="max-width: 100px;" />
-                                    <button class="btn btn-sm btn-primary" id="save-appointment-interval">Guardar</button>
-                                </div>
-                                <div class="text-muted small mt-1">Se refleja en el selector de hora del usuario.</div>
-                            </div>
                         </div>
                     </section>
                 </div>
