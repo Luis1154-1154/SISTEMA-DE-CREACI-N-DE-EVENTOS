@@ -9,7 +9,20 @@ exports.getSetting = (key, callback) => {
 };
 
 exports.setSetting = (key, value, callback) => {
-  db.query('INSERT INTO clinic_settings (key, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)', [key, value], callback);
+  const DB_CLIENT = (process.env.DB_CLIENT || 'mysql').toLowerCase();
+  if (DB_CLIENT === 'postgres' || DB_CLIENT === 'pg') {
+    db.query(
+      'INSERT INTO clinic_settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value',
+      [key, value],
+      callback
+    );
+  } else {
+    db.query(
+      'INSERT INTO clinic_settings (key, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)',
+      [key, value],
+      callback
+    );
+  }
 };
 
 // Working hours CRUD
