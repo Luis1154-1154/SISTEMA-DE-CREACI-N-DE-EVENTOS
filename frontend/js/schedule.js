@@ -10,14 +10,19 @@ function formatTime(timeStr) {
 function buildScheduleText(workingHours) {
   if (!workingHours || workingHours.length === 0) return null;
 
-  // Sort by day_of_week with nulls (all days) first
-  const sorted = [...workingHours].sort((a, b) => {
-    if (a.day_of_week === null || a.day_of_week === undefined) return -1;
-    if (b.day_of_week === null || b.day_of_week === undefined) return 1;
-    return a.day_of_week - b.day_of_week;
+  // Filter: if there are specific day rules with same time as a null (all days) rule,
+  // only show the specific ones to avoid duplicates
+  const hasSpecificDays = workingHours.some(wh => wh.day_of_week !== null && wh.day_of_week !== undefined);
+  const filtered = hasSpecificDays
+    ? workingHours.filter(wh => wh.day_of_week !== null && wh.day_of_week !== undefined)
+    : workingHours;
+
+  // Sort by day_of_week
+  const sorted = [...filtered].sort((a, b) => {
+    return (a.day_of_week || 0) - (b.day_of_week || 0);
   });
 
-  // Show each rule individually without grouping
+  // Show each rule individually
   return sorted.map((wh) => {
     const start = formatTime(wh.start_time);
     const end = formatTime(wh.end_time);
