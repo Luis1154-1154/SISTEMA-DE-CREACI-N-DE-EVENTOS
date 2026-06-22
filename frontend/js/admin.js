@@ -387,6 +387,17 @@ async function loadScheduleAdmin() {
             if (intervalVal >= 5) {
               await api.updateScheduleSettings({ appointment_interval_minutes: intervalVal });
             }
+            // If creating specific day rules, delete the "all days" rule first
+            if (!allChecked) {
+              const existingWh = await api.listWorkingHours();
+              if (Array.isArray(existingWh)) {
+                for (const rule of existingWh) {
+                  if (rule.day_of_week === null) {
+                    await api.deleteWorkingHour(rule.id);
+                  }
+                }
+              }
+            }
             for (const day of days) {
               await api.createWorkingHour({ day_of_week: day, start_time: start, end_time: end, break_start: breakStart || null, break_end: breakEnd || null, applies_forever: true, active: true });
             }
