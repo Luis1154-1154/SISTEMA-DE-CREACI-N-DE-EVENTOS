@@ -243,6 +243,7 @@ async function wireAppointmentInteractions(container, feedback, refresh) {
 async function loadScheduleAdmin() {
   const feedback = document.querySelector('[data-admin-feedback]');
   if (!feedback) return;
+
   function formatDayLabel(day) {
     const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
     if (day === null || day === undefined || day === '') return 'Todos los días';
@@ -303,132 +304,139 @@ async function loadScheduleAdmin() {
       }
     }
 
-    // Update the working hours list (always refreshes the HTML)
+    // Update the working hours list
     if (container) {
       container.innerHTML = list.length ? list.map(w => {
         return `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${formatDayLabel(w.day_of_week)} ${formatTimeDisplay(w.start_time)} - ${formatTimeDisplay(w.end_time)}${w.break_start ? ' (descanso ' + formatTimeDisplay(w.break_start) + ' - ' + formatTimeDisplay(w.break_end || '') + ')' : ''}</div><button class="btn btn-sm btn-outline-danger" data-delete-wh="${w.id}">Eliminar</button></div>`;
       }).join('') : '<div class="text-muted small">No hay reglas de horario.</div>';
     }
 
-    // Update the exceptions list (always refreshes the HTML)
+    // Update the exceptions list
     const exceptions = await api.listScheduleExceptions();
     const exList = Array.isArray(exceptions) ? exceptions : (exceptions && exceptions.data) || [];
     const exContainer = document.getElementById('exceptions-list');
     if (exContainer) {
       exContainer.innerHTML = exList.length ? exList.map(e => `<div class="d-flex align-items-center gap-2 mb-2"><div class="flex-grow-1 small">${e.exception_date} ${e.start_time||''}-${e.end_time||''} ${e.reason||''}</div><button class="btn btn-sm btn-outline-danger" data-delete-ex="${e.id}">Eliminar</button></div>`).join('') : '<div class="text-muted small">No hay excepciones.</div>';
     }
-
-    // Wire event handlers — only run once on page load
-    if (document.body.dataset.scheduleWired !== 'true') {
-      document.body.dataset.scheduleWired = 'true';
-
-      if (container) {
-        container.addEventListener('click', async (ev) => {
-          const btn = ev.target.closest('[data-delete-wh]');
-          if (!btn) return;
-          const id = btn.getAttribute('data-delete-wh');
-          try {
-            await api.deleteWorkingHour(id);
-            showMessage(feedback, 'Regla eliminada', 'success');
-            loadScheduleAdmin();
-          } catch (err) {
-            showMessage(feedback, err.message);
-          }
-        });
-      }
-
-      if (exContainer) {
-        exContainer.addEventListener('click', async (ev) => {
-          const btn = ev.target.closest('[data-delete-ex]');
-          if (!btn) return;
-          const id = btn.getAttribute('data-delete-ex');
-          try {
-            await api.deleteScheduleException(id);
-            showMessage(feedback, 'Excepción eliminada', 'success');
-            loadScheduleAdmin();
-          } catch (err) {
-            showMessage(feedback, err.message);
-          }
-        });
-      }
-
-      // wire add forms
-      const allCheck = document.getElementById('wh-day-all');
-      if (allCheck) {
-        allCheck.addEventListener('change', () => {
-          document.querySelectorAll('.wh-day-cb').forEach(cb => cb.checked = allCheck.checked);
-        });
-        document.querySelectorAll('.wh-day-cb').forEach(cb => {
-          cb.addEventListener('change', () => {
-            if (!cb.checked) allCheck.checked = false;
-          });
-        });
-      }
-
-      const whForm = document.getElementById('working-hour-form');
-      if (whForm) {
-        whForm.addEventListener('submit', async (ev) => {
-          ev.preventDefault();
-          const checkedDays = Array.from(document.querySelectorAll('.wh-day-cb:checked')).map(cb => cb.value);
-          const start = String(document.getElementById('wh-start')?.value || '').trim();
-          const end = String(document.getElementById('wh-end')?.value || '').trim();
-          const breakStart = String(document.getElementById('wh-break-start')?.value || '').trim();
-          const breakEnd = String(document.getElementById('wh-break-end')?.value || '').trim();
-          if (!start || !end) return showMessage(feedback, 'Inicio y fin son obligatorios');
-          
-          const allChecked = allCheck && allCheck.checked || checkedDays.length >= 7;
-          const days = allChecked ? [null] : checkedDays.map(Number);
-          
-          if (!allChecked && checkedDays.length === 0) return showMessage(feedback, 'Selecciona al menos un día');
-          
-          try {
-            // Also save appointment interval if changed
-            const intervalVal = Number(document.getElementById('appointment-interval')?.value || 0);
-            if (intervalVal >= 5) {
-              await api.updateScheduleSettings({ appointment_interval_minutes: intervalVal });
-            }
-            // If creating specific day rules, delete the "all days" rule first
-            if (!allChecked) {
-              const existingWh = await api.listWorkingHours();
-              if (Array.isArray(existingWh)) {
-                for (const rule of existingWh) {
-                  if (rule.day_of_week === null) {
-                    await api.deleteWorkingHour(rule.id);
-                  }
-                }
-              }
-            }
-            for (const day of days) {
-              await api.createWorkingHour({ day_of_week: day, start_time: start, end_time: end, break_start: breakStart || null, break_end: breakEnd || null, applies_forever: true, active: true });
-            }
-            showMessage(feedback, 'Regla(s) guardada(s)', 'success');
-            loadScheduleAdmin();
-          } catch (err) {
-            showMessage(feedback, err.message);
-          }
-        });
-      }
-
-      const exForm = document.getElementById('exception-form');
-      if (exForm) {
-        exForm.addEventListener('submit', async (ev) => {
-          ev.preventDefault();
-          const date = String(document.getElementById('ex-date')?.value || '').trim();
-          const s = String(document.getElementById('ex-start')?.value || '').trim();
-          const e = String(document.getElementById('ex-end')?.value || '').trim();
-          if (!date) return showMessage(feedback, 'Fecha requerida');
-          try {
-            await api.createScheduleException({ exception_date: date, start_time: s || null, end_time: e || null, reason: null });
-            showMessage(feedback, 'Excepción guardada', 'success');
-            loadScheduleAdmin();
-          } catch (err) {
-            showMessage(feedback, err.message);
-          }
-        });
-      }
-    }
   } catch (err) {
     // ignore
+  }
+}
+
+async function wireScheduleForms() {
+  const feedback = document.querySelector('[data-admin-feedback]');
+  if (!feedback) return;
+
+  // Wire delete working hours
+  const container = document.getElementById('working-hours-list');
+  if (container) {
+    container.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('[data-delete-wh]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-delete-wh');
+      try {
+        await api.deleteWorkingHour(id);
+        showMessage(feedback, 'Regla eliminada', 'success');
+        loadScheduleAdmin();
+      } catch (err) {
+        showMessage(feedback, err.message);
+      }
+    });
+  }
+
+  // Wire delete exceptions
+  const exContainer = document.getElementById('exceptions-list');
+  if (exContainer) {
+    exContainer.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('[data-delete-ex]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-delete-ex');
+      try {
+        await api.deleteScheduleException(id);
+        showMessage(feedback, 'Excepción eliminada', 'success');
+        loadScheduleAdmin();
+      } catch (err) {
+        showMessage(feedback, err.message);
+      }
+    });
+  }
+
+  // "Todos" checkbox toggle
+  const allCheck = document.getElementById('wh-day-all');
+  if (allCheck) {
+    allCheck.addEventListener('change', () => {
+      document.querySelectorAll('.wh-day-cb').forEach(cb => cb.checked = allCheck.checked);
+    });
+    document.querySelectorAll('.wh-day-cb').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (!cb.checked) allCheck.checked = false;
+      });
+    });
+  }
+
+  // Wire working hour form submit
+  const whForm = document.getElementById('working-hour-form');
+  if (whForm) {
+    whForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const checkedDays = Array.from(document.querySelectorAll('.wh-day-cb:checked')).map(cb => cb.value);
+      const start = String(document.getElementById('wh-start')?.value || '').trim();
+      const end = String(document.getElementById('wh-end')?.value || '').trim();
+      const breakStart = String(document.getElementById('wh-break-start')?.value || '').trim();
+      const breakEnd = String(document.getElementById('wh-break-end')?.value || '').trim();
+      if (!start || !end) return showMessage(feedback, 'Inicio y fin son obligatorios');
+      
+      const allChecked = allCheck && allCheck.checked || checkedDays.length >= 7;
+      const days = allChecked ? [null] : checkedDays.map(Number);
+      
+      if (!allChecked && checkedDays.length === 0) return showMessage(feedback, 'Selecciona al menos un día');
+      
+      try {
+        // Save appointment interval
+        const intervalVal = Number(document.getElementById('appointment-interval')?.value || 0);
+        if (intervalVal >= 5) {
+          await api.updateScheduleSettings({ appointment_interval_minutes: intervalVal });
+        }
+        // Delete all "all days" rules before creating specific ones
+        if (!allChecked) {
+          const existingWh = await api.listWorkingHours();
+          if (Array.isArray(existingWh)) {
+            for (const rule of existingWh) {
+              if (rule.day_of_week === null || rule.day_of_week === undefined) {
+                await api.deleteWorkingHour(rule.id);
+              }
+            }
+          }
+        }
+        // Create the new rules
+        for (const day of days) {
+          await api.createWorkingHour({ day_of_week: day, start_time: start, end_time: end, break_start: breakStart || null, break_end: breakEnd || null, applies_forever: true, active: true });
+        }
+        showMessage(feedback, 'Regla(s) guardada(s)', 'success');
+        loadScheduleAdmin();
+      } catch (err) {
+        showMessage(feedback, err.message);
+      }
+    });
+  }
+
+  // Wire exception form submit
+  const exForm = document.getElementById('exception-form');
+  if (exForm) {
+    exForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const date = String(document.getElementById('ex-date')?.value || '').trim();
+      const s = String(document.getElementById('ex-start')?.value || '').trim();
+      const e = String(document.getElementById('ex-end')?.value || '').trim();
+      if (!date) return showMessage(feedback, 'Fecha requerida');
+      try {
+        await api.createScheduleException({ exception_date: date, start_time: s || null, end_time: e || null, reason: null });
+        showMessage(feedback, 'Excepción guardada', 'success');
+        loadScheduleAdmin();
+      } catch (err) {
+        showMessage(feedback, err.message);
+      }
+    });
   }
 }
 
@@ -444,17 +452,14 @@ async function loadAdminAppointments(mode = adminPageMode) {
     let payload;
     if (String(me?.role || '').toLowerCase() === 'admin') {
       payload = await api.listAppointmentsByDay();
-      // payload may be array or {data:[]}
       const appointments = Array.isArray(payload?.data) ? payload.data : payload;
       const list = Array.isArray(appointments) ? appointments : [];
-      // filter by mode: 'history' shows only attended or canceled; otherwise show pending
       const filtered = mode === 'history' ? list.filter(a => String(a.status || '').toLowerCase() !== 'pending') : list.filter(a => String(a.status || '').toLowerCase() === 'pending');
       container.innerHTML = (filtered.length ? filtered.map(renderAppointmentItem).join('') : '<div class="text-center text-muted py-4">No hay citas.</div>');
       await wireAppointmentInteractions(container, feedback, () => loadAdminAppointments(mode));
       return;
     }
 
-    // non-admin: show user's appointments
     payload = await api.listMyAppointments();
     const appointments = Array.isArray(payload?.data) ? payload.data : payload;
     container.innerHTML = (appointments.length ? appointments.map(renderAppointmentItem).join('') : '<div class="text-center text-muted py-4">No tienes citas pendientes.</div>');
@@ -468,7 +473,6 @@ initMobileNavToggle();
 
 function formatDateDisplay(dateStr) {
   if (!dateStr) return dateStr;
-  // Already in YYYY-MM-DD format
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
   try {
     const dt = new Date(dateStr + 'T12:00:00');
@@ -553,7 +557,6 @@ async function loadClinicalRecords() {
           </div>
         `;
 
-        // Wire attended appointments with observations form
         detailContainer.querySelectorAll('[data-record-observations-form]').forEach(form => {
           form.addEventListener('submit', async (ev) => {
             ev.preventDefault();
@@ -614,8 +617,10 @@ if (appointmentsContainer) {
   });
   window.addEventListener('focus', () => loadAdminAppointments(adminPageMode));
 }
-// On admin-schedule.html: load schedule admin (working hours, exceptions, settings)
+// On admin-schedule.html: load schedule admin and wire forms
 loadScheduleAdmin();
+wireScheduleForms();
+
 const recordsContainer = document.querySelector('[data-records-users]');
 if (recordsContainer) loadClinicalRecords();
 
@@ -627,4 +632,3 @@ if (logoutBtn) {
     window.location.assign('./index.html');
   });
 }
-
