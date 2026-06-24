@@ -54,8 +54,8 @@ exports.listExceptions = (callback) => {
 };
 
 exports.createException = (ex, callback) => {
-  db.query('INSERT INTO working_exceptions (exception_date, start_time, end_time, reason) VALUES (?, ?, ?, ?)',
-    [ex.exception_date, ex.start_time || null, ex.end_time || null, ex.reason || null], callback);
+  db.query('INSERT INTO working_exceptions (exception_date, start_time, end_time, break_start, break_end, reason) VALUES (?, ?, ?, ?, ?, ?)',
+    [ex.exception_date, ex.start_time || null, ex.end_time || null, ex.break_start || null, ex.break_end || null, ex.reason || null], callback);
 };
 
 exports.deleteException = (id, callback) => {

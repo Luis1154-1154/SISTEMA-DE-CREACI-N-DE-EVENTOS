@@ -64,8 +64,15 @@ function buildExceptionsText(exceptions) {
       const start = ex.start_time ? formatTime(ex.start_time) : null;
       const end = ex.end_time ? formatTime(ex.end_time) : null;
 
+      const breakStart = ex.break_start ? formatTime(ex.break_start) : null;
+      const breakEnd = ex.break_end ? formatTime(ex.break_end) : null;
+
       if (start && end) {
-        return `${dateStr}: atenderemos de ${start} a ${end}.`;
+        let text = `atenderemos de ${start} a ${end}`;
+        if (breakStart && breakEnd) {
+          text += ` (descanso ${breakStart} a ${breakEnd})`;
+        }
+        return `${dateStr}: ${text}.`;
       }
       return `${dateStr}: no habrá atención.`;
     });

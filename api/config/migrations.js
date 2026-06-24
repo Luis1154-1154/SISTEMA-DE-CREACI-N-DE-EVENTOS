@@ -136,12 +136,17 @@ async function ensureAppointmentSchema() {
         exception_date DATE NOT NULL,
         start_time TIME DEFAULT NULL,
         end_time TIME DEFAULT NULL,
+        break_start TIME DEFAULT NULL,
+        break_end TIME DEFAULT NULL,
         reason VARCHAR(255) DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     // Seed default appointment interval
     await query(`INSERT INTO clinic_settings (\`key\`, \`value\`) SELECT 'appointment_interval_minutes', '30' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM clinic_settings WHERE \`key\` = 'appointment_interval_minutes')`);
+    // Add missing columns for existing tables
+    try { await query(`ALTER TABLE working_exceptions ADD COLUMN break_start TIME DEFAULT NULL`); } catch (e) {}
+    try { await query(`ALTER TABLE working_exceptions ADD COLUMN break_end TIME DEFAULT NULL`); } catch (e) {}
   }
 
   await addColumnIfMissing('appointments', 'status', "status VARCHAR(20) NOT NULL DEFAULT 'pending'");

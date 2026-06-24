@@ -428,9 +428,11 @@ async function wireScheduleForms() {
       const date = String(document.getElementById('ex-date')?.value || '').trim();
       const s = String(document.getElementById('ex-start')?.value || '').trim();
       const e = String(document.getElementById('ex-end')?.value || '').trim();
+      const breakStart = String(document.getElementById('ex-break-start')?.value || '').trim();
+      const breakEnd = String(document.getElementById('ex-break-end')?.value || '').trim();
       if (!date) return showMessage(feedback, 'Fecha requerida');
       try {
-        await api.createScheduleException({ exception_date: date, start_time: s || null, end_time: e || null, reason: null });
+        await api.createScheduleException({ exception_date: date, start_time: s || null, end_time: e || null, break_start: breakStart || null, break_end: breakEnd || null, reason: null });
         showMessage(feedback, 'Excepción guardada', 'success');
         loadScheduleAdmin();
       } catch (err) {
