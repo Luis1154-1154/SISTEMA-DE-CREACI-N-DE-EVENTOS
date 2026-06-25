@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS working_exceptions (
   exception_date DATE NOT NULL,
   start_time TIME DEFAULT NULL,
   end_time TIME DEFAULT NULL,
+  break_start TIME DEFAULT NULL,
+  break_end TIME DEFAULT NULL,
   reason VARCHAR(255) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
